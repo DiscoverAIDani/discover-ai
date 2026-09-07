@@ -99,13 +99,23 @@ footer{background:var(--ink);color:#fff;padding:45px 0}.foot{display:flex;justif
 <section class="section altbg" id="book"><div class="wrap session">
 <div><div class="kicker">Let's discover something</div><h2>Request a Session</h2><p>Tell me a little about what you'd like to explore. I'll contact you to find a time and public meeting place.</p><p><strong>Email:</strong> <a href="mailto:daniellewilcott@gmail.com">daniellewilcott@gmail.com</a><br><strong>Call or text:</strong> <a href="tel:+19167687429">916-768-7429</a></p></div>
 <form action="https://formspree.io/f/mwlkrebk" method="POST" id="bookingForm">
-<label for="name">Name *</label><input id="name" required>
-<label for="email">Email *</label><input id="email" type="email" required>
-<label for="phone">Phone *</label><input id="phone" type="tel" required>
-<label for="interest">What would you like to explore?</label><textarea id="interest" placeholder="A hobby, trip, project, question, or anything you're curious about..."></textarea>
-<label for="times">Preferred days/times *</label><textarea id="times" required placeholder="Example: weekday mornings or Saturday afternoons"></textarea>
+<label for="name">Name *</label>
+<input id="name" name="name" required>
+
+<label for="email">Email *</label>
+<input id="email" name="email" type="email" required>
+
+<label for="phone">Phone *</label>
+<input id="phone" name="phone" type="tel" required>
+
+<label for="interest">What would you like to explore?</label>
+<textarea id="interest" name="interest" placeholder="A hobby, trip, project, question, or anything you're curious about..."></textarea>
+
+<label for="times">Preferred days/times *</label>
+<textarea id="times" name="times" required placeholder="Example: weekday mornings or Saturday afternoons"></textarea>
+
 <button class="btn" type="submit">Request a Session</button>
-<p class="notice">This form opens your email app to send your request. It does not collect or store passwords or account information.</p>
+<p class="notice">Your request will be sent securely to Danielle. No passwords or account information are collected.</p>
 </form>
 </div></section>
 
@@ -113,13 +123,6 @@ footer{background:var(--ink);color:#fff;padding:45px 0}.foot{display:flex;justif
 
 <script>
 
-const subject=encodeURIComponent('Discover AI — Session Request');
-const body=encodeURIComponent(`Name: ${document.getElementById('name').value}
-Email: ${document.getElementById('email').value}
-Phone: ${document.getElementById('phone').value}
-What I'd like to explore: ${document.getElementById('interest').value || 'Not specified'}
-Preferred days/times: ${document.getElementById('times').value}`);
-location.href=`mailto:daniellewilcott@gmail.com?subject=${subject}&body=${body}`;
-});
+
 </script>
 </body></html>
