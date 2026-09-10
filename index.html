@@ -1,37 +1,1308 @@
-<!-- DISCOVER AI GAME -->
-<section style="padding:70px 24px;background:#f7f3ea;text-align:center;">
-  <div style="max-width:850px;margin:0 auto;">
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <div style="font-size:15px;font-weight:700;letter-spacing:1px;color:#187f80;margin-bottom:12px;">
-      TRY DISCOVER AI
-    </div>
+<title>Discover AI | See what AI can do for you.</title>
 
-    <h2 style="font-size:42px;line-height:1.15;color:#17345f;margin:0 0 18px;">
-      Curious What AI Can Actually Do?
-    </h2>
+<meta name="description" content="Discover AI helps beginners learn how to use AI and ChatGPT in a simple, natural, practical way.">
 
-    <p style="font-size:19px;line-height:1.6;color:#4d5965;max-width:700px;margin:0 auto 28px;">
-      Try our free interactive AI discovery game.
-      No experience needed. Just choose something you're interested in
-      and start exploring.
-    </p>
+<style>
 
-    <a href="game.html"
-       style="display:inline-block;
-              background:#187f80;
-              color:white;
-              text-decoration:none;
-              font-weight:700;
-              font-size:18px;
-              padding:16px 30px;
-              border-radius:12px;">
-      🎮 Try the Discover AI Game →
-    </a>
+:root{
+  --ink:#18384b;
+  --green:#47755f;
+  --sage:#e4eee5;
+  --cream:#faf7ef;
+  --gold:#d5ae68;
+  --rose:#d89a96;
+  --white:#ffffff;
+  --line:#d9e0da;
+}
 
-    <p style="font-size:14px;color:#68747d;margin-top:18px;">
-      Simple • Fun • No Experience Needed
-    </p>
+*{
+  box-sizing:border-box;
+  scroll-behavior:smooth;
+}
 
-  </div>
+body{
+  margin:0;
+  background:var(--cream);
+  color:var(--ink);
+  font-family:Arial,sans-serif;
+  line-height:1.6;
+}
+
+a{
+  color:inherit;
+}
+
+.wrap{
+  max-width:1080px;
+  margin:auto;
+  padding:0 24px;
+}
+
+/* NAVIGATION */
+
+nav{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:rgba(250,247,239,.97);
+  border-bottom:1px solid var(--line);
+}
+
+.navin{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  min-height:70px;
+}
+
+.logo{
+  font:700 29px Georgia,serif;
+  text-decoration:none;
+}
+
+.logo span{
+  color:var(--green);
+}
+
+.navlinks{
+  display:flex;
+  gap:24px;
+}
+
+.navlinks a{
+  text-decoration:none;
+  font-weight:700;
+  font-size:14px;
+}
+
+.btn{
+  display:inline-block;
+  text-decoration:none;
+  background:var(--green);
+  color:white;
+  padding:13px 23px;
+  border-radius:28px;
+  font-weight:700;
+  border:0;
+  cursor:pointer;
+}
+
+.btn.alt{
+  background:var(--gold);
+  color:var(--ink);
+}
+
+/* HERO */
+
+.hero{
+  padding:86px 0 70px;
+  background:linear-gradient(135deg,var(--sage),var(--cream) 65%);
+}
+
+.hero-grid{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:55px;
+  align-items:center;
+}
+
+.kicker{
+  text-transform:uppercase;
+  letter-spacing:2px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--green);
+}
+
+h1,
+h2,
+h3{
+  font-family:Georgia,serif;
+  line-height:1.15;
+}
+
+h1{
+  font-size:58px;
+  margin:12px 0;
+}
+
+.hero h1 span{
+  color:var(--green);
+}
+
+.tag{
+  font:italic 25px Georgia,serif;
+  margin:0 0 22px;
+}
+
+.lead{
+  font-size:20px;
+  max-width:650px;
+}
+
+.hero-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:28px;
+}
+
+.visual{
+  min-height:360px;
+  border-radius:35px;
+  background:
+    radial-gradient(circle at 50% 42%,#ffffff 0 14%,transparent 15%),
+    linear-gradient(145deg,#cfe0d1,#dce8ed);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 18px 45px rgba(24,56,75,.12);
+  position:relative;
+  overflow:hidden;
+}
+
+.sun{
+  width:150px;
+  height:150px;
+  border-radius:50%;
+  background:#e5bf78;
+  opacity:.85;
+}
+
+.path{
+  position:absolute;
+  width:170px;
+  height:310px;
+  background:#f8f0dd;
+  bottom:-95px;
+  border-radius:50% 50% 0 0/70% 70% 0 0;
+  transform:rotate(3deg);
+}
+
+/* SECTIONS */
+
+.section{
+  padding:78px 0;
+}
+
+.section.altbg{
+  background:#ffffff;
+}
+
+.center{
+  text-align:center;
+}
+
+.section h2{
+  font-size:40px;
+  margin:0 0 14px;
+}
+
+.intro{
+  max-width:680px;
+  margin:0 auto 38px;
+  font-size:18px;
+}
+
+/* HOW IT WORKS */
+
+.steps{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px;
+}
+
+.card{
+  background:#ffffff;
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:24px;
+}
+
+.steps .card{
+  background:var(--cream);
+}
+
+.num{
+  font:700 32px Georgia,serif;
+  color:var(--gold);
+}
+
+/* DISCOVER */
+
+.explore{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.explore .card{
+  min-height:150px;
+}
+
+.icon{
+  font-size:30px;
+}
+
+.quote{
+  background:var(--sage);
+  padding:50px 30px;
+  text-align:center;
+  border-radius:28px;
+  margin-top:38px;
+}
+
+.quote p{
+  font:italic 28px Georgia,serif;
+  max-width:760px;
+  margin:auto;
+}
+
+/* GAME */
+
+.game-section{
+  padding:75px 24px;
+  background:#f7f3ea;
+  text-align:center;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+
+.game-box{
+  max-width:850px;
+  margin:auto;
+}
+
+.game-label{
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:1px;
+  color:#187f80;
+  margin-bottom:12px;
+}
+
+.game-section h2{
+  font-size:42px;
+  line-height:1.15;
+  color:#17345f;
+  margin:0 0 18px;
+}
+
+.game-text{
+  font-size:19px;
+  line-height:1.6;
+  color:#4d5965;
+  max-width:700px;
+  margin:0 auto 28px;
+}
+
+.game-button{
+  display:inline-block;
+  background:#187f80;
+  color:white;
+  text-decoration:none;
+  font-weight:700;
+  font-size:18px;
+  padding:16px 30px;
+  border-radius:12px;
+  transition:transform .15s ease;
+}
+
+.game-button:hover{
+  transform:translateY(-2px);
+}
+
+.game-note{
+  font-size:14px;
+  color:#68747d;
+  margin-top:18px;
+}
+
+/* SESSION */
+
+.session{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:25px;
+  align-items:start;
+}
+
+.price{
+  font:700 45px Georgia,serif;
+  color:var(--green);
+}
+
+ul{
+  padding-left:21px;
+}
+
+.details{
+  background:var(--cream);
+  border-radius:20px;
+  padding:26px;
+}
+
+/* ABOUT */
+
+.about{
+  display:grid;
+  grid-template-columns:.8fr 1.2fr;
+  gap:35px;
+  align-items:center;
+}
+
+.aboutbox{
+  background:var(--sage);
+  border-radius:25px;
+  padding:30px;
+}
+
+/* FAQ */
+
+.faqgrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:18px;
+}
+
+/* BOOKING */
+
+form{
+  background:#ffffff;
+  border:1px solid var(--line);
+  padding:28px;
+  border-radius:20px;
+}
+
+label{
+  display:block;
+  font-weight:700;
+  margin:14px 0 6px;
+}
+
+input,
+textarea{
+  width:100%;
+  padding:13px;
+  border:1px solid #bbc8c0;
+  border-radius:10px;
+  font:inherit;
+}
+
+textarea{
+  min-height:105px;
+}
+
+.notice{
+  font-size:13px;
+  color:#5b6870;
+}
+
+/* FOOTER */
+
+footer{
+  background:var(--ink);
+  color:#ffffff;
+  padding:45px 0;
+}
+
+.foot{
+  display:flex;
+  justify-content:space-between;
+  gap:30px;
+  flex-wrap:wrap;
+}
+
+.contact a{
+  color:#ffffff;
+}
+
+/* MOBILE */
+
+@media(max-width:780px){
+
+  .navlinks{
+    display:none;
+  }
+
+  .hero{
+    padding:58px 0 45px;
+  }
+
+  .hero-grid,
+  .session,
+  .about{
+    grid-template-columns:1fr;
+  }
+
+  .hero h1{
+    font-size:45px;
+  }
+
+  .visual{
+    min-height:260px;
+  }
+
+  .steps,
+  .explore{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .faqgrid{
+    grid-template-columns:1fr;
+  }
+
+  .section{
+    padding:58px 0;
+  }
+
+}
+
+@media(max-width:480px){
+
+  .wrap{
+    padding:0 17px;
+  }
+
+  .steps,
+  .explore{
+    grid-template-columns:1fr;
+  }
+
+  .hero h1{
+    font-size:39px;
+  }
+
+  .section h2{
+    font-size:32px;
+  }
+
+  .game-section h2{
+    font-size:34px;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- NAVIGATION -->
+
+<nav>
+
+<div class="wrap navin">
+
+<a class="logo" href="#top">
+Discover<span>AI</span>
+</a>
+
+<div class="navlinks">
+
+<a href="#about">About</a>
+
+<a href="#how">How It Works</a>
+
+<a href="#game">AI Game</a>
+
+<a href="#faq">FAQ</a>
+
+<a href="#book">Contact</a>
+
+</div>
+
+<a class="btn" href="#book">
+Book a Session
+</a>
+
+</div>
+
+</nav>
+
+
+<!-- HERO -->
+
+<header class="hero" id="top">
+
+<div class="wrap hero-grid">
+
+<div>
+
+<div class="kicker">
+One-on-one AI coaching
+</div>
+
+<h1>
+Discover <span>AI.</span>
+</h1>
+
+<p class="tag">
+See what AI can do for you.
+</p>
+
+<p class="lead">
+You don't have to be tech-savvy.
+You don't need the perfect prompt.
+You just need to know what you want to explore.
+</p>
+
+<p>
+We'll start with something that matters to
+<strong>you</strong>—
+then learn how to talk with AI to make it happen.
+</p>
+
+<div class="hero-actions">
+
+<a class="btn" href="#book">
+Book a $50 Session
+</a>
+
+<a class="btn alt" href="#how">
+See How It Works
+</a>
+
+</div>
+
+</div>
+
+
+<div class="visual" aria-label="Sunrise and path illustration">
+
+<div class="sun"></div>
+
+<div class="path"></div>
+
+</div>
+
+</div>
+
+</header>
+
+
+<!-- HOW IT WORKS -->
+
+<section class="section" id="how">
+
+<div class="wrap center">
+
+<h2>
+How Discover AI Works
+</h2>
+
+<p class="intro">
+This isn't a computer class.
+It's a conversation—
+about what you want to do, learn,
+plan, understand, or create.
+</p>
+
+<div class="steps">
+
+
+<div class="card">
+
+<div class="num">
+01
+</div>
+
+<h3>
+Start with you
+</h3>
+
+<p>
+We'll talk about your interests,
+goals, and how you like to learn.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="num">
+02
+</div>
+
+<h3>
+Talk to AI
+</h3>
+
+<p>
+You type. You ask. You explore.
+I'll coach you without taking over.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="num">
+03
+</div>
+
+<h3>
+Learn to steer
+</h3>
+
+<p>
+Ask AI to simplify, explain,
+show examples, change format,
+or try again.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="num">
+04
+</div>
+
+<h3>
+Take the wheel
+</h3>
+
+<p>
+By the end, you'll practice
+using AI on your own.
+</p>
+
+</div>
+
+
+</div>
+
+
+<div class="quote">
+
+<p>
+“You don't have to know the way.
+You just need to know where you want to go.”
+</p>
+
+</div>
+
+</div>
+
 </section>
-<!-- END DISCOVER AI GAME -->
+
+
+<!-- WHAT AI CAN DO -->
+
+<section class="section altbg">
+
+<div class="wrap center">
+
+<h2>
+What Could You Discover?
+</h2>
+
+<p class="intro">
+Bring something you're curious about.
+There are no silly questions.
+</p>
+
+
+<div class="explore">
+
+
+<div class="card">
+
+<div class="icon">🌱</div>
+
+<h3>
+Hobbies & Interests
+</h3>
+
+<p>
+Gardening, crafts, cooking,
+photography, and more.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="icon">✈️</div>
+
+<h3>
+Travel & Planning
+</h3>
+
+<p>
+Explore destinations, ideas,
+itineraries, and possibilities.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="icon">📚</div>
+
+<h3>
+Learning & Research
+</h3>
+
+<p>
+Break complicated topics
+into understandable pieces.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="icon">🎨</div>
+
+<h3>
+Creative Projects
+</h3>
+
+<p>
+Brainstorm, write, organize,
+design, and explore ideas.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="icon">🏠</div>
+
+<h3>
+Everyday Projects
+</h3>
+
+<p>
+Use AI as a helpful tool
+for everyday tasks and ideas.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="icon">💡</div>
+
+<h3>
+Something Else
+</h3>
+
+<p>
+Not sure?
+That's okay.
+We can figure out what to ask.
+</p>
+
+</div>
+
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- DISCOVER AI GAME -->
+
+<section class="game-section" id="game">
+
+<div class="game-box">
+
+<div class="game-label">
+TRY DISCOVER AI
+</div>
+
+<h2>
+Curious What AI Can Actually Do?
+</h2>
+
+<p class="game-text">
+Try our free interactive AI discovery game.
+No experience needed.
+Just choose something you're interested in
+and start exploring.
+</p>
+
+<a class="game-button" href="game.html">
+🎮 Try the Discover AI Game →
+</a>
+
+<p class="game-note">
+Simple • Fun • No Experience Needed
+</p>
+
+</div>
+
+</section>
+
+
+<!-- SESSION -->
+
+<section class="section" id="session">
+
+<div class="wrap session">
+
+<div>
+
+<div class="kicker">
+AI Discovery Session
+</div>
+
+<h2>
+Come curious.
+Leave confident.
+</h2>
+
+<p class="lead">
+A relaxed, one-on-one session built around
+something you actually care about.
+</p>
+
+<div class="price">
+$50
+</div>
+
+<p>
+<strong>
+60 minutes · Cash only
+</strong>
+</p>
+
+</div>
+
+
+<div class="details">
+
+<h3>
+What's included?
+</h3>
+
+<ul>
+
+<li>
+One-on-one conversational coaching
+</li>
+
+<li>
+Learning tailored to your comfort level
+</li>
+
+<li>
+Hands-on practice using AI
+</li>
+
+<li>
+Simple strategies you can use afterward
+</li>
+
+<li>
+Meet at a mutually agreed-upon public location,
+such as a library or coffee shop
+</li>
+
+</ul>
+
+<p>
+
+<strong>
+Bring:
+</strong>
+
+your phone, tablet, or laptop
+and your curiosity.
+
+No experience required.
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ABOUT -->
+
+<section class="section altbg" id="about">
+
+<div class="wrap about">
+
+<div class="aboutbox">
+
+<div class="kicker">
+Meet Danielle
+</div>
+
+<h2>
+AI Communicator & Coach
+</h2>
+
+<p>
+
+<strong>
+My goal is simple:
+</strong>
+
+help people realize what a powerful
+and helpful tool AI can be.
+
+</p>
+
+</div>
+
+
+<div>
+
+<p>
+I don't believe you need to become
+“a tech person” to use AI.
+
+You already know how to talk to another person—
+you can start there.
+</p>
+
+<p>
+We'll work from what you want or need,
+then work backwards.
+
+If AI gives you too much,
+we'll simplify it.
+
+If it gets something wrong,
+we'll correct it.
+
+If you don't know what to ask,
+we'll ask AI to help us figure that out.
+</p>
+
+<p>
+
+<strong>
+Your curiosity is the starting point.
+</strong>
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- FAQ -->
+
+<section class="section" id="faq">
+
+<div class="wrap center">
+
+<h2>
+Questions?
+</h2>
+
+<div class="faqgrid">
+
+
+<div class="card">
+
+<h3>
+Do I need AI experience?
+</h3>
+
+<p>
+No.
+
+This is designed for beginners
+and people who aren't comfortable
+with technology.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Where do we meet?
+</h3>
+
+<p>
+Public locations such as local libraries
+or coffee shops.
+
+No home visits.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+What should I bring?
+</h3>
+
+<p>
+Your own device,
+your login/account,
+and something you'd like to explore.
+
+No preparation required.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+How do I pay?
+</h3>
+
+<p>
+Sessions are $50
+and payment is cash only.
+</p>
+
+</div>
+
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- BOOKING -->
+
+<section class="section altbg" id="book">
+
+<div class="wrap session">
+
+<div>
+
+<div class="kicker">
+Let's discover something
+</div>
+
+<h2>
+Request a Session
+</h2>
+
+<p>
+Tell me a little about what you'd like to explore.
+
+I'll contact you to find a time
+and public meeting place.
+</p>
+
+<p>
+
+<strong>
+Email:
+</strong>
+
+<a href="mailto:daniellewilcott@gmail.com">
+daniellewilcott@gmail.com
+</a>
+
+<br>
+
+<strong>
+Call or text:
+</strong>
+
+<a href="tel:+19167687429">
+916-768-7429
+</a>
+
+</p>
+
+</div>
+
+
+<form id="bookingForm">
+
+<label for="name">
+Name *
+</label>
+
+<input
+id="name"
+required
+>
+
+
+<label for="email">
+Email *
+</label>
+
+<input
+id="email"
+type="email"
+required
+>
+
+
+<label for="phone">
+Phone *
+</label>
+
+<input
+id="phone"
+type="tel"
+required
+>
+
+
+<label for="interest">
+What would you like to explore?
+</label>
+
+<textarea
+id="interest"
+placeholder="A hobby, trip, project, question, or anything you're curious about..."
+></textarea>
+
+
+<label for="times">
+Preferred days/times *
+</label>
+
+<textarea
+id="times"
+required
+placeholder="Example: weekday mornings or Saturday afternoons"
+></textarea>
+
+
+<button
+class="btn"
+type="submit"
+>
+Request a Session
+</button>
+
+
+<p class="notice">
+This form opens your email app to send your request.
+It does not collect or store passwords
+or account information.
+</p>
+
+</form>
+
+</div>
+
+</section>
+
+
+<!-- FOOTER -->
+
+<footer>
+
+<div class="wrap foot">
+
+<div>
+
+<div class="logo">
+Discover<span>AI</span>
+</div>
+
+<p>
+See what AI can do for you.
+</p>
+
+</div>
+
+
+<div class="contact">
+
+<strong>
+Danielle Wilcott
+</strong>
+
+<br>
+
+<a href="mailto:daniellewilcott@gmail.com">
+daniellewilcott@gmail.com
+</a>
+
+<br>
+
+<a href="tel:+19167687429">
+916-768-7429
+</a>
+
+</div>
+
+</div>
+
+</footer>
+
+
+<!-- BOOKING SCRIPT -->
+
+<script>
+
+document
+.getElementById('bookingForm')
+.addEventListener('submit',function(e){
+
+e.preventDefault();
+
+const subject =
+encodeURIComponent(
+'Discover AI — Session Request'
+);
+
+const body =
+encodeURIComponent(
+
+`Name: ${document.getElementById('name').value}
+
+Email: ${document.getElementById('email').value}
+
+Phone: ${document.getElementById('phone').value}
+
+What I'd like to explore: ${
+document.getElementById('interest').value ||
+'Not specified'
+}
+
+Preferred days/times: ${
+document.getElementById('times').value
+}`
+
+);
+
+location.href =
+`mailto:daniellewilcott@gmail.com?subject=${subject}&body=${body}`;
+
+});
+
+</script>
+
+
+</body>
+</html>
