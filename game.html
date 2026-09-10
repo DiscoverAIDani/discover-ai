@@ -138,6 +138,7 @@ function start(){
   setChoices(["🌱 Everyday life","✈️ Travel","📚 Learn something","🎨 Create something","🔧 Help me solve a problem","💡 I'm not sure"]);
 
   const board=document.createElement("div");
+  board.id="categoryExamples";
   board.className="example-grid";
   board.innerHTML=`
     <div class="example-card"><div class="icon">🌱</div><b>Everyday life</b><p>Groceries, dinner, organizing your week, or solving a problem.</p></div>
@@ -149,6 +150,53 @@ function start(){
 }
 start();
 
+function updateCategoryExamples(category){
+  const board=document.getElementById("categoryExamples");
+  if(!board)return;
+
+  const sets={
+    problem:[
+      ["🔧","Solve a problem","High gas bill, a confusing bill, something that isn't working, or a decision you're trying to make."],
+      ["💰","Save money","Find ways to lower a bill, compare costs, or make a budget."],
+      ["📝","Make a plan","Turn something you're dealing with into simple next steps."],
+      ["❓","Understand what's happening","Ask AI to help you figure out why something is happening."]
+    ],
+    travel:[
+      ["🗺️","Plan a trip","Build an itinerary, compare options, or organize your travel."],
+      ["🍽️","Find places to eat","Find restaurants based on location, food, budget, and preferences."],
+      ["📍","Find things nearby","Discover places, activities, or services near you."],
+      ["📅","Plan your day","Put sightseeing, meals, and activities into an easy schedule."]
+    ],
+    learn:[
+      ["📖","Explain it simply","Ask AI to explain a topic in everyday language."],
+      ["🔎","Give me an example","See a real-world example so the idea makes more sense."],
+      ["👣","Teach me step by step","Learn how to do something one step at a time."],
+      ["🧠","Help me practice","Quiz yourself, review what you learned, or practice together."]
+    ],
+    create:[
+      ["💭","Give me ideas","Brainstorm ideas for a project, card, story, meal, or activity."],
+      ["⭐","Help me choose","Compare ideas and decide which one fits you best."],
+      ["📝","Help me make a plan","Turn an idea into simple, doable steps."],
+      ["✨","Help me improve it","Ask AI for suggestions to make your idea better."]
+    ],
+    open:[
+      ["💡","Show me possibilities","Ask AI what it can help you with."],
+      ["❓","Help me figure it out","Start with a question even if you aren't sure what to ask."],
+      ["🧭","Help me find a direction","Talk through an idea, concern, or project and find a useful next step."],
+      ["🌱","Start small","Give AI one simple thing you're thinking about and build from there."]
+    ]
+  };
+
+  const items=sets[category] || sets.open;
+  board.innerHTML=items.map(item=>`
+    <div class="example-card">
+      <div class="icon">${item[0]}</div>
+      <b>${item[1]}</b>
+      <p>${item[2]}</p>
+    </div>
+  `).join("");
+}
+
 function handle(raw,fromChoice=false){
   const text=String(raw).trim();
   if(!text)return;
@@ -159,6 +207,7 @@ function handle(raw,fromChoice=false){
   if(state.stage==="start"){
     if(/travel|trip|vacation|hotel|flight|destination/i.test(text)){
       state.category="travel";
+      updateCategoryExamples("travel");
       state.stage="topic";
       say("Great — let's use travel as our example. What are you thinking about?");
       setProgress("Step 1: Tell AI what you have in mind.");
@@ -167,6 +216,7 @@ function handle(raw,fromChoice=false){
     }
     if(/learn|study|understand|research|something/i.test(text)){
       state.category="learn";
+      updateCategoryExamples("learn");
       state.stage="topic";
       say("Perfect. What would you like to learn or understand?");
       setProgress("Step 1: Tell AI what you're curious about.");
@@ -174,6 +224,7 @@ function handle(raw,fromChoice=false){
     }
     if(/create|write|idea|project/i.test(text)){
       state.category="create";
+      updateCategoryExamples("create");
       state.stage="topic";
       say("I like that. What would you like to create or work on?");
       setProgress("Step 1: Tell AI what you want to make.");
@@ -181,6 +232,7 @@ function handle(raw,fromChoice=false){
     }
     if(/problem|solve|bill|cost|organize|fix|help/i.test(text)){
       state.category="problem";
+      updateCategoryExamples("problem");
       state.stage="topic";
       say("That's a great place to start.\n\nTell me a little about the problem. It can be as simple as a few words.");
       setProgress("Step 1: Tell AI what's going on.");
@@ -188,12 +240,14 @@ function handle(raw,fromChoice=false){
     }
     if(/not sure/i.test(text)){
       state.category="open";
+      updateCategoryExamples("open");
       state.stage="topic";
       say("That's completely okay. Tell me one thing you're curious about, worried about, planning, or trying to figure out.");
       setProgress("Step 1: Give AI something to work with.");
       return;
     }
     state.category="open";
+    updateCategoryExamples("open");
     state.stage="topic";
     say("That's a great place to start. Tell me a little more about what you'd like help with.");
     setProgress("Step 1: Give AI something to work with.");
@@ -212,6 +266,16 @@ function handle(raw,fromChoice=false){
     }
 
     if(state.category==="travel"){
+      // Recognize common travel requests as intents, not just as a new topic.
+      if(/places to eat|restaurant|restaurants|food|eat/i.test(text)){
+        state.topic="finding places to eat";
+        state.stage="restaurantGoal";
+        say("Absolutely. I can help you find places to eat.\n\nWhat are you looking for?");
+        setProgress("Step 2: Tell AI what kind of food or restaurant you want.");
+        setChoices(["Find ideas","Something inexpensive","A specific kind of food","Something near me"]);
+        return;
+      }
+
       state.stage="travelGoal";
       say("Great. What would you like AI to help you do with "+text+"?");
       setChoices(["Make a plan","Compare options","Find ideas","I'm not sure yet"]);
@@ -221,7 +285,7 @@ function handle(raw,fromChoice=false){
     if(state.category==="learn"){
       state.stage="learnGoal";
       say("Great. What would make learning about "+text+" useful to you?");
-      setChoices(["Explain it simply","Give me examples","Help me study","I'm not sure yet"]);
+      setChoices(["Explain it simply","Give me examples","Teach me step by step","Help me practice","I'm not sure yet"]);
       return;
     }
 
@@ -238,6 +302,108 @@ function handle(raw,fromChoice=false){
     return;
   }
 
+  if(state.stage==="restaurantGoal"){
+    state.goal=text;
+
+    if(/find ideas/i.test(x)){
+      state.stage="restaurantDetails";
+      say('Sure. Let\'s find some restaurant ideas.\n\nTo make the suggestions useful, tell me where you want to eat. You can give me a city, neighborhood, hotel, or say "near me".');
+      setProgress("Step 3: Give AI your location.");
+      return;
+    }
+
+    if(/inexpensive|cheap|budget|affordable/i.test(x)){
+      state.stage="restaurantDetails";
+      say("Absolutely. Let's look for affordable places to eat.\n\nWhere are you looking?");
+      setProgress("Step 3: Give AI your location.");
+      return;
+    }
+
+    if(/specific kind|type of food|italian|mexican|seafood|thai|chinese|pizza|burger/i.test(x)){
+      state.stage="restaurantDetails";
+      say("Great. What kind of food are you in the mood for, and where are you looking?");
+      setProgress("Step 3: Give AI your food preference and location.");
+      return;
+    }
+
+    if(/near me|nearby|close/i.test(x)){
+      state.stage="restaurantDetails";
+      say("Sure. I can help you look for places nearby. What city, neighborhood, hotel, or landmark are you near?");
+      setProgress("Step 3: Give AI your location.");
+      return;
+    }
+
+    state.stage="restaurantDetails";
+    say("Got it. Let's narrow that down so the ideas actually fit you.\n\nWhat city or area are you looking in?");
+    setProgress("Step 3: Give AI one useful detail.");
+    return;
+  }
+
+  if(state.stage==="restaurantDetails"){
+    state.goal = state.goal || "find restaurant ideas";
+    state.stage="restaurantResult";
+
+    const loc = text;
+    if(/near me|nearby/i.test(x)){
+      say(`Great — I'll use your nearby area as the starting point.\n\nFor a real AI conversation, you could now add a preference such as cuisine, price, atmosphere, or how far you're willing to travel.\n\nFor example: "Find a casual seafood restaurant within 10 minutes of me."`);
+    } else {
+      say(`Perfect. Now we have a location: ${loc}.\n\nA strong next step is to add one preference — cuisine, price, atmosphere, or distance.\n\nFor example: "Find a casual seafood restaurant in ${loc} under $30 per person."`);
+    }
+    setProgress("Step 4: AI used your earlier answers to make the request more specific.");
+    setChoices(["Add a food preference","Keep it inexpensive","Find something casual","Make that simpler"]);
+    return;
+  }
+
+  if(state.stage==="restaurantResult"){
+    if(/food preference|seafood|italian|mexican|thai|chinese|pizza|burger|kind of food/i.test(x)){
+      say("Great. Now the request is becoming specific. You can tell AI the cuisine you want, and it can use that along with your location to narrow the choices.");
+      setChoices(["Add my budget","Add an atmosphere","Find the best options","Make that simpler"]);
+      return;
+    }
+    if(/inexpensive|budget|cheap|affordable/i.test(x)){
+      say(`Good. Adding a budget gives AI another filter. You could say something like: "Keep it under $30 per person."`);
+      setChoices(["Add a food preference","Add an atmosphere","Find the best options"]);
+      return;
+    }
+    if(/casual|atmosphere/i.test(x)){
+      say("Nice. Now AI knows the kind of atmosphere you want too. The more useful details you give it, the more tailored the suggestions can become.");
+      setChoices(["Add a budget","Add a food preference","Find the best options"]);
+      return;
+    }
+    if(/simpler/i.test(x)){
+      say("In simple terms: tell AI where you are, what kind of food you want, and about how much you want to spend. Then ask it to find restaurant ideas that fit.");
+      setChoices(["Add a food preference","Add my budget","Find the best options"]);
+      return;
+    }
+    say("Exactly. You can keep adding details until the request fits what you're actually looking for.");
+    setChoices(["Add a food preference","Add my budget","Find the best options"]);
+    return;
+  }
+
+  if(state.stage==="learnResult"){
+    if(/step 1|do step 1|first step/i.test(x)){
+      say("Let's do it. Step 1 is to identify exactly what you want to accomplish with "+state.topic+". Once you tell me that, AI can make the next step specific to you.");
+      setProgress("Step 4: You give AI a detail, and it adapts.");
+      setChoices(["I want to learn the basics","I want to actually do it","Give me an example"]);
+      return;
+    }
+    if(/example/i.test(x)){
+      say("Here's the pattern: tell AI what you want to learn, ask for one step at a time, try the step, and then tell AI what happened. AI can adjust the next step based on your answer.");
+      setChoices(["Let's do step 1","Make that simpler","Give me another example"]);
+      return;
+    }
+    if(/easier|simpler/i.test(x)){
+      say("No problem. We'll use smaller steps. First: tell me what you want to be able to do. Second: I'll give you just the next step. Third: you try it. Then we continue.");
+      setChoices(["Let's do step 1","Give me an example"]);
+      return;
+    }
+    if(/yes|easy|question/i.test(x)){
+      say("Here's your first practice question: In your own words, what is one thing you already know about "+state.topic+"?");
+      setProgress("Step 4: You answer, and AI responds to your answer.");
+      return;
+    }
+  }
+
   if(state.stage==="problemGoal"){
     const lower=/lower|save|reduce|cheaper|cost/i.test(text);
     const why=/why|understand|reason|cause/i.test(text);
@@ -247,7 +413,7 @@ function handle(raw,fromChoice=false){
 
     if(lower){
       state.stage="problemDetails";
-      say("Absolutely. Let's focus on lowering your **"+state.topic+"**.\n\nA good next question is whether the increase came from using more gas, a change in the rate, or both.\n\nDo you know if your usage went up?");
+      say("Absolutely. Let's focus on lowering your "+state.topic+".\n\nA good next question is whether the increase came from using more gas, a change in the rate, or both.\n\nDo you know if your usage went up?");
       setProgress("Step 3: Give AI one useful detail.");
       setChoices(["Yes, usage went up","No, usage is about the same","I'm not sure"]);
       return;
@@ -255,7 +421,7 @@ function handle(raw,fromChoice=false){
 
     if(why){
       state.stage="problemDetails";
-      say("Let's figure out what changed with your **"+state.topic+"**.\n\nDo you have a recent bill you can compare with an earlier bill?");
+      say("Let's figure out what changed with your "+state.topic+".\n\nDo you have a recent bill you can compare with an earlier bill?");
       setProgress("Step 3: Add one useful detail.");
       setChoices(["Yes, I can compare them","No","I'm not sure"]);
       return;
@@ -263,13 +429,13 @@ function handle(raw,fromChoice=false){
 
     if(plan){
       state.stage="problemDetails";
-      say("Let's turn your **"+state.topic+"** into a simple plan.\n\nWhat's the biggest thing you want the plan to accomplish?");
+      say("Let's turn your "+state.topic+" into a simple plan.\n\nWhat's the biggest thing you want the plan to accomplish?");
       setProgress("Step 3: Define the outcome.");
       return;
     }
 
     state.stage="problemDetails";
-    say("We can work with that. What is the most important result you want from solving **"+state.topic+"**?");
+    say("We can work with that. What is the most important result you want from solving "+state.topic+"?");
     setProgress("Step 3: Define the outcome.");
     return;
   }
@@ -297,11 +463,45 @@ function handle(raw,fromChoice=false){
 
   if(state.stage==="travelGoal"||state.stage==="learnGoal"||state.stage==="createGoal"||state.stage==="openGoal"){
     state.goal=text;
+
+    if(state.category==="learn"){
+      const wantsSteps=/step by step|steps|teach me how|how do i|show me how/i.test(text);
+      const wantsSimple=/explain.*simple|simple terms|simpler/i.test(text);
+      const wantsExample=/example/i.test(text);
+      const wantsPractice=/practice|quiz|test me|study/i.test(text);
+
+      if(wantsSteps){
+        state.stage="learnResult";
+        say("Absolutely. Let's actually learn it together.\n\nHere's the kind of answer AI can give when you ask for step-by-step help with "+state.topic+":\n\n1. Start with the basics.\n2. Do the first small action.\n3. Check what happened.\n4. Move to the next step.\n5. Practice it once more.\n\nNow let's make those steps specific to "+state.topic+". What is the first thing you want to be able to do?");
+        setProgress("Step 3: AI gave you an actual result — now you can keep going.");
+        setChoices(["Let's do step 1","Show me a simple example","Make the steps easier"]);
+      } else if(wantsSimple){
+        state.stage="learnResult";
+        say("Sure. I'll explain "+state.topic+" in everyday language first, then we can add details only if you want them.");
+        setProgress("Step 3: AI gave you an actual explanation.");
+        setChoices(["Give me an example","Teach me step by step","Tell me more"]);
+      } else if(wantsExample){
+        state.stage="learnResult";
+        say("Here's how we can make "+state.topic+" easier to understand: I'll give you a real-world example, explain why it works, and then let you try one yourself.");
+        setProgress("Step 3: AI gave you an actual example.");
+        setChoices(["Give me another example","Teach me step by step","Make that simpler"]);
+      } else if(wantsPractice){
+        state.stage="learnResult";
+        say("Great. Let's practice "+state.topic+". I'll give you a short question, you answer in your own words, and then I'll help you improve the answer.\n\nReady for your first question?");
+        setProgress("Step 3: AI turned the topic into practice.");
+        setChoices(["Yes, ask me a question","Give me an easy one","Make that simpler"]);
+      } else {
+        state.stage="learnResult";
+        say("Perfect. AI now knows both the subject and what you want from it. Let's turn that into something useful. What would you like to do with "+state.topic+"?");
+        setProgress("Step 3: Turn the topic into a useful result.");
+        setChoices(["Teach me step by step","Give me an example","Explain it simply"]);
+      }
+      return;
+    }
+
     state.stage="finish";
     if(state.category==="travel"){
-      say("Great. Now you've given AI a topic and a goal. A strong next move would be to add a detail such as your dates, budget, location, or preferences.\n\nThat's how you steer AI toward an answer that actually fits you.");
-    } else if(state.category==="learn"){
-      say("Perfect. Now AI knows both the subject and what you want from it. You could next ask for a simpler explanation, an example, a comparison, or a short practice exercise.");
+      say("Great. Now AI knows what you're trying to do. The next step is to give it a useful detail such as your dates, location, budget, or preferences so it can give you ideas that actually fit.");
     } else if(state.category==="create"){
       say("Excellent. You just gave AI a project and a goal. From here you can ask for ideas, a first draft, a checklist, or a step-by-step plan.");
     } else {
