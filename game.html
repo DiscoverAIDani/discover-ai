@@ -3,498 +3,411 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Discover AI — Conversation Game</title>
+<title>Discover AI — Let's Talk to AI</title>
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#f5f1e7;color:#20314a}.app{max-width:850px;margin:auto;padding:20px}
-header,main{background:#fff;border-radius:22px;padding:22px;box-shadow:0 6px 20px #0001}header{display:flex;justify-content:space-between;align-items:center}.brand{font-size:28px;font-weight:800;color:#17345f}.brand span{color:#187f80}.score{background:#dcefe4;padding:9px 14px;border-radius:20px;font-weight:bold}main{margin-top:18px}h1,h2{color:#17345f}.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}button{padding:15px;border:2px solid #d9e1e8;border-radius:14px;background:#fff;font-size:16px;font-weight:bold;cursor:pointer}button:hover{border-color:#187f80}.primary{background:#187f80;color:#fff;border-color:#187f80}.tip{background:#fff3c9;padding:14px;border-radius:14px;margin:15px 0}.chat{margin:20px 0}.bubble{padding:15px 18px;border-radius:18px;margin:12px 0;max-width:78%;line-height:1.5}.ai{background:#dcefe4}.you{background:#f8d8df;margin-left:auto}textarea{width:100%;min-height:90px;padding:14px;border:2px solid #ccd7df;border-radius:14px;font:16px Arial;box-sizing:border-box}.row{display:flex;gap:10px;margin-top:10px}.quick{margin:16px 0;padding:12px;border-top:1px solid #e3e9ef}.quick .choices{margin-top:10px}.hint-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.hint-card{border:1px solid #dce4ea;border-radius:14px;overflow:hidden;background:#fff}.hint-art{width:100%;height:125px;display:block}.hint-copy{padding:11px}.hint-copy b{display:block;margin-bottom:6px}.hint-try{width:100%;padding:10px;text-align:left;font-size:14px}.hint-note{font-size:14px;color:#5f6b73}@media(max-width:650px){.choices,.hint-grid{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start;gap:10px}.bubble{max-width:90%}}
+:root{--navy:#17345f;--teal:#187f80;--sage:#e5eee6;--cream:#faf7ef;--gold:#d8b46a;--text:#33424d;--white:#fff;--line:#d8dfda}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--text);font-family:Arial,sans-serif;line-height:1.55}
+.wrap{max-width:900px;margin:auto;padding:0 20px}
+header{background:linear-gradient(135deg,var(--sage),var(--cream));padding:34px 20px 28px;border-bottom:1px solid var(--line)}
+.brand{font:700 28px Georgia,serif;color:var(--navy)}
+.brand span{color:var(--teal)}
+header p{margin:7px 0 0}
+main{padding:28px 0 60px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 10px 30px rgba(23,52,95,.07)}
+.top{padding:24px 26px;border-bottom:1px solid var(--line)}
+.top h1{font:700 32px Georgia,serif;color:var(--navy);margin:0 0 7px}
+.top p{margin:0}
+.chat{padding:24px;min-height:390px;max-height:560px;overflow-y:auto;background:#fff}
+.msg{display:flex;margin:0 0 18px}
+.msg.ai{justify-content:flex-start}
+.msg.user{justify-content:flex-end}
+.bubble{max-width:76%;padding:14px 17px;border-radius:18px;white-space:pre-wrap}
+.ai .bubble{background:var(--sage);border-top-left-radius:5px}
+.user .bubble{background:var(--teal);color:#fff;border-top-right-radius:5px}
+.who{font-size:12px;font-weight:700;margin-bottom:4px;opacity:.8}
+.controls{padding:18px 20px;border-top:1px solid var(--line);background:var(--cream)}
+.choices{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:12px}
+.choice{border:1px solid #9fb8b3;background:#fff;color:var(--navy);padding:10px 14px;border-radius:20px;font-weight:700;cursor:pointer}
+.choice:hover{background:var(--sage)}
+.row{display:flex;gap:10px}
+textarea{flex:1;resize:none;min-height:50px;border:1px solid #b8c8c2;border-radius:13px;padding:13px;font:inherit}
+.send{border:0;border-radius:13px;background:var(--teal);color:#fff;font-weight:700;padding:0 20px;cursor:pointer}
+.hint{margin-top:10px;border:0;background:none;color:var(--teal);font-weight:700;cursor:pointer}
+.restart{display:none;margin:18px auto 0;border:0;background:var(--gold);color:var(--navy);font-weight:700;padding:12px 18px;border-radius:12px;cursor:pointer}
+.progress{font-size:13px;color:#66737b;margin-top:9px}
+@media(max-width:600px){.bubble{max-width:88%}.row{align-items:stretch}.send{padding:0 14px}.chat{min-height:430px}}
+
+.hint-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
+.hint-card{background:#fff;border:1px solid #d8dfda;border-radius:16px;overflow:hidden;text-align:left;box-shadow:0 3px 10px rgba(23,52,95,.06)}
+.hint-art{width:100%;height:135px;display:block;background:#f6f3ea}
+.hint-copy{padding:12px 13px 14px}
+.hint-copy b{display:block;color:#17345f;margin-bottom:6px}
+.hint-try{display:block;width:100%;margin-top:9px;padding:10px 12px;border:1px solid #c7d9d5;border-radius:10px;background:#fff;color:#17345f;font-size:14px;font-weight:600;text-align:left;cursor:pointer}
+.hint-try:hover{border-color:#187f80;background:#f5fbfa}
+.hint-note{margin:15px 0 0;color:#66737b;font-size:14px}
+.example-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.example-card{border:1px solid #d8dfda;border-radius:15px;background:#fbfaf6;padding:15px;text-align:left}
+.example-card .icon{font-size:28px;margin-bottom:7px}
+.example-card b{display:block;color:#17345f;margin-bottom:4px}
+.example-card p{margin:0;font-size:14px}
+@media(max-width:650px){.hint-grid,.example-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
-<div class="app"><header><div><div class="brand">DISCOVER <span>AI</span></div><small>See what AI can do for you.</small></div><div class="score">Confidence: <span id="score">0</span></div></header><main id="screen"></main></div>
-<script>
-let score=0,topic="",turns=0,subject="";
-const topics=[
-["🌱","Everyday Life","Get help with something in your day-to-day life."],
-["✈️","Travel","Plan a trip or find something fun to do."],
-["📚","Learn Something New","Understand a topic or learn a new skill."],
-["🎨","Create Something","Come up with an idea or make something."],
-["💡","I'm Not Sure","Show me some ideas."]
-];
+<header>
+  <div class="wrap">
+    <div class="brand">Discover<span>AI</span></div>
+    <p>See what AI can do for you.</p>
+  </div>
+</header>
 
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
-function attr(s){return String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ")}
-function show(html){document.getElementById("screen").innerHTML=html;document.getElementById("score").textContent=score}
+<main>
+<div class="wrap">
+<section class="panel">
+  <div class="top">
+    <h1>Let's Talk to AI</h1>
+    <p>You don't need the perfect words. Just tell AI what you want, and we'll work it out together.</p>
+    <div class="progress" id="progress">Start by choosing something you'd like help with.</div>
+  </div>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="controls">
+    <div class="choices" id="choices"></div>
+    <div class="row">
+      <textarea id="input" placeholder="Type what you're thinking..." aria-label="Your message"></textarea>
+      <button class="send" id="send">Send</button>
+    </div>
+    <button class="hint" id="hint">💡 Give me an example</button>
+    <button class="restart" id="restart">Start a new conversation</button>
+  </div>
+</section>
+</div>
+</main>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+const send = document.getElementById("send");
+const choices = document.getElementById("choices");
+const hint = document.getElementById("hint");
+const restart = document.getElementById("restart");
+const progress = document.getElementById("progress");
+
+let state = {
+  stage:"start",
+  topic:"",
+  goal:"",
+  category:"",
+  turns:0
+};
+
+function addMessage(who,text){
+  const wrap=document.createElement("div");
+  wrap.className="msg "+(who==="AI"?"ai":"user");
+  wrap.innerHTML='<div class="bubble"><div class="who">'+who+'</div>'+escapeHtml(text)+'</div>';
+  chat.appendChild(wrap);
+  chat.scrollTop=chat.scrollHeight;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+function setChoices(items){
+  choices.innerHTML="";
+  items.forEach(item=>{
+    const b=document.createElement("button");
+    b.className="choice";
+    b.textContent=item;
+    b.onclick=()=>handle(item,true);
+    choices.appendChild(b);
+  });
+}
+function clearChoices(){choices.innerHTML="";}
+function say(text){addMessage("AI",text);}
+function user(text){addMessage("You",text);}
+function setProgress(text){progress.textContent=text;}
 
 function start(){
-score=0;turns=0;subject="";
-show(`<h1>Welcome to Discover AI</h1>
-<p><b>Your first conversation with AI</b></p>
-<p>You don't need to know the right words. You don't need to be good with computers.</p>
-<p>Just tell me what you're interested in, and we'll figure it out together.</p>
-<div class="tip">💡 <b>There are no wrong answers.</b> You can always ask a different question or change your mind.</div>
-<button class="primary" onclick="choose()">Let's Begin →</button>`)
-}
+  chat.innerHTML="";
+  state={stage:"start",topic:"",goal:"",category:"",turns:0};
+  restart.style.display="none";
+  say("That's a great place to start!\n\nWhat would you like help with?");
+  setProgress("Choose a starting point, or type your own idea.");
+  setChoices(["🌱 Everyday life","✈️ Travel","📚 Learn something","🎨 Create something","🔧 Help me solve a problem","💡 I'm not sure"]);
 
-function choose(){
-show(`<h2>What would you like to do?</h2>
-<p>Choose whatever sounds interesting. You can change your mind later.</p>
-<div class="choices">${topics.map((t,i)=>`
-<button onclick="pick(${i})"><span style="font-size:25px">${t[0]}</span><br>
-<b>${t[1]}</b><br><small>${t[2]}</small></button>`).join("")}</div>`)
+  const board=document.createElement("div");
+  board.className="example-grid";
+  board.innerHTML=`
+    <div class="example-card"><div class="icon">🌱</div><b>Everyday life</b><p>Groceries, dinner, organizing your week, or solving a problem.</p></div>
+    <div class="example-card"><div class="icon">✈️</div><b>Travel</b><p>Trips, restaurants, things to do, budgets, and day plans.</p></div>
+    <div class="example-card"><div class="icon">📚</div><b>Learn something new</b><p>Simple explanations, examples, step-by-step learning, or practice.</p></div>
+    <div class="example-card"><div class="icon">🎨</div><b>Create something</b><p>Ideas, writing, projects, plans, and ways to improve an idea.</p></div>
+  `;
+  document.querySelector(".controls").insertBefore(board, document.querySelector(".row"));
 }
+start();
 
-function examples(t){
-if(t==="Travel")return[
-"🗺️ Help me plan a trip.",
-"🍽️ Help me find things to do and places to eat.",
-"💰 Help me plan a trip on a budget.",
-"📅 Help me organize a 3-day trip."
-];
-if(t==="Everyday Life")return[
-"🛒 Help me plan my groceries.",
-"🍳 Help me figure out what to make for dinner.",
-"📋 Help me organize something.",
-"🔧 Help me solve a problem."
-];
-if(t==="Learn Something New")return[
-"📖 Explain something to me in simple terms.",
-"🧠 Teach me something new.",
-"❓ Help me understand something I've heard about.",
-"🪜 Teach me step by step."
-];
-return[
-"💭 Give me some ideas.",
-"✍️ Help me write something.",
-"🎁 Help me come up with a creative idea.",
-"🎨 Help me make something fun."
-]
-}
+function handle(raw,fromChoice=false){
+  const text=String(raw).trim();
+  if(!text)return;
+  clearChoices();
+  user(text);
+  state.turns++;
 
-function pick(i){
-topic=topics[i][1];subject="";
-if(topic==="I'm Not Sure"){showIdeas();return}
-score+=10;turns=0;
-show(`<h2>${topics[i][0]} ${topic}</h2>
-<p>Here are a few things you could ask AI:</p>
-<div class="choices">${examples(topic).map(x=>`
-<button onclick="beginConversation('${attr(x)}')">${x}</button>`).join("")}</div>
-<p><button onclick="custom()">✏️ I have my own idea</button></p>`)
-}
+  if(state.stage==="start"){
+    if(/travel|trip|vacation|hotel|flight|destination/i.test(text)){
+      state.category="travel";
+      state.stage="topic";
+      say("Great — let's use travel as our example. What are you thinking about?");
+      setProgress("Step 1: Tell AI what you have in mind.");
+      setChoices(["Plan a trip","Find places to eat","Choose where to go"]);
+      return;
+    }
+    if(/learn|study|understand|research|something/i.test(text)){
+      state.category="learn";
+      state.stage="topic";
+      say("Perfect. What would you like to learn or understand?");
+      setProgress("Step 1: Tell AI what you're curious about.");
+      return;
+    }
+    if(/create|write|idea|project/i.test(text)){
+      state.category="create";
+      state.stage="topic";
+      say("I like that. What would you like to create or work on?");
+      setProgress("Step 1: Tell AI what you want to make.");
+      return;
+    }
+    if(/problem|solve|bill|cost|organize|fix|help/i.test(text)){
+      state.category="problem";
+      state.stage="topic";
+      say("That's a great place to start.\n\nTell me a little about the problem. It can be as simple as a few words.");
+      setProgress("Step 1: Tell AI what's going on.");
+      return;
+    }
+    if(/not sure/i.test(text)){
+      state.category="open";
+      state.stage="topic";
+      say("That's completely okay. Tell me one thing you're curious about, worried about, planning, or trying to figure out.");
+      setProgress("Step 1: Give AI something to work with.");
+      return;
+    }
+    state.category="open";
+    state.stage="topic";
+    say("That's a great place to start. Tell me a little more about what you'd like help with.");
+    setProgress("Step 1: Give AI something to work with.");
+    return;
+  }
 
-function showIdeas(){
-topic="I'm Not Sure";
-show(`<h2>That's perfectly okay! 😊</h2>
-<p>You don't have to know what to ask. Here are some things people use AI for:</p>
-<div class="choices">
-<button onclick="pick(0)">🍳 Help me with dinner.</button>
-<button onclick="pick(0)">🛒 Help me with groceries.</button>
-<button onclick="pick(2)">📖 Help me learn something.</button>
-<button onclick="pick(2)">🪜 Teach me step by step.</button>
-<button onclick="pick(1)">✈️ Help me plan a trip.</button>
-<button onclick="pick(3)">🎨 Help me create something.</button>
-</div>`)
-}
+  if(state.stage==="topic"){
+    state.topic=text;
 
-function beginConversation(text){
-score+=15;turns=1;
-chat(`<b>That's a great place to start!</b><br><br>${text}<br><br>Now let's keep the conversation going.`)
-}
+    if(state.category==="problem"){
+      state.stage="problemGoal";
+      say("Got it — you're dealing with "+text+".\n\nWhat would you like help with first?");
+      setProgress("Step 2: Tell AI what you want to accomplish.");
+      setChoices(["Understand why it's happening","Find a way to lower it","Make a plan","I'm not sure yet"]);
+      return;
+    }
 
-function custom(){
-chat("Tell me what you'd like help with. Type it exactly the way you would say it to a person.")
-}
+    if(state.category==="travel"){
+      state.stage="travelGoal";
+      say("Great. What would you like AI to help you do with "+text+"?");
+      setChoices(["Make a plan","Compare options","Find ideas","I'm not sure yet"]);
+      return;
+    }
 
-function chat(intro){
-show(`<h2>Let's talk to AI</h2>
-<div class="chat">
-<div class="bubble ai"><b>AI:</b> ${intro}</div>
-<div id="messages"></div>
-</div>
-<textarea id="msg" placeholder="Type your answer here..." onkeydown="key(event)"></textarea>
-<div class="row">
-<button class="primary" onclick="send()">Send →</button>
-<button onclick="hint()">💡 Hint</button>
-</div>`)
-}
+    if(state.category==="learn"){
+      state.stage="learnGoal";
+      say("Great. What would make learning about "+text+" useful to you?");
+      setChoices(["Explain it simply","Give me examples","Help me study","I'm not sure yet"]);
+      return;
+    }
 
-function add(who,text,kind){
-document.getElementById("messages").innerHTML+=`<div class="bubble ${kind}"><b>${who}:</b> ${text}</div>`
-}
+    if(state.category==="create"){
+      state.stage="createGoal";
+      say("Great. What would you like the finished result to help you do?");
+      setChoices(["Give me ideas","Help me make a plan","Help me write it","I'm not sure yet"]);
+      return;
+    }
 
-function choices(a){
-document.getElementById("messages").innerHTML+=`<div class="quick"><b>What would you like to ask next?</b>
-<div class="choices">${a.map(x=>`<button onclick="quick('${attr(x)}')">${x}</button>`).join("")}</div></div>`
+    state.stage="openGoal";
+    say("Okay — "+text+".\n\nWhat would you like AI to help you do with that?");
+    setChoices(["Understand it","Make a plan","Solve a problem","Explore ideas","I'm not sure yet"]);
+    return;
+  }
+
+  if(state.stage==="problemGoal"){
+    const lower=/lower|save|reduce|cheaper|cost/i.test(text);
+    const why=/why|understand|reason|cause/i.test(text);
+    const plan=/plan|steps/i.test(text);
+
+    state.goal=text;
+
+    if(lower){
+      state.stage="problemDetails";
+      say("Absolutely. Let's focus on lowering your **"+state.topic+"**.\n\nA good next question is whether the increase came from using more gas, a change in the rate, or both.\n\nDo you know if your usage went up?");
+      setProgress("Step 3: Give AI one useful detail.");
+      setChoices(["Yes, usage went up","No, usage is about the same","I'm not sure"]);
+      return;
+    }
+
+    if(why){
+      state.stage="problemDetails";
+      say("Let's figure out what changed with your **"+state.topic+"**.\n\nDo you have a recent bill you can compare with an earlier bill?");
+      setProgress("Step 3: Add one useful detail.");
+      setChoices(["Yes, I can compare them","No","I'm not sure"]);
+      return;
+    }
+
+    if(plan){
+      state.stage="problemDetails";
+      say("Let's turn your **"+state.topic+"** into a simple plan.\n\nWhat's the biggest thing you want the plan to accomplish?");
+      setProgress("Step 3: Define the outcome.");
+      return;
+    }
+
+    state.stage="problemDetails";
+    say("We can work with that. What is the most important result you want from solving **"+state.topic+"**?");
+    setProgress("Step 3: Define the outcome.");
+    return;
+  }
+
+  if(state.stage==="problemDetails"){
+    state.stage="finish";
+    const usageYes=/yes|went up/i.test(text);
+    const usageNo=/no|same/i.test(text);
+
+    if(/gas bill/i.test(state.topic) && state.goal && /lower|save|reduce|cheaper/i.test(state.goal)){
+      if(usageYes){
+        say("Good — that gives us something to investigate. If your gas usage increased, we could next look at what changed: weather, thermostat settings, hot-water use, appliances, or a possible issue.\n\nNotice what just happened: you gave AI a problem, a goal, and one useful detail. That's enough to start asking much better questions.");
+      } else if(usageNo){
+        say("That's useful. If usage stayed about the same, the next thing to compare is the rate or charges on the bill.\n\nYou just steered the conversation by adding a detail instead of starting over.");
+      } else {
+        say("That's okay. We can still work with what you know. A useful next step would be to compare your current bill with an earlier one and look at both usage and rates.\n\nYou just learned an important AI skill: when the first answer isn't enough, give AI another detail.");
+      }
+    } else {
+      say("That's a useful detail. From here, you could ask AI to break the problem into smaller steps, compare options, or help you make a plan.\n\nThe important part is that you kept steering the conversation instead of trying to find a perfect prompt.");
+    }
+
+    finish();
+    return;
+  }
+
+  if(state.stage==="travelGoal"||state.stage==="learnGoal"||state.stage==="createGoal"||state.stage==="openGoal"){
+    state.goal=text;
+    state.stage="finish";
+    if(state.category==="travel"){
+      say("Great. Now you've given AI a topic and a goal. A strong next move would be to add a detail such as your dates, budget, location, or preferences.\n\nThat's how you steer AI toward an answer that actually fits you.");
+    } else if(state.category==="learn"){
+      say("Perfect. Now AI knows both the subject and what you want from it. You could next ask for a simpler explanation, an example, a comparison, or a short practice exercise.");
+    } else if(state.category==="create"){
+      say("Excellent. You just gave AI a project and a goal. From here you can ask for ideas, a first draft, a checklist, or a step-by-step plan.");
+    } else {
+      say("Nice. You just turned a broad idea into a specific goal. That's one of the most useful things you can learn to do with AI.");
+    }
+    finish();
+    return;
+  }
+
+  say("You can always keep going by adding another detail, changing the goal, or asking AI to explain something differently.");
 }
 
 function finish(){
-document.getElementById("messages").innerHTML+=`<div class="tip"><b>🌟 You're getting the idea!</b><br>
-You are choosing your next question and guiding the conversation.</div>
-<button class="primary" onclick="results()">See What You Discovered →</button>`
+  setProgress("Conversation complete — notice how you steered AI.");
+  restart.style.display="block";
+  setChoices(["Try another example"]);
 }
+restart.onclick=start;
 
-function send(){
-let e=document.getElementById("msg"),m=e.value.trim();
-if(!m)return;
-document.querySelectorAll(".quick").forEach(q=>q.remove());
-score+=15;turns++;
-add("You",esc(m),"you");
-let a=response(m);
-add("AI",a.text,"ai");
-if(a.choices&&a.choices.length&&turns<4)choices(a.choices);
-e.value="";
-if(turns===4)finish();
-document.querySelector(".chat").scrollIntoView({behavior:"smooth",block:"end"})
-}
+send.onclick=()=>{handle(input.value);input.value="";input.focus()};
+input.addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&!e.shiftKey){
+    e.preventDefault();
+    send.click();
+  }
+});
 
-function quick(m){
-document.querySelectorAll(".quick").forEach(q=>q.remove());
-score+=15;turns++;
-add("You",esc(m),"you");
-let a=response(m);
-add("AI",a.text,"ai");
-if(a.choices&&a.choices.length&&turns<4)choices(a.choices);
-if(turns===4)finish();
-document.querySelector(".chat").scrollIntoView({behavior:"smooth",block:"end"})
-}
+hint.onclick=()=>{
+  const old=document.getElementById("hintGallery");
+  if(old) old.remove();
 
-function key(e){
-if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}
-}
+  const gallery=document.createElement("div");
+  gallery.id="hintGallery";
+  gallery.className="hint-grid";
 
-function remember(m){
-let x=m.trim();
-if(!subject&&x.length>2&&!/^(yes|yeah|yep|sure|okay|ok|tell me more|give me an example|make (that|it) simpler|simpler)$/i.test(x))subject=x
-}
+  const art={
+    travel:`<svg class="hint-art" viewBox="0 0 600 260" aria-label="Travel example"><rect width="600" height="260" fill="#eef6f3"/><circle cx="510" cy="55" r="30" fill="#f3c66a"/><path d="M0 190 Q150 135 300 185 T600 170 V260 H0Z" fill="#9fc6b0"/><rect x="72" y="88" width="115" height="102" rx="6" fill="#d8a85d"/><path d="M55 88 L130 35 205 88Z" fill="#b86d54"/><rect x="105" y="120" width="24" height="70" fill="#f7efe1"/><rect x="147" y="120" width="24" height="70" fill="#f7efe1"/><rect x="360" y="125" width="155" height="65" rx="8" fill="#fff"/><path d="M350 125 Q437 80 525 125Z" fill="#79a9a2"/></svg>`,
+    everyday:`<svg class="hint-art" viewBox="0 0 600 260" aria-label="Everyday life example"><rect width="600" height="260" fill="#f8efe8"/><rect y="180" width="600" height="80" fill="#d7c4a8"/><rect x="80" y="65" width="190" height="115" rx="12" fill="#fff"/><circle cx="175" cy="123" r="48" fill="#e7b76e"/><path d="M145 125 q30-38 60 0 q-25 35-60 0" fill="#9ebc83"/><rect x="330" y="65" width="185" height="115" rx="12" fill="#fff"/><circle cx="375" cy="112" r="25" fill="#e4a66f"/><rect x="415" y="90" width="62" height="15" rx="7" fill="#8fb8aa"/><rect x="415" y="118" width="48" height="15" rx="7" fill="#d7b46a"/></svg>`,
+    learn:`<svg class="hint-art" viewBox="0 0 600 260" aria-label="Learning example"><rect width="600" height="260" fill="#edf4f5"/><circle cx="100" cy="65" r="30" fill="#f3c66a"/><path d="M75 190 L300 75 525 190" fill="#9dbdb7"/><path d="M135 175 L300 95 465 175" fill="#fff"/><path d="M185 150 Q300 105 415 150 L415 205 Q300 165 185 205Z" fill="#f8f1df"/><path d="M300 120v75" stroke="#c98c75" stroke-width="4"/><circle cx="500" cy="75" r="34" fill="#fff" stroke="#7fa8a4" stroke-width="5"/><path d="M485 75h30M500 60v30" stroke="#7fa8a4" stroke-width="5" stroke-linecap="round"/></svg>`,
+    create:`<svg class="hint-art" viewBox="0 0 600 260" aria-label="Creative project example"><rect width="600" height="260" fill="#f5edf0"/><rect x="70" y="55" width="210" height="145" rx="12" fill="#fff"/><path d="M105 160 Q160 80 225 145 T255 95" fill="none" stroke="#7fa8a4" stroke-width="12" stroke-linecap="round"/><circle cx="135" cy="100" r="14" fill="#e4a66f"/><circle cx="205" cy="125" r="13" fill="#d7b46a"/><rect x="335" y="70" width="170" height="115" rx="12" fill="#dcebe4"/><path d="M360 150 Q405 95 445 145 T485 110" fill="none" stroke="#b96f62" stroke-width="10" stroke-linecap="round"/><circle cx="520" cy="45" r="25" fill="#f3c66a"/></svg>`,
+    unsure:`<svg class="hint-art" viewBox="0 0 600 260" aria-label="Starting point example"><rect width="600" height="260" fill="#f1f5f2"/><circle cx="300" cy="145" r="55" fill="#fff" stroke="#7fa8a4" stroke-width="6"/><text x="300" y="163" text-anchor="middle" font-size="64" font-family="Arial" fill="#17324d">?</text><circle cx="130" cy="75" r="42" fill="#f8dfdf"/><text x="130" y="91" text-anchor="middle" font-size="48" font-family="Arial" fill="#17324d">?</text><circle cx="470" cy="75" r="42" fill="#dcebe4"/><text x="470" y="91" text-anchor="middle" font-size="48" font-family="Arial" fill="#17324d">?</text></svg>`
+  };
 
-function label(){return subject||"that topic"}
+  const data={
+    travel:[
+      ["travel","🏞️ Find things to do","Help me find things to do in Sacramento."],
+      ["travel","🍽️ Find places to eat","Help me find a good place to eat near me."],
+      ["travel","📍 Find something nearby","What are some interesting places near my hotel?"],
+      ["travel","🗓️ Plan your day","Help me plan a day with lunch and sightseeing."]
+    ],
+    everyday:[
+      ["everyday","🍳 Dinner","What can I make for dinner with what I have?"],
+      ["everyday","🛒 Groceries","Help me make a grocery list for three dinners."],
+      ["everyday","📅 Organize","Help me organize my week."],
+      ["everyday","🔧 Solve a problem","Help me figure out how to handle this."]
+    ],
+    learn:[
+      ["learn","📖 Explain it simply","Explain gardening in simple terms."],
+      ["learn","🔎 Give an example","Give me an example of how that works."],
+      ["learn","👣 Go step by step","Teach me how to do it step by step."],
+      ["learn","🧠 Practice","Quiz me on what I just learned."]
+    ],
+    create:[
+      ["create","💭 Get ideas","Give me some ideas for a birthday card."],
+      ["create","⭐ Choose an idea","Which idea would be easiest?"],
+      ["create","📝 Make a plan","Help me make a plan for it."],
+      ["create","✨ Improve it","How could I make this better?"]
+    ],
+    unsure:[
+      ["unsure","💡 Start anywhere","Give me some ideas of what you can help me with."],
+      ["unsure","❓ Ask for help","What could I ask you?"],
+      ["unsure","🧭 Find a direction","Help me figure out what would be useful."],
+      ["unsure","🌱 Begin simply","I don't know where to start."]
+    ]
+  };
 
-function context(){
-if(topic==="Travel")return[
-"What should I know first?","Give me an example.","Help me make a plan.","Make that simpler."
-];
-if(topic==="Everyday Life")return[
-"Give me an example.","Help me make a plan.","What should I do first?","Make that simpler."
-];
-if(topic==="Create Something")return[
-"Give me some ideas.","Help me choose one.","What should I do first?","Make that simpler."
-];
-return[
-"What should I know first?","Why is this important?","Give me an example.","Make that simpler."
-]
-}
+  let key=state.category||"unsure";
+  if(key==="problem") key="everyday";
+  const items=data[key];
 
-function response(m){
-let x=m.toLowerCase().trim();
+  gallery.innerHTML=items.map(item=>`
+    <div class="hint-card">
+      ${art[item[0]]}
+      <div class="hint-copy">
+        <b>${item[1]}</b>
+        <button class="hint-try" type="button">Try it → “${item[2]}”</button>
+      </div>
+    </div>
+  `).join("");
 
-if(/not what i meant|different subject|change (the )?topic|something else/.test(x)){
-subject="";
-return{text:"Absolutely. You can change the subject at any time. Just tell me what you'd like to talk about.",
-choices:[
-"Help me learn something new.",
-"Help me plan something.",
-"Help me solve an everyday problem."
-]}
-}
+  gallery.querySelectorAll(".hint-try").forEach((btn,i)=>{
+    btn.addEventListener("click",()=>{
+      input.value=items[i][2];
+      input.focus();
+      input.scrollIntoView({behavior:"smooth",block:"center"});
+    });
+  });
 
-if(/^(tell me more|more about (it|that)|what else|keep going)/.test(x))
-return{
-text:`Sure. Let's go a little deeper into <b>${esc(label())}</b>. What part are you most curious about?`,
-choices:context()
+  const note=document.createElement("p");
+  note.className="hint-note";
+  note.textContent="💬 Click an example to put it in the message box. Then press Send to keep the conversation going.";
+  gallery.appendChild(note);
+
+  chat.appendChild(gallery);
+  chat.scrollTop=chat.scrollHeight;
 };
-
-if(/make (that|it) simpler|plain language|^simpler$/.test(x))
-return{
-text:`Of course. In plain language, <b>${esc(label())}</b> can be broken into smaller pieces. You can ask me for the main idea, an example, or step-by-step help.`,
-choices:["Give me an example.","Teach me step by step.","Tell me more.","That's not what I meant."]
-};
-
-if(/give me an example|example/.test(x))
-return{
-text:`Here's an example: you could ask AI about <b>${esc(label())}</b> and then ask a follow-up question about the part you care about most.`,
-choices:["Tell me more.","Make that simpler.","What should I ask next?"]
-};
-
-if(/teach me step by step|step by step|what should i do first|what should i ask next/.test(x))
-return{
-text:`Let's take it one step at a time. First, decide what you want to accomplish with <b>${esc(label())}</b>. Then tell AI what you want, read its answer, and ask the next question.`,
-choices:["Tell me more.","Give me an example.","Make that simpler."]
-};
-
-if(topic==="Travel"){
-
-if(/places to eat|restaurant|food/.test(x))
-return{
-text:"Absolutely! I can help you find places to eat. Tell me where you'll be, what kind of food you like, and your budget.",
-choices:[
-"Find places to eat near me.",
-"Find seafood restaurants.",
-"Find something inexpensive.",
-"Help me choose a restaurant."
-]};
-
-if(/find things to do|things to do|activities|what to do/.test(x))
-return{
-text:"Absolutely! I can help you find things to do. Tell me where you'll be, how much time you have, and what you enjoy.",
-choices:[
-"Find things to do near me.",
-"Find free things to do.",
-"Find something fun this afternoon.",
-"Help me choose an activity."
-]};
-
-if(/near me|near my hotel|nearby/.test(x))
-return{
-text:"Sure! I can help you find options near you. Tell me the city, neighborhood, hotel, or attraction you're near.",
-choices:[
-"Find places to eat nearby.",
-"Find things to do nearby.",
-"Find something within walking distance.",
-"Make that simpler."
-]};
-
-if(/trip|travel|vacation|hotel|flight|visit|destination/.test(x)){
-remember(m);
-return{
-text:`Let's plan <b>${esc(m)}</b>. We can look at destinations, activities, timing, transportation, food, or budget.`,
-choices:[
-"Help me choose what to do.",
-"Help me find places to eat.",
-"Help me make a 3-day plan.",
-"Help me plan a budget."
-]}}
-
-if(/^(yes|yeah|yep|sure|okay|ok)$/.test(x))
-return{
-text:"Great! Let's keep going. Choose one of these, or tell me what you're looking for.",
-choices:[
-"Find places to eat nearby.",
-"Find things to do nearby.",
-"Help me plan my day.",
-"Tell me more."
-]};
-}
-
-if(topic==="Everyday Life"){
-
-if(/dinner|make.*eat|what can i make/.test(x))
-return{
-text:"Let's make dinner easier. Tell me what ingredients you have, and I can suggest a few meals.",
-choices:[
-"I have eggs.",
-"I have chicken.",
-"I want something quick.",
-"Give me a simple recipe."
-]};
-
-if(/grocery|groceries|shopping list/.test(x))
-return{
-text:"Sure! I can help make a grocery list. Tell me how many people you're shopping for and what meals you want.",
-choices:[
-"Plan three dinners.",
-"Make it inexpensive.",
-"Make the list simple.",
-"Add breakfast ideas."
-]};
-
-if(/organize|my week|plan my week/.test(x))
-return{
-text:"We can organize your week together. Tell me the important things you need to get done, and we'll put them in a simple order.",
-choices:[
-"Help me choose what comes first.",
-"Make a simple schedule.",
-"Keep it flexible.",
-"Make that simpler."
-]};
-
-if(/solve a problem|figure out how to handle|help me solve/.test(x))
-return{
-text:"Absolutely. Tell me what's happening, what you've tried, and what outcome you want. We can work through it together.",
-choices:[
-"Help me think of options.",
-"What should I do first?",
-"Give me an example.",
-"Make that simpler."
-]};
-}
-
-if(topic==="Learn Something New"){
-
-if(/quiz me|test me|practice/.test(x))
-return{
-text:`Great! Let's practice <b>${esc(label())}</b>. I'll ask a simple question, and you can answer in your own words.`,
-choices:[
-"Ask me an easy question.",
-"Give me a hint.",
-"Explain it again."
-]};
-
-if(/explain.*simple|simple terms/.test(x))
-return{
-text:`Sure. Let's make <b>${esc(label())}</b> easier to understand. I'll start with the main idea, then we can add details if you want.`,
-choices:[
-"Give me an example.",
-"Go step by step.",
-"Tell me more."
-]};
-
-if(!subject||/learn something|teach me something|help me understand/.test(x)){
-if(!subject&&!/learn something|teach me something|help me understand/.test(x))subject=m;
-return{
-text:"Absolutely. Give me any subject you're curious about—even if you only know a little about it.",
-choices:[
-"Explain it simply.",
-"Give me an example.",
-"Teach me step by step."
-]}
-}
-}
-
-if(topic==="Create Something"){
-
-if(/which idea|easiest|choose one|help me choose/.test(x))
-return{
-text:`Let's choose the easiest option for <b>${esc(label())}</b>. Look for the idea that is simple enough to start now and can grow later.`,
-choices:[
-"Give me the easiest idea.",
-"Give me another option.",
-"Help me make a plan.",
-"Make that simpler."
-]};
-
-if(/make a plan|plan for it/.test(x))
-return{
-text:`Great. Let's turn <b>${esc(label())}</b> into a simple plan: choose the idea, gather what you need, do the first small step, then review it.`,
-choices:[
-"What should I do first?",
-"What do I need?",
-"Help me improve it.",
-"Make that simpler."
-]};
-
-if(/make this better|improve it|improve this/.test(x))
-return{
-text:`Absolutely. We can improve <b>${esc(label())}</b> by looking at what you like, what feels missing, and what would make it more useful or fun.`,
-choices:[
-"Give me three ideas.",
-"Make it simpler.",
-"Help me choose one."
-]};
-
-remember(m);
-return{
-text:`Let's create something around <b>${esc(label())}</b>. We can brainstorm, choose an idea, and build it one step at a time.`,
-choices:[
-"Give me some ideas.",
-"Help me choose one.",
-"Ask me questions to get started.",
-"Make that simpler."
-]}
-}
-
-if(topic==="I'm Not Sure")
-return{
-text:"That's a good starting point. We can figure out what you want together. What sounds most useful?",
-choices:[
-"Help me learn something.",
-"Help me plan something.",
-"Help me solve an everyday problem.",
-"Help me create something."
-]};
-
-remember(m);
-return{
-text:`Let's connect that to <b>${esc(label())}</b>. What would you like help with first?`,
-choices:context()
-}
-}
-
-function results(){
-show(`<h1>You discovered something important!</h1>
-<p style="font-size:32px"><b>${score}</b></p>
-<p><b>You don't have to know the perfect prompt.</b></p>
-<div class="tip">
-Start with what you want.<br>
-Let AI respond.<br>
-Ask another question.<br>
-Tell AI when you want something different.<br>
-<b>Keep the conversation going.</b>
-</div>
-<p>That's the Discover AI way.</p>
-<button class="primary" onclick="start()">Try Another Adventure</button>`)
-}
-
-function hint(){
-let box=document.getElementById("messages");
-if(!box)return;
-
-let art=`<svg class="hint-art" viewBox="0 0 600 220">
-<rect width="600" height="220" fill="#edf4f5"/>
-<circle cx="100" cy="65" r="28" fill="#f3c66a"/>
-<rect x="75" y="110" width="150" height="70" rx="10" fill="#fff"/>
-<rect x="370" y="95" width="150" height="85" rx="10" fill="#dcebe4"/>
-<path d="M260 150h80" stroke="#7fa8a4" stroke-width="12" stroke-linecap="round"/>
-</svg>`;
-
-let data={
-"Travel":[
-["🏞️ Find things to do","Help me find things to do in Sacramento."],
-["🍽️ Find places to eat","Help me find a good place to eat near me."],
-["📍 Find something nearby","What are some interesting places near my hotel?"],
-["🗓️ Plan your day","Help me plan a day with lunch and sightseeing."]
-],
-"Everyday Life":[
-["🍳 Dinner","What can I make for dinner with what I have?"],
-["🛒 Groceries","Help me make a grocery list for three dinners."],
-["📅 Organize","Help me organize my week."],
-["💡 Solve a problem","Help me figure out how to handle this."]
-],
-"Learn Something New":[
-["📖 Explain it simply","Explain gardening in simple terms."],
-["🔎 Give an example","Give me an example of how that works."],
-["👣 Go step by step","Teach me how to do it step by step."],
-["🧠 Practice","Quiz me on what I just learned."]
-],
-"Create Something":[
-["💭 Get ideas","Give me some ideas for a birthday card."],
-["⭐ Choose an idea","Which idea would be easiest?"],
-["📝 Make a plan","Help me make a plan for it."],
-["✨ Improve it","How could I make this better?"]
-],
-"I'm Not Sure":[
-["💡 Start anywhere","Give me some ideas of what you can help me with."],
-["❓ Ask for help","What could I ask you?"],
-["🧭 Find a direction","Help me figure out what would be useful."],
-["🌱 Begin simply","I don't know where to start."]
-]
-};
-
-let cards=(data[topic]||data["I'm Not Sure"]).map(d=>`
-<div class="hint-card">${art}
-<div class="hint-copy">
-<b>${d[0]}</b>
-<button class="hint-try" onclick="useHint('${attr(d[1])}')">
-Try it → “${d[1]}”
-</button>
-</div></div>`).join("");
-
-box.innerHTML+=`<div class="bubble ai">
-<b>AI:</b><br><br>
-Here are some real examples:
-<div class="hint-grid">${cards}</div>
-<p class="hint-note">💬 Click an example to put it in your box, then press <b>Send</b>.</p>
-</div>`
-}
-
-function useHint(t){
-let e=document.getElementById("msg");
-if(e){
-e.value=t;
-e.focus();
-e.scrollIntoView({behavior:"smooth",block:"center"})
-}
-}
-
-start();
 </script>
 </body>
 </html>
