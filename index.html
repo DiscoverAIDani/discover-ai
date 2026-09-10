@@ -383,9 +383,26 @@ footer a{color:#fff}
           <strong>Call or text</strong><br>
           <a href="tel:+19167687429">916-768-7429</a>
         </p>
-        <a class="btn" href="mailto:daniellewilcott@gmail.com?subject=Discover%20AI%20Community%20Program">
+        <button class="btn" type="button" id="contactToggle" aria-expanded="false" aria-controls="contactForm" style="color:#ffffff !important; display:inline-block; border:0; cursor:pointer; font:inherit;">
           Contact Discover AI
-        </a>
+        </button>
+
+        <form id="contactForm" action="https://formspree.io/f/mwlkrebk" method="POST" style="display:none; margin-top:1rem; text-align:left;">
+          <label for="name"><strong>Name</strong></label>
+          <input id="name" name="name" type="text" required style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;">
+
+          <label for="email"><strong>Email</strong></label>
+          <input id="email" name="email" type="email" required style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;">
+
+          <label for="organization"><strong>Organization</strong></label>
+          <input id="organization" name="organization" type="text" style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;">
+
+          <label for="message"><strong>Message</strong></label>
+          <textarea id="message" name="message" rows="5" required style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px; resize:vertical;"></textarea>
+
+          <input type="hidden" name="_subject" value="Discover AI Community Program Inquiry">
+          <button class="btn" type="submit" style="color:#ffffff !important; border:0; cursor:pointer; font:inherit;">Send Message</button>
+        </form>
       </div>
     </div>
   </div>
@@ -405,6 +422,22 @@ footer a{color:#fff}
     </div>
   </div>
 </footer>
+
+<script>
+  const contactToggle = document.getElementById('contactToggle');
+  const contactForm = document.getElementById('contactForm');
+  if (contactToggle && contactForm) {
+    contactToggle.addEventListener('click', () => {
+      const open = contactForm.style.display === 'block';
+      contactForm.style.display = open ? 'none' : 'block';
+      contactToggle.setAttribute('aria-expanded', String(!open));
+      contactToggle.textContent = open ? 'Contact Discover AI' : 'Close Contact Form';
+      if (!open) {
+        contactForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  }
+</script>
 
 </body>
 </html>
