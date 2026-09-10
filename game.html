@@ -1,357 +1,500 @@
 <!doctype html>
-<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Discover AI — Conversation Game</title>
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#f5f1e7;color:#20314a}.app{max-width:850px;margin:auto;padding:24px}
-header,main{background:white;border-radius:22px;padding:24px;box-shadow:0 6px 20px #0001}header{display:flex;justify-content:space-between;align-items:center}
-.brand{font-size:28px;font-weight:800;color:#17345f}.brand span{color:#187f80}.score{background:#dcefe4;padding:9px 14px;border-radius:20px;font-weight:bold}
-main{margin-top:18px}h1,h2{color:#17345f}.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-button{padding:15px;border:2px solid #d9e1e8;border-radius:14px;background:white;font-size:16px;font-weight:bold;cursor:pointer}button:hover{border-color:#187f80}
-.primary{background:#187f80;color:white;border-color:#187f80}.chat{margin:20px 0}.bubble{padding:15px 18px;border-radius:18px;margin:12px 0;max-width:75%;line-height:1.5}.ai{background:#dcefe4}.you{background:#f8d8df;margin-left:auto}
-textarea{width:100%;min-height:90px;padding:14px;border:2px solid #ccd7df;border-radius:14px;font:16px Arial;box-sizing:border-box}
-.row{display:flex;gap:10px;margin-top:10px}.row button{flex:0 0 auto}.tip{background:#fff3c9;padding:14px;border-radius:14px;margin:15px 0}.quick{margin:16px 0;padding:12px;border-top:1px solid #e3e9ef}.quick .choices{margin-top:10px}.quick button{font-size:15px}
-@media(max-width:600px){.choices{grid-template-columns:1fr}header{gap:12px;align-items:flex-start;flex-direction:column}}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f1e7;color:#20314a}.app{max-width:850px;margin:auto;padding:20px}
+header,main{background:#fff;border-radius:22px;padding:22px;box-shadow:0 6px 20px #0001}header{display:flex;justify-content:space-between;align-items:center}.brand{font-size:28px;font-weight:800;color:#17345f}.brand span{color:#187f80}.score{background:#dcefe4;padding:9px 14px;border-radius:20px;font-weight:bold}main{margin-top:18px}h1,h2{color:#17345f}.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}button{padding:15px;border:2px solid #d9e1e8;border-radius:14px;background:#fff;font-size:16px;font-weight:bold;cursor:pointer}button:hover{border-color:#187f80}.primary{background:#187f80;color:#fff;border-color:#187f80}.tip{background:#fff3c9;padding:14px;border-radius:14px;margin:15px 0}.chat{margin:20px 0}.bubble{padding:15px 18px;border-radius:18px;margin:12px 0;max-width:78%;line-height:1.5}.ai{background:#dcefe4}.you{background:#f8d8df;margin-left:auto}textarea{width:100%;min-height:90px;padding:14px;border:2px solid #ccd7df;border-radius:14px;font:16px Arial;box-sizing:border-box}.row{display:flex;gap:10px;margin-top:10px}.quick{margin:16px 0;padding:12px;border-top:1px solid #e3e9ef}.quick .choices{margin-top:10px}.hint-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.hint-card{border:1px solid #dce4ea;border-radius:14px;overflow:hidden;background:#fff}.hint-art{width:100%;height:125px;display:block}.hint-copy{padding:11px}.hint-copy b{display:block;margin-bottom:6px}.hint-try{width:100%;padding:10px;text-align:left;font-size:14px}.hint-note{font-size:14px;color:#5f6b73}@media(max-width:650px){.choices,.hint-grid{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start;gap:10px}.bubble{max-width:90%}}
 </style>
-<div class="app">
-<header><div><div class="brand">DISCOVER <span>AI</span></div><small>See what AI can do for you.</small></div><div class="score">Confidence: <span id="score">0</span></div></header>
-<main id="screen"></main></div>
+</head>
+<body>
+<div class="app"><header><div><div class="brand">DISCOVER <span>AI</span></div><small>See what AI can do for you.</small></div><div class="score">Confidence: <span id="score">0</span></div></header><main id="screen"></main></div>
 <script>
-let score=0, topic="", turns=0;
-
+let score=0,topic="",turns=0,subject="";
 const topics=[
- ["🌱","Everyday Life","Get help with something in your day-to-day life."],
- ["✈️","Travel","Plan a trip or find something fun to do."],
- ["📚","Learn Something New","Understand a topic or learn a new skill."],
- ["🎨","Create Something","Come up with an idea or make something."],
- ["💡","I'm Not Sure","Show me some ideas."]
+["🌱","Everyday Life","Get help with something in your day-to-day life."],
+["✈️","Travel","Plan a trip or find something fun to do."],
+["📚","Learn Something New","Understand a topic or learn a new skill."],
+["🎨","Create Something","Come up with an idea or make something."],
+["💡","I'm Not Sure","Show me some ideas."]
 ];
 
-function show(s){
- document.getElementById("screen").innerHTML=s;
- document.getElementById("score").textContent=score;
-}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
+function attr(s){return String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ")}
+function show(html){document.getElementById("screen").innerHTML=html;document.getElementById("score").textContent=score}
 
 function start(){
- score=0; turns=0;
- show(`
- <h1>Welcome to Discover AI</h1>
- <p><b>Your first conversation with AI</b></p>
- <p>You don't need to know the right words. You don't need to be good with computers.</p>
- <p>Just tell AI what you're interested in, and we'll figure it out together.</p>
- <div class="tip">💡 <b>There are no wrong answers.</b> You can always ask a different question or change your mind.</div>
- <button class="primary" onclick="choose()">Let's Begin →</button>`);
+score=0;turns=0;subject="";
+show(`<h1>Welcome to Discover AI</h1>
+<p><b>Your first conversation with AI</b></p>
+<p>You don't need to know the right words. You don't need to be good with computers.</p>
+<p>Just tell me what you're interested in, and we'll figure it out together.</p>
+<div class="tip">💡 <b>There are no wrong answers.</b> You can always ask a different question or change your mind.</div>
+<button class="primary" onclick="choose()">Let's Begin →</button>`)
 }
 
 function choose(){
- show(`
- <h2>What would you like to do?</h2>
- <p>Choose whatever sounds interesting. You can change your mind later.</p>
- <div class="choices">
- ${topics.map((t,i)=>`
- <button onclick="pick(${i})">
-   <span style="font-size:25px">${t[0]}</span><br>
-   <b>${t[1]}</b><br>
-   <small>${t[2]}</small>
- </button>`).join("")}
- </div>`);
-}
-
-function pick(i){
- topic=topics[i][1];
- if(topic==="I'm Not Sure"){showIdeas();return;}
- score+=10; turns=0;
- show(`
- <h2>${topics[i][0]} ${topic}</h2>
- <p>Here are a few things you could ask AI:</p>
- <div class="choices">${examples(topic).map(x=>`
- <button onclick="beginConversation('${escAttr(x)}')">${x}</button>`).join("")}</div>
- <div class="nextrow"><button onclick="showCustom()">✏️ I have my own idea</button></div>`);
+show(`<h2>What would you like to do?</h2>
+<p>Choose whatever sounds interesting. You can change your mind later.</p>
+<div class="choices">${topics.map((t,i)=>`
+<button onclick="pick(${i})"><span style="font-size:25px">${t[0]}</span><br>
+<b>${t[1]}</b><br><small>${t[2]}</small></button>`).join("")}</div>`)
 }
 
 function examples(t){
- if(t==="Learn Something New") return [
-  "📖 Explain something to me in simple terms.",
-  "🧠 Teach me something new.",
-  "❓ Help me understand something I've heard about.",
-  "🪜 Teach me step by step."
- ];
- if(t==="Travel") return [
-  "🗺️ Help me plan a trip.",
-  "🍽️ Help me find things to do and places to eat.",
-  "💰 Help me plan a trip on a budget.",
-  "📅 Help me organize a 3-day trip."
- ];
- if(t==="Everyday Life") return [
-  "🛒 Help me plan my groceries.",
-  "🍳 Help me figure out what to make for dinner.",
-  "📋 Help me organize something.",
-  "🔧 Help me solve a problem."
- ];
- return [
-  "💭 Give me some ideas.",
-  "✍️ Help me write something.",
-  "🎁 Help me come up with a creative idea.",
-  "🎨 Help me make something fun."
- ];
+if(t==="Travel")return[
+"🗺️ Help me plan a trip.",
+"🍽️ Help me find things to do and places to eat.",
+"💰 Help me plan a trip on a budget.",
+"📅 Help me organize a 3-day trip."
+];
+if(t==="Everyday Life")return[
+"🛒 Help me plan my groceries.",
+"🍳 Help me figure out what to make for dinner.",
+"📋 Help me organize something.",
+"🔧 Help me solve a problem."
+];
+if(t==="Learn Something New")return[
+"📖 Explain something to me in simple terms.",
+"🧠 Teach me something new.",
+"❓ Help me understand something I've heard about.",
+"🪜 Teach me step by step."
+];
+return[
+"💭 Give me some ideas.",
+"✍️ Help me write something.",
+"🎁 Help me come up with a creative idea.",
+"🎨 Help me make something fun."
+]
+}
+
+function pick(i){
+topic=topics[i][1];subject="";
+if(topic==="I'm Not Sure"){showIdeas();return}
+score+=10;turns=0;
+show(`<h2>${topics[i][0]} ${topic}</h2>
+<p>Here are a few things you could ask AI:</p>
+<div class="choices">${examples(topic).map(x=>`
+<button onclick="beginConversation('${attr(x)}')">${x}</button>`).join("")}</div>
+<p><button onclick="custom()">✏️ I have my own idea</button></p>`)
 }
 
 function showIdeas(){
- topic="I'm Not Sure";
- show(`
- <h2>That's perfectly okay! 😊</h2>
- <p>You don't have to know what to ask. Here are some things people use AI for:</p>
- <div class="choices">
- ${examples("Everyday Life").slice(0,2).map(x=>`<button onclick="pick(0)">${x}</button>`).join("")}
- ${examples("Learn Something New").slice(0,2).map(x=>`<button onclick="pick(2)">${x}</button>`).join("")}
- <button onclick="pick(1)">✈️ Help me plan a trip.</button>
- <button onclick="pick(3)">🎨 Help me create something.</button>
- </div>`);
+topic="I'm Not Sure";
+show(`<h2>That's perfectly okay! 😊</h2>
+<p>You don't have to know what to ask. Here are some things people use AI for:</p>
+<div class="choices">
+<button onclick="pick(0)">🍳 Help me with dinner.</button>
+<button onclick="pick(0)">🛒 Help me with groceries.</button>
+<button onclick="pick(2)">📖 Help me learn something.</button>
+<button onclick="pick(2)">🪜 Teach me step by step.</button>
+<button onclick="pick(1)">✈️ Help me plan a trip.</button>
+<button onclick="pick(3)">🎨 Help me create something.</button>
+</div>`)
 }
 
 function beginConversation(text){
- score+=15; turns=1;
- chat(`<b>That's a great place to start!</b><br><br>${text}<br><br>Now let's see what happens when you keep the conversation going.`);
+score+=15;turns=1;
+chat(`<b>That's a great place to start!</b><br><br>${text}<br><br>Now let's keep the conversation going.`)
 }
 
-function showCustom(){
- chat("Tell me what you'd like help with. You can type it exactly the way you would say it to a person.");
+function custom(){
+chat("Tell me what you'd like help with. Type it exactly the way you would say it to a person.")
 }
 
 function chat(intro){
- show(`
- <h2>Let's talk to AI</h2>
- <div class="chat">
-   <div class="bubble ai"><b>AI:</b> ${intro}</div>
-   <div id="messages"></div>
- </div>
- <textarea id="msg" placeholder="Type your answer here..."></textarea>
- <div class="row">
-   <button class="primary" onclick="send()">Send →</button>
-   <button onclick="hint()">💡 Hint</button>
- </div>`);
+show(`<h2>Let's talk to AI</h2>
+<div class="chat">
+<div class="bubble ai"><b>AI:</b> ${intro}</div>
+<div id="messages"></div>
+</div>
+<textarea id="msg" placeholder="Type your answer here..." onkeydown="key(event)"></textarea>
+<div class="row">
+<button class="primary" onclick="send()">Send →</button>
+<button onclick="hint()">💡 Hint</button>
+</div>`)
+}
+
+function add(who,text,kind){
+document.getElementById("messages").innerHTML+=`<div class="bubble ${kind}"><b>${who}:</b> ${text}</div>`
+}
+
+function choices(a){
+document.getElementById("messages").innerHTML+=`<div class="quick"><b>What would you like to ask next?</b>
+<div class="choices">${a.map(x=>`<button onclick="quick('${attr(x)}')">${x}</button>`).join("")}</div></div>`
+}
+
+function finish(){
+document.getElementById("messages").innerHTML+=`<div class="tip"><b>🌟 You're getting the idea!</b><br>
+You are choosing your next question and guiding the conversation.</div>
+<button class="primary" onclick="results()">See What You Discovered →</button>`
 }
 
 function send(){
- const el=document.getElementById("msg");
- const m=el.value.trim();
- if(!m)return;
- document.querySelectorAll(".quick").forEach(q=>q.remove());
- score+=15; turns++;
- addMessage("You",m,"you");
-
- const answer = response(m);
- addMessage("AI",answer.text,"ai");
-
- if(answer.choices && answer.choices.length){
-   addChoices(answer.choices);
- }
- el.value="";
- document.getElementById("chat").scrollIntoView({behavior:"smooth",block:"end"});
+let e=document.getElementById("msg"),m=e.value.trim();
+if(!m)return;
+document.querySelectorAll(".quick").forEach(q=>q.remove());
+score+=15;turns++;
+add("You",esc(m),"you");
+let a=response(m);
+add("AI",a.text,"ai");
+if(a.choices&&a.choices.length&&turns<4)choices(a.choices);
+e.value="";
+if(turns===4)finish();
+document.querySelector(".chat").scrollIntoView({behavior:"smooth",block:"end"})
 }
 
-function addMessage(who,text,kind){
- const box=document.getElementById("messages");
- box.innerHTML+=`<div class="bubble ${kind}"><b>${who}:</b> ${text}</div>`;
+function quick(m){
+document.querySelectorAll(".quick").forEach(q=>q.remove());
+score+=15;turns++;
+add("You",esc(m),"you");
+let a=response(m);
+add("AI",a.text,"ai");
+if(a.choices&&a.choices.length&&turns<4)choices(a.choices);
+if(turns===4)finish();
+document.querySelector(".chat").scrollIntoView({behavior:"smooth",block:"end"})
 }
 
-function addChoices(choices){
- const box=document.getElementById("messages");
- box.innerHTML+=`<div class="quick"><b>What would you like to ask next?</b><div class="choices">
- ${choices.map(c=>`<button onclick="quickAsk('${escAttr(c)}')">${c}</button>`).join("")}
- </div></div>`;
+function key(e){
+if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}
 }
 
-function quickAsk(question){
- const box=document.getElementById("messages");
- box.querySelectorAll(".quick").forEach(q=>q.remove());
- score+=15; turns++;
- addMessage("You",question,"you");
- const answer=response(question);
- addMessage("AI",answer.text,"ai");
- if(answer.choices && answer.choices.length) addChoices(answer.choices);
- if(turns===4){
-   box.innerHTML+=`<div class="tip"><b>🌟 You're getting the idea!</b><br>You are choosing your next question, just like a real AI conversation.</div>
-   <button class="primary" onclick="results()">See What You Discovered →</button>`;
- }
- box.scrollIntoView({behavior:"smooth",block:"end"});
+function remember(m){
+let x=m.trim();
+if(!subject&&x.length>2&&!/^(yes|yeah|yep|sure|okay|ok|tell me more|give me an example|make (that|it) simpler|simpler)$/i.test(x))subject=x
+}
+
+function label(){return subject||"that topic"}
+
+function context(){
+if(topic==="Travel")return[
+"What should I know first?","Give me an example.","Help me make a plan.","Make that simpler."
+];
+if(topic==="Everyday Life")return[
+"Give me an example.","Help me make a plan.","What should I do first?","Make that simpler."
+];
+if(topic==="Create Something")return[
+"Give me some ideas.","Help me choose one.","What should I do first?","Make that simpler."
+];
+return[
+"What should I know first?","Why is this important?","Give me an example.","Make that simpler."
+]
 }
 
 function response(m){
- const x=m.toLowerCase();
+let x=m.toLowerCase().trim();
 
- // Keep answers connected to the topic the player chose.
- if(topic==="Everyday Life"){
-   if(/egg|grocery|groceries|food|meal|recipe|cook/.test(x)){
-     return {text:"Absolutely. If you're working with eggs, I can help with meals, recipes, storage, or a grocery plan. What would be most useful?",choices:[
-       "Give me some meal ideas.",
-       "How should I store eggs?",
-       "Help me make a grocery list.",
-       "Make that simpler."
-     ]};
-   }
-   if(/plan|organize|schedule|list/.test(x)){
-     return {text:"Sure. Tell me what you're trying to organize, and I'll help you break it into simple steps.",choices:[
-       "Help me make a list.",
-       "Break it into steps.",
-       "Give me an example.",
-       "Make that simpler."
-     ]};
-   }
-   return {text:"I can help with that. Tell me a little more about what you're trying to do, and we'll work it out together.",choices:[
-     "Give me an example.",
-     "Tell me more.",
-     "Make that simpler.",
-     "That's not what I meant."
-   ]};
- }
-
- if(topic==="Travel"){
-   if(/trip|travel|vacation|hotel|flight|visit|destination/.test(x))
-     return {text:"I'd be happy to help plan that. What matters most to you: where to go, what to do, your budget, or organizing the trip?",choices:[
-       "Help me choose where to go.",
-       "Help me plan a 3-day trip.",
-       "Help me stay on a budget.",
-       "What should I ask next?"
-     ]};
-   return {text:"That sounds like part of a trip plan. Tell me what you're hoping to do or where you're thinking about going.",choices:[
-     "Help me choose a destination.",
-     "Help me plan activities.",
-     "Help me plan a budget.",
-     "Make that simpler."
-   ]};
- }
-
- if(topic==="Learn Something New"){
-   if(/flood|india/.test(x))
-     return {text:"Flooding in India can happen for several reasons, including heavy monsoon rainfall, rivers overflowing, and drainage or land-use problems. Floods can affect homes, crops, roads, and communities.<br><br>What would you like to understand next?",choices:[
-       "Why do floods happen in India?",
-       "How are people affected?",
-       "What is being done to help?",
-       "Explain it in simpler terms."
-     ]};
-
-   if(/why.*flood|flood.*happen/.test(x))
-     return {text:"A major reason is the seasonal monsoon, which can bring very heavy rain. Geography, rivers, drainage, and development can also affect flooding.",choices:[
-       "How are people affected?",
-       "What is being done to help?",
-       "Give me an example.",
-       "Make that simpler."
-     ]};
-
-   if(/affected|people.*flood/.test(x))
-     return {text:"Floods can affect homes, food, transportation, work, and access to services. Some communities may also need to evacuate or receive emergency assistance.",choices:[
-       "What is being done to help?",
-       "Why do floods happen?",
-       "Tell me more.",
-       "Make that simpler."
-     ]};
-
-   if(/being done|help.*flood|relief/.test(x))
-     return {text:"Responses can include warnings, evacuations, rescue efforts, emergency shelters, food and medical assistance, and rebuilding.",choices:[
-       "How can people help?",
-       "Tell me more about relief efforts.",
-       "Why do floods happen?",
-       "Make that simpler."
-     ]};
-
-   if(/example/.test(x))
-     return {text:"Sure. Tell me the subject you'd like an example about, and I'll give you one in plain language.",choices:[
-       "Explain it simply.",
-       "Teach me step by step.",
-       "Quiz me on it."
-     ]};
-
-   if(/simple|simpler/.test(x))
-     return {text:"Of course. I'll explain things using plain, everyday language and avoid unnecessary technical terms.",choices:[
-       "Give me an example.",
-       "Tell me more.",
-       "Teach me step by step."
-     ]};
-
-   return {text:"Absolutely. What would you like to learn or understand better? You can give me a subject, even if you only know a little about it.",choices:[
-     "Explain it simply.",
-     "Give me an example.",
-     "Teach me step by step.",
-     "I'm not sure yet."
-   ]};
- }
-
- if(topic==="Create Something"){
-   return {text:"Fun! Tell me what you'd like to create and what kind of feeling or style you want. We can build the idea together.",choices:[
-     "Give me some ideas.",
-     "Help me choose one.",
-     "Ask me questions to get started.",
-     "Make that simpler."
-   ]};
- }
-
- // Handles the "I'm Not Sure" path.
- if(/not sure|don't know|dont know/.test(x))
-   return {text:"That's completely okay. You can start with something you're curious about, something you want to make easier, or something you want to create.",choices:[
-     "Help me learn something.",
-     "Help me plan something.",
-     "Help me solve an everyday problem.",
-     "Help me create something."
-   ]};
-
- if(/simpler|simple terms/.test(x))
-   return {text:"Of course. I'll explain it using plain, everyday language.",choices:[
-     "Give me an example.",
-     "Tell me more.",
-     "What should I ask next?"
-   ]};
-
- if(/not what i meant/.test(x))
-   return {text:"That's completely okay. Tell me what you meant, and I'll change my answer. You never have to start over.",choices:[
-     "Try explaining it differently.",
-     "Ask me a question to help.",
-     "Make it simpler."
-   ]};
-
- return {text:"That gives me a place to start. Tell me a little more about what you want, and I'll help you figure out the next step.",choices:[
-   "Tell me more.",
-   "Ask me a question to help.",
-   "Give me an example.",
-   "Make it simpler."
- ]};
+if(/not what i meant|different subject|change (the )?topic|something else/.test(x)){
+subject="";
+return{text:"Absolutely. You can change the subject at any time. Just tell me what you'd like to talk about.",
+choices:[
+"Help me learn something new.",
+"Help me plan something.",
+"Help me solve an everyday problem."
+]}
 }
-function hint(){
- const box=document.getElementById("messages");
- let text;
- if(topic==="Learn Something New") text=`Here are some things you can say:<br><br>
- <b>“Explain it in simple terms.”</b><br>
- <b>“Give me an example.”</b><br>
- <b>“Teach me step by step.”</b><br>
- <b>“Quiz me on it.”`;
- else text=`You can say:<br><br>
- <b>“Tell me more.”</b><br>
- <b>“Make that simpler.”</b><br>
- <b>“Give me an example.”</b><br>
- <b>“That's not what I meant.”</b>`;
- box.innerHTML+=`<div class="bubble ai"><b>AI:</b><br><br>${text}</div>`;
+
+if(/^(tell me more|more about (it|that)|what else|keep going)/.test(x))
+return{
+text:`Sure. Let's go a little deeper into <b>${esc(label())}</b>. What part are you most curious about?`,
+choices:context()
+};
+
+if(/make (that|it) simpler|plain language|^simpler$/.test(x))
+return{
+text:`Of course. In plain language, <b>${esc(label())}</b> can be broken into smaller pieces. You can ask me for the main idea, an example, or step-by-step help.`,
+choices:["Give me an example.","Teach me step by step.","Tell me more.","That's not what I meant."]
+};
+
+if(/give me an example|example/.test(x))
+return{
+text:`Here's an example: you could ask AI about <b>${esc(label())}</b> and then ask a follow-up question about the part you care about most.`,
+choices:["Tell me more.","Make that simpler.","What should I ask next?"]
+};
+
+if(/teach me step by step|step by step|what should i do first|what should i ask next/.test(x))
+return{
+text:`Let's take it one step at a time. First, decide what you want to accomplish with <b>${esc(label())}</b>. Then tell AI what you want, read its answer, and ask the next question.`,
+choices:["Tell me more.","Give me an example.","Make that simpler."]
+};
+
+if(topic==="Travel"){
+
+if(/places to eat|restaurant|food/.test(x))
+return{
+text:"Absolutely! I can help you find places to eat. Tell me where you'll be, what kind of food you like, and your budget.",
+choices:[
+"Find places to eat near me.",
+"Find seafood restaurants.",
+"Find something inexpensive.",
+"Help me choose a restaurant."
+]};
+
+if(/find things to do|things to do|activities|what to do/.test(x))
+return{
+text:"Absolutely! I can help you find things to do. Tell me where you'll be, how much time you have, and what you enjoy.",
+choices:[
+"Find things to do near me.",
+"Find free things to do.",
+"Find something fun this afternoon.",
+"Help me choose an activity."
+]};
+
+if(/near me|near my hotel|nearby/.test(x))
+return{
+text:"Sure! I can help you find options near you. Tell me the city, neighborhood, hotel, or attraction you're near.",
+choices:[
+"Find places to eat nearby.",
+"Find things to do nearby.",
+"Find something within walking distance.",
+"Make that simpler."
+]};
+
+if(/trip|travel|vacation|hotel|flight|visit|destination/.test(x)){
+remember(m);
+return{
+text:`Let's plan <b>${esc(m)}</b>. We can look at destinations, activities, timing, transportation, food, or budget.`,
+choices:[
+"Help me choose what to do.",
+"Help me find places to eat.",
+"Help me make a 3-day plan.",
+"Help me plan a budget."
+]}}
+
+if(/^(yes|yeah|yep|sure|okay|ok)$/.test(x))
+return{
+text:"Great! Let's keep going. Choose one of these, or tell me what you're looking for.",
+choices:[
+"Find places to eat nearby.",
+"Find things to do nearby.",
+"Help me plan my day.",
+"Tell me more."
+]};
+}
+
+if(topic==="Everyday Life"){
+
+if(/dinner|make.*eat|what can i make/.test(x))
+return{
+text:"Let's make dinner easier. Tell me what ingredients you have, and I can suggest a few meals.",
+choices:[
+"I have eggs.",
+"I have chicken.",
+"I want something quick.",
+"Give me a simple recipe."
+]};
+
+if(/grocery|groceries|shopping list/.test(x))
+return{
+text:"Sure! I can help make a grocery list. Tell me how many people you're shopping for and what meals you want.",
+choices:[
+"Plan three dinners.",
+"Make it inexpensive.",
+"Make the list simple.",
+"Add breakfast ideas."
+]};
+
+if(/organize|my week|plan my week/.test(x))
+return{
+text:"We can organize your week together. Tell me the important things you need to get done, and we'll put them in a simple order.",
+choices:[
+"Help me choose what comes first.",
+"Make a simple schedule.",
+"Keep it flexible.",
+"Make that simpler."
+]};
+
+if(/solve a problem|figure out how to handle|help me solve/.test(x))
+return{
+text:"Absolutely. Tell me what's happening, what you've tried, and what outcome you want. We can work through it together.",
+choices:[
+"Help me think of options.",
+"What should I do first?",
+"Give me an example.",
+"Make that simpler."
+]};
+}
+
+if(topic==="Learn Something New"){
+
+if(/quiz me|test me|practice/.test(x))
+return{
+text:`Great! Let's practice <b>${esc(label())}</b>. I'll ask a simple question, and you can answer in your own words.`,
+choices:[
+"Ask me an easy question.",
+"Give me a hint.",
+"Explain it again."
+]};
+
+if(/explain.*simple|simple terms/.test(x))
+return{
+text:`Sure. Let's make <b>${esc(label())}</b> easier to understand. I'll start with the main idea, then we can add details if you want.`,
+choices:[
+"Give me an example.",
+"Go step by step.",
+"Tell me more."
+]};
+
+if(!subject||/learn something|teach me something|help me understand/.test(x)){
+if(!subject&&!/learn something|teach me something|help me understand/.test(x))subject=m;
+return{
+text:"Absolutely. Give me any subject you're curious about—even if you only know a little about it.",
+choices:[
+"Explain it simply.",
+"Give me an example.",
+"Teach me step by step."
+]}
+}
+}
+
+if(topic==="Create Something"){
+
+if(/which idea|easiest|choose one|help me choose/.test(x))
+return{
+text:`Let's choose the easiest option for <b>${esc(label())}</b>. Look for the idea that is simple enough to start now and can grow later.`,
+choices:[
+"Give me the easiest idea.",
+"Give me another option.",
+"Help me make a plan.",
+"Make that simpler."
+]};
+
+if(/make a plan|plan for it/.test(x))
+return{
+text:`Great. Let's turn <b>${esc(label())}</b> into a simple plan: choose the idea, gather what you need, do the first small step, then review it.`,
+choices:[
+"What should I do first?",
+"What do I need?",
+"Help me improve it.",
+"Make that simpler."
+]};
+
+if(/make this better|improve it|improve this/.test(x))
+return{
+text:`Absolutely. We can improve <b>${esc(label())}</b> by looking at what you like, what feels missing, and what would make it more useful or fun.`,
+choices:[
+"Give me three ideas.",
+"Make it simpler.",
+"Help me choose one."
+]};
+
+remember(m);
+return{
+text:`Let's create something around <b>${esc(label())}</b>. We can brainstorm, choose an idea, and build it one step at a time.`,
+choices:[
+"Give me some ideas.",
+"Help me choose one.",
+"Ask me questions to get started.",
+"Make that simpler."
+]}
+}
+
+if(topic==="I'm Not Sure")
+return{
+text:"That's a good starting point. We can figure out what you want together. What sounds most useful?",
+choices:[
+"Help me learn something.",
+"Help me plan something.",
+"Help me solve an everyday problem.",
+"Help me create something."
+]};
+
+remember(m);
+return{
+text:`Let's connect that to <b>${esc(label())}</b>. What would you like help with first?`,
+choices:context()
+}
 }
 
 function results(){
- show(`<div class="center">
- <div class="confetti">🌟</div>
- <h1>You discovered something important!</h1>
- <p class="bigscore">${score}</p>
- <p><b>You don't have to know the perfect prompt.</b></p>
- <div class="tip">
- Start with what you want.<br>
- Let AI respond.<br>
- Ask another question.<br>
- Tell AI when you want something different.<br>
- <b>Keep the conversation going.</b>
- </div>
- <p>That's the Discover AI way.</p>
- <button class="primary" onclick="start()">Try Another Adventure</button>
- </div>`);
+show(`<h1>You discovered something important!</h1>
+<p style="font-size:32px"><b>${score}</b></p>
+<p><b>You don't have to know the perfect prompt.</b></p>
+<div class="tip">
+Start with what you want.<br>
+Let AI respond.<br>
+Ask another question.<br>
+Tell AI when you want something different.<br>
+<b>Keep the conversation going.</b>
+</div>
+<p>That's the Discover AI way.</p>
+<button class="primary" onclick="start()">Try Another Adventure</button>`)
 }
 
-function esc(s){
- return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function hint(){
+let box=document.getElementById("messages");
+if(!box)return;
+
+let art=`<svg class="hint-art" viewBox="0 0 600 220">
+<rect width="600" height="220" fill="#edf4f5"/>
+<circle cx="100" cy="65" r="28" fill="#f3c66a"/>
+<rect x="75" y="110" width="150" height="70" rx="10" fill="#fff"/>
+<rect x="370" y="95" width="150" height="85" rx="10" fill="#dcebe4"/>
+<path d="M260 150h80" stroke="#7fa8a4" stroke-width="12" stroke-linecap="round"/>
+</svg>`;
+
+let data={
+"Travel":[
+["🏞️ Find things to do","Help me find things to do in Sacramento."],
+["🍽️ Find places to eat","Help me find a good place to eat near me."],
+["📍 Find something nearby","What are some interesting places near my hotel?"],
+["🗓️ Plan your day","Help me plan a day with lunch and sightseeing."]
+],
+"Everyday Life":[
+["🍳 Dinner","What can I make for dinner with what I have?"],
+["🛒 Groceries","Help me make a grocery list for three dinners."],
+["📅 Organize","Help me organize my week."],
+["💡 Solve a problem","Help me figure out how to handle this."]
+],
+"Learn Something New":[
+["📖 Explain it simply","Explain gardening in simple terms."],
+["🔎 Give an example","Give me an example of how that works."],
+["👣 Go step by step","Teach me how to do it step by step."],
+["🧠 Practice","Quiz me on what I just learned."]
+],
+"Create Something":[
+["💭 Get ideas","Give me some ideas for a birthday card."],
+["⭐ Choose an idea","Which idea would be easiest?"],
+["📝 Make a plan","Help me make a plan for it."],
+["✨ Improve it","How could I make this better?"]
+],
+"I'm Not Sure":[
+["💡 Start anywhere","Give me some ideas of what you can help me with."],
+["❓ Ask for help","What could I ask you?"],
+["🧭 Find a direction","Help me figure out what would be useful."],
+["🌱 Begin simply","I don't know where to start."]
+]
+};
+
+let cards=(data[topic]||data["I'm Not Sure"]).map(d=>`
+<div class="hint-card">${art}
+<div class="hint-copy">
+<b>${d[0]}</b>
+<button class="hint-try" onclick="useHint('${attr(d[1])}')">
+Try it → “${d[1]}”
+</button>
+</div></div>`).join("");
+
+box.innerHTML+=`<div class="bubble ai">
+<b>AI:</b><br><br>
+Here are some real examples:
+<div class="hint-grid">${cards}</div>
+<p class="hint-note">💬 Click an example to put it in your box, then press <b>Send</b>.</p>
+</div>`
 }
-function escAttr(s){return s.replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ");}
+
+function useHint(t){
+let e=document.getElementById("msg");
+if(e){
+e.value=t;
+e.focus();
+e.scrollIntoView({behavior:"smooth",block:"center"})
+}
+}
+
 start();
 </script>
+</body>
+</html>
