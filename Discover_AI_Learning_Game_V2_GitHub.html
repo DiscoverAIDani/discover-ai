@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Discover AI — Conversation Game</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#f5f1e7;color:#20314a}.app{max-width:850px;margin:auto;padding:24px}
+header,main{background:white;border-radius:22px;padding:24px;box-shadow:0 6px 20px #0001}header{display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:28px;font-weight:800;color:#17345f}.brand span{color:#187f80}.score{background:#dcefe4;padding:9px 14px;border-radius:20px;font-weight:bold}
+main{margin-top:18px}h1,h2{color:#17345f}.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{padding:15px;border:2px solid #d9e1e8;border-radius:14px;background:white;font-size:16px;font-weight:bold;cursor:pointer}button:hover{border-color:#187f80}
+.primary{background:#187f80;color:white;border-color:#187f80}.chat{margin:20px 0}.bubble{padding:15px 18px;border-radius:18px;margin:12px 0;max-width:75%;line-height:1.5}.ai{background:#dcefe4}.you{background:#f8d8df;margin-left:auto}
+textarea{width:100%;min-height:90px;padding:14px;border:2px solid #ccd7df;border-radius:14px;font:16px Arial;box-sizing:border-box}
+.row{display:flex;gap:10px;margin-top:10px}.row button{flex:0 0 auto}.tip{background:#fff3c9;padding:14px;border-radius:14px;margin:15px 0}.quick{margin:16px 0;padding:12px;border-top:1px solid #e3e9ef}.quick .choices{margin-top:10px}.quick button{font-size:15px}
+@media(max-width:600px){.choices{grid-template-columns:1fr}header{gap:12px;align-items:flex-start;flex-direction:column}}
+</style>
+<div class="app">
+<header><div><div class="brand">DISCOVER <span>AI</span></div><small>See what AI can do for you.</small></div><div class="score">Confidence: <span id="score">0</span></div></header>
+<main id="screen"></main></div>
+<script>
+let score=0, topic="", turns=0;
+
+const topics=[
+ ["🌱","Everyday Life","Get help with something in your day-to-day life."],
+ ["✈️","Travel","Plan a trip or find something fun to do."],
+ ["📚","Learn Something New","Understand a topic or learn a new skill."],
+ ["🎨","Create Something","Come up with an idea or make something."],
+ ["💡","I'm Not Sure","Show me some ideas."]
+];
+
+function show(s){
+ document.getElementById("screen").innerHTML=s;
+ document.getElementById("score").textContent=score;
+}
+
+function start(){
+ score=0; turns=0;
+ show(`
+ <h1>Welcome to Discover AI</h1>
+ <p><b>Your first conversation with AI</b></p>
+ <p>You don't need to know the right words. You don't need to be good with computers.</p>
+ <p>Just tell AI what you're interested in, and we'll figure it out together.</p>
+ <div class="tip">💡 <b>There are no wrong answers.</b> You can always ask a different question or change your mind.</div>
+ <button class="primary" onclick="choose()">Let's Begin →</button>`);
+}
+
+function choose(){
+ show(`
+ <h2>What would you like to do?</h2>
+ <p>Choose whatever sounds interesting. You can change your mind later.</p>
+ <div class="choices">
+ ${topics.map((t,i)=>`
+ <button onclick="pick(${i})">
+   <span style="font-size:25px">${t[0]}</span><br>
+   <b>${t[1]}</b><br>
+   <small>${t[2]}</small>
+ </button>`).join("")}
+ </div>`);
+}
+
+function pick(i){
+ topic=topics[i][1];
+ if(topic==="I'm Not Sure"){showIdeas();return;}
+ score+=10; turns=0;
+ show(`
+ <h2>${topics[i][0]} ${topic}</h2>
+ <p>Here are a few things you could ask AI:</p>
+ <div class="choices">${examples(topic).map(x=>`
+ <button onclick="beginConversation('${escAttr(x)}')">${x}</button>`).join("")}</div>
+ <div class="nextrow"><button onclick="showCustom()">✏️ I have my own idea</button></div>`);
+}
+
+function examples(t){
+ if(t==="Learn Something New") return [
+  "📖 Explain something to me in simple terms.",
+  "🧠 Teach me something new.",
+  "❓ Help me understand something I've heard about.",
+  "🪜 Teach me step by step."
+ ];
+ if(t==="Travel") return [
+  "🗺️ Help me plan a trip.",
+  "🍽️ Help me find things to do and places to eat.",
+  "💰 Help me plan a trip on a budget.",
+  "📅 Help me organize a 3-day trip."
+ ];
+ if(t==="Everyday Life") return [
+  "🛒 Help me plan my groceries.",
+  "🍳 Help me figure out what to make for dinner.",
+  "📋 Help me organize something.",
+  "🔧 Help me solve a problem."
+ ];
+ return [
+  "💭 Give me some ideas.",
+  "✍️ Help me write something.",
+  "🎁 Help me come up with a creative idea.",
+  "🎨 Help me make something fun."
+ ];
+}
+
+function showIdeas(){
+ topic="I'm Not Sure";
+ show(`
+ <h2>That's perfectly okay! 😊</h2>
+ <p>You don't have to know what to ask. Here are some things people use AI for:</p>
+ <div class="choices">
+ ${examples("Everyday Life").slice(0,2).map(x=>`<button onclick="pick(0)">${x}</button>`).join("")}
+ ${examples("Learn Something New").slice(0,2).map(x=>`<button onclick="pick(2)">${x}</button>`).join("")}
+ <button onclick="pick(1)">✈️ Help me plan a trip.</button>
+ <button onclick="pick(3)">🎨 Help me create something.</button>
+ </div>`);
+}
+
+function beginConversation(text){
+ score+=15; turns=1;
+ chat(`<b>That's a great place to start!</b><br><br>${text}<br><br>Now let's see what happens when you keep the conversation going.`);
+}
+
+function showCustom(){
+ chat("Tell me what you'd like help with. You can type it exactly the way you would say it to a person.");
+}
+
+function chat(intro){
+ show(`
+ <h2>Let's talk to AI</h2>
+ <div class="chat">
+   <div class="bubble ai"><b>AI:</b> ${intro}</div>
+   <div id="messages"></div>
+ </div>
+ <textarea id="msg" placeholder="Type your answer here..."></textarea>
+ <div class="row">
+   <button class="primary" onclick="send()">Send →</button>
+   <button onclick="hint()">💡 Hint</button>
+ </div>`);
+}
+
+function send(){
+ const el=document.getElementById("msg");
+ const m=el.value.trim();
+ if(!m)return;
+ document.querySelectorAll(".quick").forEach(q=>q.remove());
+ score+=15; turns++;
+ addMessage("You",m,"you");
+
+ const answer = response(m);
+ addMessage("AI",answer.text,"ai");
+
+ if(answer.choices && answer.choices.length){
+   addChoices(answer.choices);
+ }
+ el.value="";
+ document.getElementById("chat").scrollIntoView({behavior:"smooth",block:"end"});
+}
+
+function addMessage(who,text,kind){
+ const box=document.getElementById("messages");
+ box.innerHTML+=`<div class="bubble ${kind}"><b>${who}:</b> ${text}</div>`;
+}
+
+function addChoices(choices){
+ const box=document.getElementById("messages");
+ box.innerHTML+=`<div class="quick"><b>What would you like to ask next?</b><div class="choices">
+ ${choices.map(c=>`<button onclick="quickAsk('${escAttr(c)}')">${c}</button>`).join("")}
+ </div></div>`;
+}
+
+function quickAsk(question){
+ const box=document.getElementById("messages");
+ box.querySelectorAll(".quick").forEach(q=>q.remove());
+ score+=15; turns++;
+ addMessage("You",question,"you");
+ const answer=response(question);
+ addMessage("AI",answer.text,"ai");
+ if(answer.choices && answer.choices.length) addChoices(answer.choices);
+ if(turns===4){
+   box.innerHTML+=`<div class="tip"><b>🌟 You're getting the idea!</b><br>You are choosing your next question, just like a real AI conversation.</div>
+   <button class="primary" onclick="results()">See What You Discovered →</button>`;
+ }
+ box.scrollIntoView({behavior:"smooth",block:"end"});
+}
+
+function response(m){
+ const x=m.toLowerCase();
+
+ // Keep answers connected to the topic the player chose.
+ if(topic==="Everyday Life"){
+   if(/egg|grocery|groceries|food|meal|recipe|cook/.test(x)){
+     return {text:"Absolutely. If you're working with eggs, I can help with meals, recipes, storage, or a grocery plan. What would be most useful?",choices:[
+       "Give me some meal ideas.",
+       "How should I store eggs?",
+       "Help me make a grocery list.",
+       "Make that simpler."
+     ]};
+   }
+   if(/plan|organize|schedule|list/.test(x)){
+     return {text:"Sure. Tell me what you're trying to organize, and I'll help you break it into simple steps.",choices:[
+       "Help me make a list.",
+       "Break it into steps.",
+       "Give me an example.",
+       "Make that simpler."
+     ]};
+   }
+   return {text:"I can help with that. Tell me a little more about what you're trying to do, and we'll work it out together.",choices:[
+     "Give me an example.",
+     "Tell me more.",
+     "Make that simpler.",
+     "That's not what I meant."
+   ]};
+ }
+
+ if(topic==="Travel"){
+   if(/trip|travel|vacation|hotel|flight|visit|destination/.test(x))
+     return {text:"I'd be happy to help plan that. What matters most to you: where to go, what to do, your budget, or organizing the trip?",choices:[
+       "Help me choose where to go.",
+       "Help me plan a 3-day trip.",
+       "Help me stay on a budget.",
+       "What should I ask next?"
+     ]};
+   return {text:"That sounds like part of a trip plan. Tell me what you're hoping to do or where you're thinking about going.",choices:[
+     "Help me choose a destination.",
+     "Help me plan activities.",
+     "Help me plan a budget.",
+     "Make that simpler."
+   ]};
+ }
+
+ if(topic==="Learn Something New"){
+   if(/flood|india/.test(x))
+     return {text:"Flooding in India can happen for several reasons, including heavy monsoon rainfall, rivers overflowing, and drainage or land-use problems. Floods can affect homes, crops, roads, and communities.<br><br>What would you like to understand next?",choices:[
+       "Why do floods happen in India?",
+       "How are people affected?",
+       "What is being done to help?",
+       "Explain it in simpler terms."
+     ]};
+
+   if(/why.*flood|flood.*happen/.test(x))
+     return {text:"A major reason is the seasonal monsoon, which can bring very heavy rain. Geography, rivers, drainage, and development can also affect flooding.",choices:[
+       "How are people affected?",
+       "What is being done to help?",
+       "Give me an example.",
+       "Make that simpler."
+     ]};
+
+   if(/affected|people.*flood/.test(x))
+     return {text:"Floods can affect homes, food, transportation, work, and access to services. Some communities may also need to evacuate or receive emergency assistance.",choices:[
+       "What is being done to help?",
+       "Why do floods happen?",
+       "Tell me more.",
+       "Make that simpler."
+     ]};
+
+   if(/being done|help.*flood|relief/.test(x))
+     return {text:"Responses can include warnings, evacuations, rescue efforts, emergency shelters, food and medical assistance, and rebuilding.",choices:[
+       "How can people help?",
+       "Tell me more about relief efforts.",
+       "Why do floods happen?",
+       "Make that simpler."
+     ]};
+
+   if(/example/.test(x))
+     return {text:"Sure. Tell me the subject you'd like an example about, and I'll give you one in plain language.",choices:[
+       "Explain it simply.",
+       "Teach me step by step.",
+       "Quiz me on it."
+     ]};
+
+   if(/simple|simpler/.test(x))
+     return {text:"Of course. I'll explain things using plain, everyday language and avoid unnecessary technical terms.",choices:[
+       "Give me an example.",
+       "Tell me more.",
+       "Teach me step by step."
+     ]};
+
+   return {text:"Absolutely. What would you like to learn or understand better? You can give me a subject, even if you only know a little about it.",choices:[
+     "Explain it simply.",
+     "Give me an example.",
+     "Teach me step by step.",
+     "I'm not sure yet."
+   ]};
+ }
+
+ if(topic==="Create Something"){
+   return {text:"Fun! Tell me what you'd like to create and what kind of feeling or style you want. We can build the idea together.",choices:[
+     "Give me some ideas.",
+     "Help me choose one.",
+     "Ask me questions to get started.",
+     "Make that simpler."
+   ]};
+ }
+
+ // Handles the "I'm Not Sure" path.
+ if(/not sure|don't know|dont know/.test(x))
+   return {text:"That's completely okay. You can start with something you're curious about, something you want to make easier, or something you want to create.",choices:[
+     "Help me learn something.",
+     "Help me plan something.",
+     "Help me solve an everyday problem.",
+     "Help me create something."
+   ]};
+
+ if(/simpler|simple terms/.test(x))
+   return {text:"Of course. I'll explain it using plain, everyday language.",choices:[
+     "Give me an example.",
+     "Tell me more.",
+     "What should I ask next?"
+   ]};
+
+ if(/not what i meant/.test(x))
+   return {text:"That's completely okay. Tell me what you meant, and I'll change my answer. You never have to start over.",choices:[
+     "Try explaining it differently.",
+     "Ask me a question to help.",
+     "Make it simpler."
+   ]};
+
+ return {text:"That gives me a place to start. Tell me a little more about what you want, and I'll help you figure out the next step.",choices:[
+   "Tell me more.",
+   "Ask me a question to help.",
+   "Give me an example.",
+   "Make it simpler."
+ ]};
+}
+function hint(){
+ const box=document.getElementById("messages");
+ let text;
+ if(topic==="Learn Something New") text=`Here are some things you can say:<br><br>
+ <b>“Explain it in simple terms.”</b><br>
+ <b>“Give me an example.”</b><br>
+ <b>“Teach me step by step.”</b><br>
+ <b>“Quiz me on it.”`;
+ else text=`You can say:<br><br>
+ <b>“Tell me more.”</b><br>
+ <b>“Make that simpler.”</b><br>
+ <b>“Give me an example.”</b><br>
+ <b>“That's not what I meant.”</b>`;
+ box.innerHTML+=`<div class="bubble ai"><b>AI:</b><br><br>${text}</div>`;
+}
+
+function results(){
+ show(`<div class="center">
+ <div class="confetti">🌟</div>
+ <h1>You discovered something important!</h1>
+ <p class="bigscore">${score}</p>
+ <p><b>You don't have to know the perfect prompt.</b></p>
+ <div class="tip">
+ Start with what you want.<br>
+ Let AI respond.<br>
+ Ask another question.<br>
+ Tell AI when you want something different.<br>
+ <b>Keep the conversation going.</b>
+ </div>
+ <p>That's the Discover AI way.</p>
+ <button class="primary" onclick="start()">Try Another Adventure</button>
+ </div>`);
+}
+
+function esc(s){
+ return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function escAttr(s){return s.replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ");}
+start();
+</script>
