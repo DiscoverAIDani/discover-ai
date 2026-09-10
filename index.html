@@ -1,128 +1,1179 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Discover AI | See what AI can do for you.</title>
-<meta name="description" content="One-on-one, conversational AI coaching for everyday life. Discover how AI can help you explore, learn, plan, and accomplish the things that matter to you.">
-<style>
-:root{--ink:#18384b;--green:#47755f;--sage:#e4eee5;--cream:#faf7ef;--gold:#d5ae68;--rose:#d89a96;--white:#fff;--line:#d9e0da}
-*{box-sizing:border-box;scroll-behavior:smooth}
-body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif;line-height:1.6}
-a{color:inherit}.wrap{max-width:1080px;margin:auto;padding:0 24px}
-nav{position:sticky;top:0;z-index:5;background:rgba(250,247,239,.96);border-bottom:1px solid var(--line)}
-.navin{display:flex;align-items:center;justify-content:space-between;min-height:70px}
-.logo{font:700 29px Georgia,serif;text-decoration:none}.logo span{color:var(--green)}
-.navlinks{display:flex;gap:24px}.navlinks a{text-decoration:none;font-weight:700;font-size:14px}
-.btn{display:inline-block;text-decoration:none;background:var(--green);color:#fff;padding:13px 23px;border-radius:28px;font-weight:700;border:0;cursor:pointer}
-.btn.alt{background:var(--gold);color:var(--ink)}
-.hero{padding:86px 0 70px;background:linear-gradient(135deg,var(--sage),var(--cream) 65%)}
-.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:55px;align-items:center}
-.kicker{text-transform:uppercase;letter-spacing:2px;font-size:13px;font-weight:700;color:var(--green)}
-h1,h2,h3{font-family:Georgia,serif;line-height:1.15}
-h1{font-size:58px;margin:12px 0}.hero h1 span{color:var(--green)}
-.tag{font:italic 25px Georgia,serif;margin:0 0 22px}
-.lead{font-size:20px;max-width:650px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
-.visual{min-height:360px;border-radius:35px;background:radial-gradient(circle at 50% 42%,#fff 0 14%,transparent 15%),linear-gradient(145deg,#cfe0d1,#dce8ed);display:flex;align-items:center;justify-content:center;box-shadow:0 18px 45px rgba(24,56,75,.12);position:relative;overflow:hidden}
-.sun{width:150px;height:150px;border-radius:50%;background:#e5bf78;opacity:.85}.path{position:absolute;width:170px;height:310px;background:#f8f0dd;bottom:-95px;border-radius:50% 50% 0 0/70% 70% 0 0;transform:rotate(3deg)}
-.section{padding:78px 0}.section.altbg{background:#fff}.center{text-align:center}.section h2{font-size:40px;margin:0 0 14px}.intro{max-width:680px;margin:0 auto 38px;font-size:18px}
-.steps,.explore,.faqgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px}.steps .card{background:var(--cream)}.num{font:700 32px Georgia,serif;color:var(--gold)}
-.explore{grid-template-columns:repeat(3,1fr)}.explore .card{min-height:150px}.icon{font-size:30px}
-.quote{background:var(--sage);padding:50px 30px;text-align:center;border-radius:28px;margin-top:38px}.quote p{font:italic 28px Georgia,serif;max-width:760px;margin:auto}
-.session{display:grid;grid-template-columns:1fr 1fr;gap:25px;align-items:start}.price{font:700 45px Georgia,serif;color:var(--green)}ul{padding-left:21px}.details{background:var(--cream);border-radius:20px;padding:26px}
-form{background:#fff;border:1px solid var(--line);padding:28px;border-radius:20px}label{display:block;font-weight:700;margin:14px 0 6px}input,textarea{width:100%;padding:13px;border:1px solid #bbc8c0;border-radius:10px;font:inherit}textarea{min-height:105px}.check{font-weight:400;margin:8px 0}.check input{width:auto;margin-right:7px}.notice{font-size:13px;color:#5b6870}
-.about{display:grid;grid-template-columns:.8fr 1.2fr;gap:35px;align-items:center}.aboutbox{background:var(--sage);border-radius:25px;padding:30px}.faqgrid{grid-template-columns:repeat(2,1fr)}
-footer{background:var(--ink);color:#fff;padding:45px 0}.foot{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}.contact a{color:#fff}
-@media(max-width:780px){.navlinks{display:none}.hero{padding:58px 0 45px}.hero-grid,.session,.about{grid-template-columns:1fr}.hero h1{font-size:45px}.visual{min-height:260px}.steps,.explore{grid-template-columns:1fr 1fr}.faqgrid{grid-template-columns:1fr}.section{padding:58px 0}}
-@media(max-width:480px){.wrap{padding:0 17px}.steps,.explore{grid-template-columns:1fr}.hero h1{font-size:39px}.section h2{font-size:32px}}
-</style>
+<meta name="description" content="Discover AI — Free, beginner-friendly AI education for our community. Practical help, no jargon.">
+  <title>Discover AI | Real AI. Practical Help. No Jargon.</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --navy: #17324d;
+      --blue: #2d6cdf;
+      --light-blue: #eef5ff;
+      --gold: #f3b33d;
+      --cream: #fffaf1;
+      --text: #263238;
+      --muted: #5f6b73;
+      --white: #ffffff;
+      --border: #dce4ea;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      line-height: 1.6;
+      background: var(--white);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .container {
+      width: min(1100px, 92%);
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .nav {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .logo {
+      text-decoration: none;
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--navy);
+      white-space: nowrap;
+    }
+
+    .logo span {
+      color: var(--blue);
+    }
+
+    nav {
+      display: flex;
+      gap: 22px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--navy);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    nav a:hover {
+      color: var(--blue);
+    }
+
+    .nav-button {
+      background: var(--blue);
+      color: var(--white) !important;
+      padding: 10px 16px;
+      border-radius: 8px;
+    }
+
+    section {
+      padding: 76px 0;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--light-blue), var(--cream));
+      padding: 90px 0;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 50px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      color: var(--blue);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      color: var(--navy);
+      font-size: clamp(2.4rem, 5vw, 4.3rem);
+      line-height: 1.08;
+      margin-bottom: 22px;
+    }
+
+    .hero h1 span {
+      color: var(--blue);
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--muted);
+      max-width: 650px;
+      margin-bottom: 20px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+
+    .button {
+      display: inline-block;
+      text-decoration: none;
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      padding: 13px 20px;
+      border-radius: 8px;
+      background: var(--blue);
+      color: var(--white);
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      opacity: 0.92;
+    }
+
+    .button.secondary {
+      background: var(--white);
+      color: var(--navy);
+      border: 1px solid var(--border);
+    }
+
+    .hero-card {
+      background: var(--white);
+      border-radius: 18px;
+      padding: 30px;
+      box-shadow: 0 12px 35px rgba(23, 50, 77, 0.1);
+      border: 1px solid var(--border);
+    }
+
+    .hero-card h2 {
+      color: var(--navy);
+      margin-bottom: 14px;
+      font-size: 1.55rem;
+    }
+
+    .hero-card ul {
+      list-style: none;
+      display: grid;
+      gap: 13px;
+    }
+
+    .hero-card li {
+      padding-left: 28px;
+      position: relative;
+    }
+
+    .hero-card li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--blue);
+      font-weight: 800;
+    }
+
+    h2 {
+      color: var(--navy);
+      font-size: clamp(1.9rem, 3vw, 2.7rem);
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      color: var(--navy);
+      margin-bottom: 9px;
+      font-size: 1.25rem;
+    }
+
+    .section-intro {
+      color: var(--muted);
+      max-width: 760px;
+      font-size: 1.08rem;
+      margin-bottom: 34px;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .center .section-intro {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feature,
+    .use-card,
+    .step {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 25px;
+    }
+
+    .feature {
+      background: var(--light-blue);
+      border: none;
+    }
+
+    .feature p,
+    .use-card p,
+    .step p {
+      color: var(--muted);
+    }
+
+    .number-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .use-card {
+      display: flex;
+      gap: 17px;
+      align-items: flex-start;
+    }
+
+    .number {
+      min-width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: var(--navy);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+    }
+
+    .program {
+      background: var(--navy);
+      color: var(--white);
+    }
+
+    .program h2,
+    .program h3 {
+      color: var(--white);
+    }
+
+    .program .section-intro {
+      color: #e3edf5;
+    }
+
+    .program-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .program-box {
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 14px;
+      padding: 28px;
+    }
+
+    .program-box ul {
+      padding-left: 20px;
+      color: #e3edf5;
+    }
+
+    .program-box li {
+      margin-bottom: 8px;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .step-number {
+      color: var(--blue);
+      font-size: 0.9rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .about {
+      background: var(--cream);
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 50px;
+      align-items: center;
+    }
+
+    .about-badge {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 35px;
+      text-align: center;
+    }
+
+    .about-badge .big {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: var(--blue);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .about-copy p {
+      color: var(--muted);
+      margin-bottom: 15px;
+    }
+
+    .faq {
+      display: grid;
+      gap: 14px;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 17px 20px;
+      background: var(--white);
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    details p {
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    .contact {
+      background: var(--light-blue);
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 45px;
+      align-items: start;
+    }
+
+    .contact-info p {
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .contact-info a {
+      color: var(--blue);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    form {
+      background: var(--white);
+      padding: 30px;
+      border-radius: 15px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 25px rgba(23, 50, 77, 0.06);
+    }
+
+    label {
+      display: block;
+      color: var(--navy);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid #c8d3db;
+      border-radius: 8px;
+      padding: 12px 13px;
+      font: inherit;
+      margin-bottom: 17px;
+      background: var(--white);
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: 2px solid rgba(45, 108, 223, 0.2);
+      border-color: var(--blue);
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    .form-note {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-top: 10px;
+    }
+
+    footer {
+      background: #102638;
+      color: #dbe6ed;
+      padding: 30px 0;
+      text-align: center;
+    }
+
+    footer p {
+      margin: 5px 0;
+    }
+
+    footer a {
+      color: var(--white);
+    }
+
+    @media (max-width: 800px) {
+      .nav {
+        padding: 12px 0;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      nav {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 12px 16px;
+      }
+
+      .hero-grid,
+      .program-grid,
+      .about-grid,
+      .contact-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .features,
+      .steps {
+        grid-template-columns: 1fr;
+      }
+
+      .number-grid {
+        grid-template-columns: 1fr;
+      }
+
+      section {
+        padding: 58px 0;
+      }
+
+      .hero {
+        padding: 65px 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .nav-button {
+        display: none;
+      }
+
+      .hero p {
+        font-size: 1.05rem;
+      }
+
+      .use-card {
+        padding: 20px;
+      }
+
+      form {
+        padding: 22px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<nav><div class="wrap navin">
-<a class="logo" href="#top">Discover<span>AI</span></a>
-<div class="navlinks"><a href="#how">How It Works</a><a href="#session">Session</a><a href="#about">About</a><a href="#faq">FAQ</a></div>
-<a class="btn" href="#book">Book a Session</a>
-</div></nav>
 
-<header class="hero" id="top"><div class="wrap hero-grid">
-<div>
-<div class="kicker">One-on-one AI coaching</div>
-<h1>Discover <span>AI.</span></h1>
-<p class="tag">See what AI can do for you.</p>
-<p class="lead">You don't have to be tech-savvy. You don't need the perfect prompt. You just need to know what you want to explore.</p>
-<p>We'll start with something that matters to <strong>you</strong>—then learn how to talk with AI to make it happen.</p>
-<div class="hero-actions"><a class="btn" href="#book">Book a $50 Session</a><a class="btn alt" href="#how">See How It Works</a></div>
-</div>
-<div class="visual" aria-label="Sunrise and path illustration"><div class="sun"></div><div class="path"></div></div>
-</div></header>
+  <header>
+    <div class="container nav">
+      <a class="logo" href="#top">Discover <span>AI</span></a>
 
-<section class="section" id="how"><div class="wrap center">
-<h2>How Discover AI Works</h2><p class="intro">This isn't a computer class. It's a conversation—about what you want to do, learn, plan, understand, or create.</p>
-<div class="steps">
-<div class="card"><div class="num">01</div><h3>Start with you</h3><p>We'll talk about your interests, goals, and how you like to learn.</p></div>
-<div class="card"><div class="num">02</div><h3>Talk to AI</h3><p>You type. You ask. You explore. I'll coach you without taking over.</p></div>
-<div class="card"><div class="num">03</div><h3>Learn to steer</h3><p>Ask AI to simplify, explain, show examples, change format, or try again.</p></div>
-<div class="card"><div class="num">04</div><h3>Take the wheel</h3><p>By the end, you'll practice using AI on your own.</p></div>
-</div>
-<div class="quote"><p>“You don't have to know the way. You just need to know where you want to go.”</p></div>
-</div></section>
+      <nav aria-label="Main navigation">
+        <a href="#about">About</a>
+        <a href="#discover">What AI Can Do</a>
+        <a href="#program">Community Program</a>
+        <a href="#faq">FAQ</a>
+        <a class="nav-button" href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
 
-<section class="section altbg"><div class="wrap center">
-<h2>What Could You Discover?</h2><p class="intro">Bring something you're curious about. There are no silly questions.</p>
-<div class="explore">
-<div class="card"><div class="icon">🌱</div><h3>Hobbies & Interests</h3><p>Gardening, crafts, cooking, photography, and more.</p></div>
-<div class="card"><div class="icon">✈️</div><h3>Travel & Planning</h3><p>Explore destinations, ideas, itineraries, and possibilities.</p></div>
-<div class="card"><div class="icon">📚</div><h3>Learning & Research</h3><p>Break complicated topics into understandable pieces.</p></div>
-<div class="card"><div class="icon">🎨</div><h3>Creative Projects</h3><p>Brainstorm, write, organize, design, and explore ideas.</p></div>
-<div class="card"><div class="icon">🏠</div><h3>Everyday Projects</h3><p>Use AI as a helpful tool for everyday tasks and ideas.</p></div>
-<div class="card"><div class="icon">💡</div><h3>Something Else</h3><p>Not sure? That's okay. We can figure out what to ask.</p></div>
-</div>
-</div></section>
+  <main id="top">
 
-<section class="section" id="session"><div class="wrap session">
-<div><div class="kicker">AI Discovery Session</div><h2>Come curious. Leave confident.</h2><p class="lead">A relaxed, one-on-one session built around something you actually care about.</p><div class="price">$50</div><p><strong>60 minutes · Cash only</strong></p></div>
-<div class="details"><h3>What's included?</h3><ul><li>One-on-one conversational coaching</li><li>Learning tailored to your comfort level</li><li>Hands-on practice using AI</li><li>Simple strategies you can use afterward</li><li>Meet at a mutually agreed-upon public location, such as a library or coffee shop</li></ul><p><strong>Bring:</strong> your phone, tablet, or laptop and your curiosity. No experience required.</p></div>
-</div></section>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container hero-grid">
 
-<section class="section altbg" id="about"><div class="wrap about">
-<div class="aboutbox"><div class="kicker">Meet Danielle</div><h2>AI Communicator & Coach</h2><p><strong>My goal is simple:</strong> help people realize what a powerful and helpful tool AI can be.</p></div>
-<div><p>I don't believe you need to become “a tech person” to use AI. You already know how to talk to another person—you can start there.</p><p>We'll work from what you want or need, then work backwards. If AI gives you too much, we'll simplify it. If it gets something wrong, we'll correct it. If you don't know what to ask, we'll ask AI to help us figure that out.</p><p><strong>Your curiosity is the starting point.</strong></p></div>
-</div></section>
+        <div>
+          <div class="eyebrow">Free Community AI Education</div>
 
-<section class="section" id="faq"><div class="wrap center"><h2>Questions?</h2><div class="faqgrid">
-<div class="card"><h3>Do I need AI experience?</h3><p>No. This is designed for beginners and people who aren't comfortable with technology.</p></div>
-<div class="card"><h3>Where do we meet?</h3><p>Public locations such as local libraries or coffee shops. No home visits.</p></div>
-<div class="card"><h3>What should I bring?</h3><p>Your own device, your login/account, and something you'd like to explore. No preparation required.</p></div>
-<div class="card"><h3>How do I pay?</h3><p>Sessions are $50 and payment is cash only.</p></div>
-</div></div></section>
+          <h1>
+            Real AI.<br>
+            <span>Practical Help.</span><br>
+            No Jargon.
+          </h1>
 
-<section class="section altbg" id="book"><div class="wrap session">
-<div><div class="kicker">Let's discover something</div><h2>Request a Session</h2><p>Tell me a little about what you'd like to explore. I'll contact you to find a time and public meeting place.</p><p><strong>Email:</strong> <a href="mailto:daniellewilcott@gmail.com">daniellewilcott@gmail.com</a><br><strong>Call or text:</strong> <a href="tel:+19167687429">916-768-7429</a></p></div>
-<form action="https://formspree.io/f/mwlkrebk" method="POST" id="bookingForm">
-<label for="name">Name *</label>
-<input id="name" name="name" required>
+          <p>
+            Discover how AI can make everyday life easier —
+            without needing to be a technology expert.
+          </p>
 
-<label for="email">Email *</label>
-<input id="email" name="email" type="email" required>
+          <p>
+            Discover AI currently offers free, beginner-friendly
+            presentations for community organizations, seniors,
+            and residents who want a comfortable introduction to AI.
+          </p>
 
-<label for="phone">Phone *</label>
-<input id="phone" name="phone" type="tel" required>
+          <div class="buttons">
+            <a class="button" href="#contact">
+              Bring Discover AI to Your Organization
+            </a>
 
-<label for="interest">What would you like to explore?</label>
-<textarea id="interest" name="interest" placeholder="A hobby, trip, project, question, or anything you're curious about..."></textarea>
+            <a class="button secondary" href="#discover">
+              See What AI Can Do
+            </a>
+          </div>
+        </div>
 
-<label for="times">Preferred days/times *</label>
-<textarea id="times" name="times" required placeholder="Example: weekday mornings or Saturday afternoons"></textarea>
+        <div class="hero-card">
+          <h2>AI doesn't have to be intimidating.</h2>
 
-<button class="btn" type="submit">Request a Session</button>
-<p class="notice">Your request will be sent securely to Danielle. No passwords or account information are collected.</p>
-</form>
-</div></section>
+          <ul>
+            <li>No technical background required</li>
+            <li>Simple, everyday examples</li>
+            <li>Beginner-friendly explanations</li>
+            <li>Practical tips people can use immediately</li>
+            <li>A comfortable, no-pressure approach</li>
+          </ul>
+        </div>
 
-<footer><div class="wrap foot"><div><div class="logo">Discover<span>AI</span></div><p>See what AI can do for you.</p></div><div class="contact"><strong>Danielle Wilcott</strong><br><a href="mailto:daniellewilcott@gmail.com">daniellewilcott@gmail.com</a><br><a href="tel:+19167687429">916-768-7429</a></div></div></footer>
-
-<script>
+      </div>
+    </section>
 
 
-</script>
-</body></html>
+    <!-- WHY DISCOVER AI -->
+    <section>
+      <div class="container center">
+
+        <div class="eyebrow">Why Discover AI?</div>
+
+        <h2>AI is already here. Let's make it useful.</h2>
+
+        <p class="section-intro">
+          AI can help with everyday tasks, but many people aren't sure
+          where to start. Discover AI makes the technology understandable
+          and practical, so people can explore it with confidence.
+        </p>
+
+        <div class="features">
+
+          <div class="feature">
+            <h3>Simple</h3>
+            <p>
+              Plain-language explanations instead of complicated
+              technical terms.
+            </p>
+          </div>
+
+          <div class="feature">
+            <h3>Practical</h3>
+            <p>
+              Examples focused on things people actually do
+              in everyday life.
+            </p>
+          </div>
+
+          <div class="feature">
+            <h3>Approachable</h3>
+            <p>
+              A welcoming introduction designed for beginners
+              and curious learners.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 10 THINGS -->
+    <section id="discover">
+      <div class="container">
+
+        <div class="eyebrow">Start Here</div>
+
+        <h2>10 Things You Can Do With AI Right Now</h2>
+
+        <p class="section-intro">
+          You don't need to be an expert. Here are just a few ways
+          AI can help with ordinary tasks.
+        </p>
+
+        <div class="number-grid">
+
+          <div class="use-card">
+            <div class="number">1</div>
+            <div>
+              <h3>Write an email</h3>
+              <p>
+                Ask AI to help you write a clear, friendly,
+                or professional message.
+              </p>
+            </div>
+          </div>
+
+          <div class="use-card">
+            <div class="number">2</div>
+            <div>
+              <h3>Improve a resume</h3>
+              <p>
+                Get help making your experience easier to understand
+                and present.
+              </p>
+            </div>
+          </div>
+
+          <div class="use-card">
+            <div class="number">3</div>
+            <div>
+              <h3>Get ideas</h3>
+              <p>
+                Brainstorm meals, gifts, activities, projects,
+                questions, and more.
+              </p>
+            </div>
+          </div>
+
+          <div class="use-card">
+            <div class="number">4</div>
+            <div>
+              <h3>Plan a trip</h3>
+              <p>
+                Ask AI for itinerary ideas, packing lists,
+                activities, and questions to consider.
+              </p>
+            </div>
+          </div>
+
+          <div class="use-card">
+            <div class="number">5</div>
+            <div>
+              <h3>Research something</h3>
+              <p>
+                Use AI to get an overview of an unfamiliar topic
+                and figure out what to explore next.
+              </p>
+            </div>
+          </div>
+
+          <div class="use-card">
+            <div class="number">6</div>
+            <div>
+              <h3>Get organized</h3>
+              <p>
+                Create checklists, schedules, plans, and simple
+                systems for staying on track.
+              </p>
+            </div>
+          </div>
+
+          <div class="use-card">
+            <div class="number">7</div>
+            <div>
+              <h3>Create a social-media post</h3>
+              <p>
+                Turn an idea into a friendly announcement,
+                caption, or community update.
+              </p>
+            </div>
+          </div>
+
+          <div class="use-card">
+            <div class="number">8</div>
+            <div>
+              <h3>Learn something</h3>
+              <p>
+                Ask AI to explain a subject in simpler language
+                or teach it step by step.
+              </p>
+            </div>
+          </div>
+
+          <div class="use-card">
+            <div class="number">9</div>
+            <div>
+              <h3>Understand a document</h3>
+              <p>
+                Ask AI to summarize complicated information
+                or explain unfamiliar language.
+              </p>
+            </div>
+          </div>
+
+          <div class="use-card">
+            <div class="number">10</div>
+            <div>
+              <h3>Create your own AI helper</h3>
+              <p>
+                Build a personalized way to use AI for a task,
+                hobby, project, or routine.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- COMMUNITY PROGRAM -->
+    <section id="program" class="program">
+
+      <div class="container">
+
+        <div class="eyebrow" style="color:#f3b33d;">
+          Community Program
+        </div>
+
+        <h2>Bring Discover AI to Your Community</h2>
+
+        <p class="section-intro">
+          Discover AI is currently offering free beginner presentations
+          to community organizations that want to help their members
+          understand and explore AI.
+        </p>
+
+        <div class="program-grid">
+
+          <div class="program-box">
+            <h3>What the presentation covers</h3>
+
+            <ul>
+              <li>What AI is — and what it isn't</li>
+              <li>Everyday ways AI can be useful</li>
+              <li>Simple examples anyone can understand</li>
+              <li>How to ask AI better questions</li>
+              <li>Practical tips for getting started</li>
+              <li>Questions and discussion</li>
+            </ul>
+          </div>
+
+          <div class="program-box">
+            <h3>Who it's for</h3>
+
+            <ul>
+              <li>Senior centers</li>
+              <li>Community organizations</li>
+              <li>Libraries and learning groups</li>
+              <li>Nonprofit organizations</li>
+              <li>Neighborhood and civic groups</li>
+              <li>Adults who simply want to understand AI</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- HOW IT WORKS -->
+    <section>
+      <div class="container center">
+
+        <div class="eyebrow">How It Works</div>
+
+        <h2>A simple way to get started</h2>
+
+        <p class="section-intro">
+          There is no complicated setup. The goal is simply to help
+          people understand what AI can do and feel more comfortable
+          trying it.
+        </p>
+
+        <div class="steps">
+
+          <div class="step">
+            <div class="step-number">Step 1</div>
+
+            <h3>Connect</h3>
+
+            <p>
+              Contact Discover AI and tell me a little about your
+              organization and the community you serve.
+            </p>
+          </div>
+
+          <div class="step">
+            <div class="step-number">Step 2</div>
+
+            <h3>Schedule</h3>
+
+            <p>
+              We'll find a presentation date and format that works
+              for your group.
+            </p>
+          </div>
+
+          <div class="step">
+            <div class="step-number">Step 3</div>
+
+            <h3>Discover</h3>
+
+            <p>
+              Your community gets a practical introduction to AI
+              in a friendly, no-pressure environment.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ABOUT -->
+    <section id="about" class="about">
+
+      <div class="container about-grid">
+
+        <div class="about-badge">
+          <div class="big">AI</div>
+
+          <h3>Made understandable.</h3>
+
+          <p>Made practical.</p>
+        </div>
+
+        <div class="about-copy">
+
+          <div class="eyebrow">About Discover AI</div>
+
+          <h2>Meet Danielle</h2>
+
+          <p>
+            I'm Danielle Wilcott, founder of Discover AI.
+          </p>
+
+          <p>
+            I created Discover AI because AI shouldn't feel like
+            something that belongs only to programmers, technology
+            professionals, or people who already understand it.
+          </p>
+
+          <p>
+            My goal is to help everyday people discover practical
+            ways AI can make life a little easier — while also
+            learning how to use it thoughtfully and responsibly.
+          </p>
+
+          <p>
+            Discover AI is currently focused on building connections
+            with local community organizations and bringing
+            beginner-friendly AI education directly to the people
+            they serve.
+          </p>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- FAQ -->
+    <section id="faq">
+
+      <div class="container">
+
+        <div class="center">
+
+          <div class="eyebrow">Questions</div>
+
+          <h2>Frequently Asked Questions</h2>
+
+          <p class="section-intro">
+            A few quick answers about the Discover AI community program.
+          </p>
+
+        </div>
+
+        <div class="faq">
+
+          <details>
+            <summary>Is Discover AI currently free?</summary>
+
+            <p>
+              Yes. Discover AI is currently offering free beginner
+              presentations to community organizations as it builds
+              local partnerships and expands access to practical
+              AI education.
+            </p>
+          </details>
+
+          <details>
+            <summary>
+              Do people need to know anything about AI beforehand?
+            </summary>
+
+            <p>
+              No. The presentation is designed for complete beginners.
+              No technical experience is required.
+            </p>
+          </details>
+
+          <details>
+            <summary>
+              Who can request a presentation?
+            </summary>
+
+            <p>
+              Community organizations, senior centers, nonprofits,
+              libraries, learning groups, civic organizations, and
+              other groups interested in helping their community
+              understand AI are welcome to reach out.
+            </p>
+          </details>
+
+          <details>
+            <summary>
+              What does my organization need to provide?
+            </summary>
+
+            <p>
+              A space for the presentation and the opportunity to
+              invite your community. Discover AI provides the
+              presentation and educational materials.
+            </p>
+          </details>
+
+          <details>
+            <summary>
+              Can you tailor the presentation to our group?
+            </summary>
+
+            <p>
+              Yes. When appropriate, examples can be adjusted to fit
+              the interests and everyday needs of the people attending.
+            </p>
+          </details>
+
+          <details>
+            <summary>
+              What if I'm an individual who wants to learn about AI?
+            </summary>
+
+            <p>
+              You're welcome to reach out. Discover AI is currently
+              focused on community presentations, and connecting with
+              individuals helps identify what kinds of AI education
+              would be most useful locally.
+            </p>
+          </details>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- CONTACT -->
+    <section id="contact" class="contact">
+
+      <div class="container contact-grid">
+
+        <div class="contact-info">
+
+          <div class="eyebrow">Let's Connect</div>
+
+          <h2>Bring Discover AI to your organization.</h2>
+
+          <p>
+            Interested in a free community presentation?
+            I'd love to hear about your organization and the people
+            you serve.
+          </p>
+
+          <p>
+            <strong>Email:</strong><br>
+            <a href="mailto:daniellewilcott@gmail.com">
+              daniellewilcott@gmail.com
+            </a>
+          </p>
+
+          <p>
+            <strong>Phone:</strong><br>
+            <a href="tel:+19167687429">
+              916-768-7429
+            </a>
+          </p>
+
+          <p>
+            You can also use the contact form and I'll follow up
+            with you.
+          </p>
+
+        </div>
+
+
+        <form
+          action="https://formspree.io/f/mwlkrebk"
+          method="POST"
+        >
+
+          <label for="name">Name *</label>
+
+          <input
+            type="text"
+            id="name"
+            name="name"
+            autocomplete="name"
+            required
+          >
+
+
+          <label for="organization">Organization *</label>
+
+          <input
+            type="text"
+            id="organization"
+            name="organization"
+            autocomplete="organization"
+            required
+          >
+
+
+          <label for="email">Email *</label>
+
+          <input
+            type="email"
+            id="email"
+            name="email"
+            autocomplete="email"
+            required
+          >
+
+
+          <label for="phone">Phone</label>
+
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            autocomplete="tel"
+          >
+
+
+          <label for="message">
+            Tell me about your group
+          </label>
+
+          <textarea
+            id="message"
+            name="message"
+            placeholder="What kind of organization are you, and who would you like Discover AI to reach?"
+          ></textarea>
+
+
+          <button
+            class="button"
+            id="submit-button"
+            type="submit"
+          >
+            Contact Discover AI
+          </button>
+
+          <p class="form-note">
+            Your information will only be used to respond to your inquiry.
+          </p>
+
+        </form>
+
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- FOOTER -->
+  <footer>
+
+    <div class="container">
+
+      <p>
+        <strong>Discover AI</strong>
+        — Real AI. Practical Help. No Jargon.
+      </p>
+
+      <p>
+        Free, beginner-friendly AI education for our community.
+      </p>
+
+      <p>
+        <a href="mailto:daniellewilcott@gmail.com">
+          daniellewilcott@gmail.com
+        </a>
+
+        &nbsp;|&nbsp;
+
+        <a href="tel:+19167687429">
+          916-768-7429
+        </a>
+      </p>
+
+    </div>
+
+  </footer>
+
+
+  <script>
+    const form = document.querySelector("form");
+    const button = document.getElementById("submit-button");
+
+    form.addEventListener("submit", function () {
+      button.textContent = "Sending...";
+      button.disabled = true;
+    });
+  </script>
+
+</body>
+</html>
