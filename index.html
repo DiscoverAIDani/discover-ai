@@ -4,1305 +4,406 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Discover AI | See what AI can do for you.</title>
-
-<meta name="description" content="Discover AI helps beginners learn how to use AI and ChatGPT in a simple, natural, practical way.">
+<title>Discover AI | Free Community AI Education</title>
+<meta name="description" content="Discover AI provides free, beginner-friendly community education to help adults discover how AI can make everyday life easier.">
 
 <style>
-
 :root{
-  --ink:#18384b;
-  --green:#47755f;
-  --sage:#e4eee5;
+  --navy:#17345f;
+  --teal:#187f80;
+  --sage:#e5eee6;
   --cream:#faf7ef;
-  --gold:#d5ae68;
-  --rose:#d89a96;
-  --white:#ffffff;
-  --line:#d9e0da;
+  --gold:#d8b46a;
+  --rose:#d9a09b;
+  --text:#33424d;
+  --line:#d8dfda;
+  --white:#fff;
 }
-
-*{
-  box-sizing:border-box;
-  scroll-behavior:smooth;
-}
-
-body{
-  margin:0;
-  background:var(--cream);
-  color:var(--ink);
-  font-family:Arial,sans-serif;
-  line-height:1.6;
-}
-
-a{
-  color:inherit;
-}
-
-.wrap{
-  max-width:1080px;
-  margin:auto;
-  padding:0 24px;
-}
-
-/* NAVIGATION */
-
-nav{
-  position:sticky;
-  top:0;
-  z-index:10;
-  background:rgba(250,247,239,.97);
-  border-bottom:1px solid var(--line);
-}
-
-.navin{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  min-height:70px;
-}
-
-.logo{
-  font:700 29px Georgia,serif;
-  text-decoration:none;
-}
-
-.logo span{
-  color:var(--green);
-}
-
-.navlinks{
-  display:flex;
-  gap:24px;
-}
-
-.navlinks a{
-  text-decoration:none;
-  font-weight:700;
-  font-size:14px;
-}
-
-.btn{
-  display:inline-block;
-  text-decoration:none;
-  background:var(--green);
-  color:white;
-  padding:13px 23px;
-  border-radius:28px;
-  font-weight:700;
-  border:0;
-  cursor:pointer;
-}
-
-.btn.alt{
-  background:var(--gold);
-  color:var(--ink);
-}
-
-/* HERO */
-
-.hero{
-  padding:86px 0 70px;
-  background:linear-gradient(135deg,var(--sage),var(--cream) 65%);
-}
-
-.hero-grid{
-  display:grid;
-  grid-template-columns:1.1fr .9fr;
-  gap:55px;
-  align-items:center;
-}
-
-.kicker{
-  text-transform:uppercase;
-  letter-spacing:2px;
-  font-size:13px;
-  font-weight:700;
-  color:var(--green);
-}
-
-h1,
-h2,
-h3{
-  font-family:Georgia,serif;
-  line-height:1.15;
-}
-
-h1{
-  font-size:58px;
-  margin:12px 0;
-}
-
-.hero h1 span{
-  color:var(--green);
-}
-
-.tag{
-  font:italic 25px Georgia,serif;
-  margin:0 0 22px;
-}
-
-.lead{
-  font-size:20px;
-  max-width:650px;
-}
-
-.hero-actions{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  margin-top:28px;
-}
-
-.visual{
-  min-height:360px;
-  border-radius:35px;
-  background:
-    radial-gradient(circle at 50% 42%,#ffffff 0 14%,transparent 15%),
-    linear-gradient(145deg,#cfe0d1,#dce8ed);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 18px 45px rgba(24,56,75,.12);
-  position:relative;
-  overflow:hidden;
-}
-
-.sun{
-  width:150px;
-  height:150px;
-  border-radius:50%;
-  background:#e5bf78;
-  opacity:.85;
-}
-
-.path{
-  position:absolute;
-  width:170px;
-  height:310px;
-  background:#f8f0dd;
-  bottom:-95px;
-  border-radius:50% 50% 0 0/70% 70% 0 0;
-  transform:rotate(3deg);
-}
-
-/* SECTIONS */
-
-.section{
-  padding:78px 0;
-}
-
-.section.altbg{
-  background:#ffffff;
-}
-
-.center{
-  text-align:center;
-}
-
-.section h2{
-  font-size:40px;
-  margin:0 0 14px;
-}
-
-.intro{
-  max-width:680px;
-  margin:0 auto 38px;
-  font-size:18px;
-}
-
-/* HOW IT WORKS */
-
-.steps{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:18px;
-}
-
-.card{
-  background:#ffffff;
-  border:1px solid var(--line);
-  border-radius:20px;
-  padding:24px;
-}
-
-.steps .card{
-  background:var(--cream);
-}
-
-.num{
-  font:700 32px Georgia,serif;
-  color:var(--gold);
-}
-
-/* DISCOVER */
-
-.explore{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:18px;
-}
-
-.explore .card{
-  min-height:150px;
-}
-
-.icon{
-  font-size:30px;
-}
-
-.quote{
-  background:var(--sage);
-  padding:50px 30px;
-  text-align:center;
-  border-radius:28px;
-  margin-top:38px;
-}
-
-.quote p{
-  font:italic 28px Georgia,serif;
-  max-width:760px;
-  margin:auto;
-}
-
-/* GAME */
-
-.game-section{
-  padding:75px 24px;
-  background:#f7f3ea;
-  text-align:center;
-  border-top:1px solid var(--line);
-  border-bottom:1px solid var(--line);
-}
-
-.game-box{
-  max-width:850px;
-  margin:auto;
-}
-
-.game-label{
-  font-size:15px;
-  font-weight:700;
-  letter-spacing:1px;
-  color:#187f80;
-  margin-bottom:12px;
-}
-
-.game-section h2{
-  font-size:42px;
-  line-height:1.15;
-  color:#17345f;
-  margin:0 0 18px;
-}
-
-.game-text{
-  font-size:19px;
-  line-height:1.6;
-  color:#4d5965;
-  max-width:700px;
-  margin:0 auto 28px;
-}
-
-.game-button{
-  display:inline-block;
-  background:#187f80;
-  color:white;
-  text-decoration:none;
-  font-weight:700;
-  font-size:18px;
-  padding:16px 30px;
-  border-radius:12px;
-  transition:transform .15s ease;
-}
-
-.game-button:hover{
-  transform:translateY(-2px);
-}
-
-.game-note{
-  font-size:14px;
-  color:#68747d;
-  margin-top:18px;
-}
-
-/* SESSION */
-
-.session{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:25px;
-  align-items:start;
-}
-
-.price{
-  font:700 45px Georgia,serif;
-  color:var(--green);
-}
-
-ul{
-  padding-left:21px;
-}
-
-.details{
-  background:var(--cream);
-  border-radius:20px;
-  padding:26px;
-}
-
-/* ABOUT */
-
-.about{
-  display:grid;
-  grid-template-columns:.8fr 1.2fr;
-  gap:35px;
-  align-items:center;
-}
-
-.aboutbox{
-  background:var(--sage);
-  border-radius:25px;
-  padding:30px;
-}
-
-/* FAQ */
-
-.faqgrid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:18px;
-}
-
-/* BOOKING */
-
-form{
-  background:#ffffff;
-  border:1px solid var(--line);
-  padding:28px;
-  border-radius:20px;
-}
-
-label{
-  display:block;
-  font-weight:700;
-  margin:14px 0 6px;
-}
-
-input,
-textarea{
-  width:100%;
-  padding:13px;
-  border:1px solid #bbc8c0;
-  border-radius:10px;
-  font:inherit;
-}
-
-textarea{
-  min-height:105px;
-}
-
-.notice{
-  font-size:13px;
-  color:#5b6870;
-}
-
-/* FOOTER */
-
-footer{
-  background:var(--ink);
-  color:#ffffff;
-  padding:45px 0;
-}
-
-.foot{
-  display:flex;
-  justify-content:space-between;
-  gap:30px;
-  flex-wrap:wrap;
-}
-
-.contact a{
-  color:#ffffff;
-}
-
-/* MOBILE */
-
+*{box-sizing:border-box;scroll-behavior:smooth}
+body{margin:0;background:var(--cream);color:var(--text);font-family:Arial,sans-serif;line-height:1.65}
+a{color:inherit}
+.wrap{max-width:1100px;margin:auto;padding:0 24px}
+nav{position:sticky;top:0;z-index:20;background:rgba(250,247,239,.97);border-bottom:1px solid var(--line)}
+.navin{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.logo{font:700 29px Georgia,serif;text-decoration:none;color:var(--navy)}
+.logo span{color:var(--teal)}
+.navlinks{display:flex;gap:24px;align-items:center}
+.navlinks a{text-decoration:none;font-size:14px;font-weight:700;color:var(--navy)}
+.btn{display:inline-block;background:var(--teal);color:#fff;text-decoration:none;font-weight:700;padding:14px 24px;border-radius:10px}
+.btn.alt{background:var(--gold);color:var(--navy)}
+.hero{padding:82px 0 76px;background:linear-gradient(135deg,var(--sage),var(--cream) 70%)}
+.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:55px;align-items:center}
+.kicker{text-transform:uppercase;letter-spacing:2px;font-size:13px;font-weight:700;color:var(--teal)}
+h1,h2,h3{font-family:Georgia,serif;color:var(--navy);line-height:1.15}
+h1{font-size:56px;margin:14px 0 18px}
+h1 span{color:var(--teal)}
+.hero h2{font-size:25px;font-style:italic;font-weight:400;margin:0 0 22px}
+.lead{font-size:20px;max-width:680px}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.hero-art{min-height:350px;border-radius:32px;background:linear-gradient(145deg,#d3e4d6,#dbe8ed);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 18px 45px rgba(23,52,95,.10)}
+.sun{width:145px;height:145px;border-radius:50%;background:#e5bd72;position:absolute;top:82px}
+.path{width:175px;height:300px;background:#fbf1dc;position:absolute;bottom:-120px;border-radius:50% 50% 0 0}
+.section{padding:78px 0}
+.alt{background:#fff}
+.center{text-align:center}
+.section h2{font-size:40px;margin:0 0 15px}
+.intro{font-size:18px;max-width:720px;margin:0 auto 38px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:26px}
+.alt .card{background:var(--cream)}
+.icon{font-size:31px}
+.card h3{font-size:23px;margin:12px 0 8px}
+.number{font:700 30px Georgia,serif;color:var(--gold)}
+.quote{margin-top:38px;padding:42px 28px;background:var(--sage);border-radius:25px;text-align:center}
+.quote p{font:italic 27px Georgia,serif;color:var(--navy);max-width:760px;margin:auto}
+.community{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+.panel{background:#fff;border:1px solid var(--line);border-radius:22px;padding:30px}
+.panel.sage{background:var(--sage)}
+.panel h3{font-size:25px;margin-top:0}
+ul{padding-left:22px}
+.game{padding:76px 24px;background:#f7f3ea;text-align:center;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.game h2{font-size:42px;margin:0 0 16px}
+.game p{font-size:19px;max-width:720px;margin:0 auto 28px}
+.game-note{font-size:14px!important;color:#68747d;margin-top:17px!important}
+.faq{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.contact{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.contactbox{background:var(--sage);border-radius:22px;padding:30px}
+.contactbox a{color:var(--teal);font-weight:700}
+footer{background:var(--navy);color:#fff;padding:45px 0}
+.foot{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}
+footer .logo{color:#fff}
+footer .logo span{color:#8bc5b8}
+footer a{color:#fff}
 @media(max-width:780px){
-
-  .navlinks{
-    display:none;
-  }
-
-  .hero{
-    padding:58px 0 45px;
-  }
-
-  .hero-grid,
-  .session,
-  .about{
-    grid-template-columns:1fr;
-  }
-
-  .hero h1{
-    font-size:45px;
-  }
-
-  .visual{
-    min-height:260px;
-  }
-
-  .steps,
-  .explore{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .faqgrid{
-    grid-template-columns:1fr;
-  }
-
-  .section{
-    padding:58px 0;
-  }
-
+  .navlinks{display:none}
+  .hero-grid,.community,.contact{grid-template-columns:1fr}
+  .hero{padding:58px 0}
+  h1{font-size:44px}
+  .cards{grid-template-columns:1fr 1fr}
+  .faq{grid-template-columns:1fr}
 }
-
-@media(max-width:480px){
-
-  .wrap{
-    padding:0 17px;
-  }
-
-  .steps,
-  .explore{
-    grid-template-columns:1fr;
-  }
-
-  .hero h1{
-    font-size:39px;
-  }
-
-  .section h2{
-    font-size:32px;
-  }
-
-  .game-section h2{
-    font-size:34px;
-  }
-
+@media(max-width:500px){
+  .cards{grid-template-columns:1fr}
+  h1{font-size:39px}
+  .section h2,.game h2{font-size:33px}
 }
-
 </style>
 </head>
 
 <body>
 
-<!-- NAVIGATION -->
-
 <nav>
-
-<div class="wrap navin">
-
-<a class="logo" href="#top">
-Discover<span>AI</span>
-</a>
-
-<div class="navlinks">
-
-<a href="#about">About</a>
-
-<a href="#how">How It Works</a>
-
-<a href="#game">AI Game</a>
-
-<a href="#faq">FAQ</a>
-
-<a href="#book">Contact</a>
-
-</div>
-
-<a class="btn" href="#book">
-Book a Session
-</a>
-
-</div>
-
+  <div class="wrap navin">
+    <a class="logo" href="#top">Discover<span>AI</span></a>
+    <div class="navlinks">
+      <a href="#about">About</a>
+      <a href="#what">What AI Can Do</a>
+      <a href="#community">Community Program</a>
+      <a href="#game">AI Game</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <a class="btn" href="#contact">Bring Discover AI</a>
+  </div>
 </nav>
 
-
-<!-- HERO -->
-
 <header class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kicker">Free Community AI Education</div>
+      <h1>Real AI.<br>Practical Help.<br><span>No Jargon.</span></h1>
+      <h2>See what AI can do for you.</h2>
+      <p class="lead">
+        Discover how AI can make everyday life easier — without needing
+        to be a technology expert.
+      </p>
+      <p>
+        Discover AI provides free, beginner-friendly presentations for
+        community organizations, seniors, and residents who want a
+        comfortable introduction to AI.
+      </p>
+      <div class="actions">
+        <a class="btn" href="#contact">Bring Discover AI to Your Organization</a>
+        <a class="btn alt" href="#what">See What AI Can Do</a>
+      </div>
+    </div>
 
-<div class="wrap hero-grid">
-
-<div>
-
-<div class="kicker">
-One-on-one AI coaching
-</div>
-
-<h1>
-Discover <span>AI.</span>
-</h1>
-
-<p class="tag">
-See what AI can do for you.
-</p>
-
-<p class="lead">
-You don't have to be tech-savvy.
-You don't need the perfect prompt.
-You just need to know what you want to explore.
-</p>
-
-<p>
-We'll start with something that matters to
-<strong>you</strong>—
-then learn how to talk with AI to make it happen.
-</p>
-
-<div class="hero-actions">
-
-<a class="btn" href="#book">
-Book a $50 Session
-</a>
-
-<a class="btn alt" href="#how">
-See How It Works
-</a>
-
-</div>
-
-</div>
-
-
-<div class="visual" aria-label="Sunrise and path illustration">
-
-<div class="sun"></div>
-
-<div class="path"></div>
-
-</div>
-
-</div>
-
+    <div class="hero-art" aria-label="Sunrise and path illustration">
+      <div class="sun"></div>
+      <div class="path"></div>
+    </div>
+  </div>
 </header>
 
+<section class="section" id="about">
+  <div class="wrap center">
+    <div class="kicker">Why Discover AI?</div>
+    <h2>AI Doesn't Have to Be Intimidating</h2>
+    <p class="intro">
+      You don't have to know the perfect prompt, understand complicated
+      technology, or consider yourself "good with computers."
+      You just need something you're curious about.
+    </p>
 
-<!-- HOW IT WORKS -->
+    <div class="cards">
+      <div class="card">
+        <div class="icon">💬</div>
+        <h3>Talk Naturally</h3>
+        <p>
+          Learn that you can communicate with AI much like you would
+          explain something to another person.
+        </p>
+      </div>
+      <div class="card">
+        <div class="icon">🧭</div>
+        <h3>Learn to Steer</h3>
+        <p>
+          Discover how to ask AI to simplify, explain, change, improve,
+          or try again when the first answer isn't right.
+        </p>
+      </div>
+      <div class="card">
+        <div class="icon">💡</div>
+        <h3>Start With What Matters</h3>
+        <p>
+          Instead of learning technology for its own sake, start with
+          something you actually want to understand or accomplish.
+        </p>
+      </div>
+    </div>
 
-<section class="section" id="how">
-
-<div class="wrap center">
-
-<h2>
-How Discover AI Works
-</h2>
-
-<p class="intro">
-This isn't a computer class.
-It's a conversation—
-about what you want to do, learn,
-plan, understand, or create.
-</p>
-
-<div class="steps">
-
-
-<div class="card">
-
-<div class="num">
-01
-</div>
-
-<h3>
-Start with you
-</h3>
-
-<p>
-We'll talk about your interests,
-goals, and how you like to learn.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="num">
-02
-</div>
-
-<h3>
-Talk to AI
-</h3>
-
-<p>
-You type. You ask. You explore.
-I'll coach you without taking over.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="num">
-03
-</div>
-
-<h3>
-Learn to steer
-</h3>
-
-<p>
-Ask AI to simplify, explain,
-show examples, change format,
-or try again.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="num">
-04
-</div>
-
-<h3>
-Take the wheel
-</h3>
-
-<p>
-By the end, you'll practice
-using AI on your own.
-</p>
-
-</div>
-
-
-</div>
-
-
-<div class="quote">
-
-<p>
-“You don't have to know the way.
-You just need to know where you want to go.”
-</p>
-
-</div>
-
-</div>
-
+    <div class="quote">
+      <p>
+        “You don't have to know the way. You just need to know where you want to go.”
+      </p>
+    </div>
+  </div>
 </section>
 
+<section class="section alt" id="what">
+  <div class="wrap center">
+    <div class="kicker">Everyday Possibilities</div>
+    <h2>What Can AI Actually Do?</h2>
+    <p class="intro">
+      Here are just a few places we can start. During a presentation,
+      you'll see real examples and have a chance to think about how
+      AI could help with things in your own life.
+    </p>
 
-<!-- WHAT AI CAN DO -->
-
-<section class="section altbg">
-
-<div class="wrap center">
-
-<h2>
-What Could You Discover?
-</h2>
-
-<p class="intro">
-Bring something you're curious about.
-There are no silly questions.
-</p>
-
-
-<div class="explore">
-
-
-<div class="card">
-
-<div class="icon">🌱</div>
-
-<h3>
-Hobbies & Interests
-</h3>
-
-<p>
-Gardening, crafts, cooking,
-photography, and more.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="icon">✈️</div>
-
-<h3>
-Travel & Planning
-</h3>
-
-<p>
-Explore destinations, ideas,
-itineraries, and possibilities.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="icon">📚</div>
-
-<h3>
-Learning & Research
-</h3>
-
-<p>
-Break complicated topics
-into understandable pieces.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="icon">🎨</div>
-
-<h3>
-Creative Projects
-</h3>
-
-<p>
-Brainstorm, write, organize,
-design, and explore ideas.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="icon">🏠</div>
-
-<h3>
-Everyday Projects
-</h3>
-
-<p>
-Use AI as a helpful tool
-for everyday tasks and ideas.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="icon">💡</div>
-
-<h3>
-Something Else
-</h3>
-
-<p>
-Not sure?
-That's okay.
-We can figure out what to ask.
-</p>
-
-</div>
-
-
-</div>
-
-</div>
-
+    <div class="cards">
+      <div class="card">
+        <div class="icon">🌱</div>
+        <h3>Hobbies & Interests</h3>
+        <p>Explore gardening, cooking, crafts, photography, hobbies, and new ideas.</p>
+      </div>
+      <div class="card">
+        <div class="icon">✈️</div>
+        <h3>Travel</h3>
+        <p>Brainstorm destinations, organize ideas, build itineraries, and ask questions.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📚</div>
+        <h3>Learn Something New</h3>
+        <p>Ask AI to explain complicated subjects in everyday language.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📝</div>
+        <h3>Writing & Ideas</h3>
+        <p>Brainstorm, organize thoughts, draft something, or make writing easier.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🏠</div>
+        <h3>Everyday Life</h3>
+        <p>Plan a week, make a list, solve a problem, or think through a decision.</p>
+      </div>
+      <div class="card">
+        <div class="icon">✨</div>
+        <h3>Discover Your Own Idea</h3>
+        <p>You don't have to know what AI can do yet. That's exactly what we're here to discover.</p>
+      </div>
+    </div>
+  </div>
 </section>
 
+<section class="section" id="community">
+  <div class="wrap">
+    <div class="community">
+      <div>
+        <div class="kicker">Community Program</div>
+        <h2>Free AI Education for Your Community</h2>
+        <p class="lead">
+          Discover AI is designed to help community organizations introduce
+          adults to AI in a relaxed, practical, beginner-friendly way.
+        </p>
+        <p>
+          The goal isn't to turn people into technology experts.
+          It's to help them leave thinking, <strong>“Maybe I can actually use this.”</strong>
+        </p>
+      </div>
 
-<!-- DISCOVER AI GAME -->
+      <div class="panel sage">
+        <h3>FREE 30-MINUTE COMMUNITY INTRODUCTION</h3>
+        <p>
+          A relaxed introduction for adults who are curious about AI
+          but may feel intimidated by technology.
+        </p>
+        <ul>
+          <li>Start with YOU</li>
+          <li>Talk naturally with AI</li>
+          <li>Learn how to steer the conversation</li>
+          <li>Discover practical possibilities</li>
+        </ul>
+      </div>
+    </div>
 
-<section class="game-section" id="game">
-
-<div class="game-box">
-
-<div class="game-label">
-TRY DISCOVER AI
-</div>
-
-<h2>
-Curious What AI Can Actually Do?
-</h2>
-
-<p class="game-text">
-Try our free interactive AI discovery game.
-No experience needed.
-Just choose something you're interested in
-and start exploring.
-</p>
-
-<a class="game-button" href="game.html">
-🎮 Try the Discover AI Game →
-</a>
-
-<p class="game-note">
-Simple • Fun • No Experience Needed
-</p>
-
-</div>
-
+    <div class="quote">
+      <p>
+        “Same Questions. New Possibilities.”
+      </p>
+    </div>
+  </div>
 </section>
 
-
-<!-- SESSION -->
-
-<section class="section" id="session">
-
-<div class="wrap session">
-
-<div>
-
-<div class="kicker">
-AI Discovery Session
-</div>
-
-<h2>
-Come curious.
-Leave confident.
-</h2>
-
-<p class="lead">
-A relaxed, one-on-one session built around
-something you actually care about.
-</p>
-
-<div class="price">
-$50
-</div>
-
-<p>
-<strong>
-60 minutes · Cash only
-</strong>
-</p>
-
-</div>
-
-
-<div class="details">
-
-<h3>
-What's included?
-</h3>
-
-<ul>
-
-<li>
-One-on-one conversational coaching
-</li>
-
-<li>
-Learning tailored to your comfort level
-</li>
-
-<li>
-Hands-on practice using AI
-</li>
-
-<li>
-Simple strategies you can use afterward
-</li>
-
-<li>
-Meet at a mutually agreed-upon public location,
-such as a library or coffee shop
-</li>
-
-</ul>
-
-<p>
-
-<strong>
-Bring:
-</strong>
-
-your phone, tablet, or laptop
-and your curiosity.
-
-No experience required.
-
-</p>
-
-</div>
-
-</div>
-
+<section class="section alt">
+  <div class="wrap">
+    <div class="community">
+      <div class="panel">
+        <div class="number">01</div>
+        <h3>Start With What You Care About</h3>
+        <p>
+          We don't begin with a lecture about technology. We begin with
+          something people actually want to do, learn, plan, understand,
+          or create.
+        </p>
+      </div>
+      <div class="panel">
+        <div class="number">02</div>
+        <h3>Ask AI Like You'd Ask a Person</h3>
+        <p>
+          There isn't one magical way to phrase a question. If AI doesn't
+          understand, explain what you meant and try again.
+        </p>
+      </div>
+      <div class="panel">
+        <div class="number">03</div>
+        <h3>Make the Answer Work for You</h3>
+        <p>
+          Ask AI to summarize, simplify, give examples, change the format,
+          or focus on just one part.
+        </p>
+      </div>
+      <div class="panel">
+        <div class="number">04</div>
+        <h3>Keep Exploring</h3>
+        <p>
+          Once you understand the conversation, the possibilities become
+          much bigger than a single demonstration.
+        </p>
+      </div>
+    </div>
+  </div>
 </section>
 
-
-<!-- ABOUT -->
-
-<section class="section altbg" id="about">
-
-<div class="wrap about">
-
-<div class="aboutbox">
-
-<div class="kicker">
-Meet Danielle
-</div>
-
-<h2>
-AI Communicator & Coach
-</h2>
-
-<p>
-
-<strong>
-My goal is simple:
-</strong>
-
-help people realize what a powerful
-and helpful tool AI can be.
-
-</p>
-
-</div>
-
-
-<div>
-
-<p>
-I don't believe you need to become
-“a tech person” to use AI.
-
-You already know how to talk to another person—
-you can start there.
-</p>
-
-<p>
-We'll work from what you want or need,
-then work backwards.
-
-If AI gives you too much,
-we'll simplify it.
-
-If it gets something wrong,
-we'll correct it.
-
-If you don't know what to ask,
-we'll ask AI to help us figure that out.
-</p>
-
-<p>
-
-<strong>
-Your curiosity is the starting point.
-</strong>
-
-</p>
-
-</div>
-
-</div>
-
+<section class="game" id="game">
+  <div class="wrap">
+    <div class="kicker">Try Discover AI</div>
+    <h2>Curious What AI Can Actually Do?</h2>
+    <p>
+      Try our free interactive AI discovery game. No experience needed.
+      Choose something you're interested in and start exploring.
+    </p>
+    <a class="btn" href="game.html">🎮 Try the Discover AI Game →</a>
+    <p class="game-note">Simple • Fun • No Experience Needed</p>
+  </div>
 </section>
-
-
-<!-- FAQ -->
 
 <section class="section" id="faq">
+  <div class="wrap center">
+    <div class="kicker">Questions</div>
+    <h2>Getting Started Is Simple</h2>
 
-<div class="wrap center">
-
-<h2>
-Questions?
-</h2>
-
-<div class="faqgrid">
-
-
-<div class="card">
-
-<h3>
-Do I need AI experience?
-</h3>
-
-<p>
-No.
-
-This is designed for beginners
-and people who aren't comfortable
-with technology.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<h3>
-Where do we meet?
-</h3>
-
-<p>
-Public locations such as local libraries
-or coffee shops.
-
-No home visits.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<h3>
-What should I bring?
-</h3>
-
-<p>
-Your own device,
-your login/account,
-and something you'd like to explore.
-
-No preparation required.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<h3>
-How do I pay?
-</h3>
-
-<p>
-Sessions are $50
-and payment is cash only.
-</p>
-
-</div>
-
-
-</div>
-
-</div>
-
+    <div class="faq">
+      <div class="card">
+        <h3>Do I need AI experience?</h3>
+        <p>No. Discover AI is designed especially for beginners.</p>
+      </div>
+      <div class="card">
+        <h3>Do I need to know the right prompts?</h3>
+        <p>No. We start with natural conversation and learn how to steer from there.</p>
+      </div>
+      <div class="card">
+        <h3>Who is this for?</h3>
+        <p>Adults, seniors, community members, and anyone curious about AI who wants a comfortable place to start.</p>
+      </div>
+      <div class="card">
+        <h3>Does my organization have to be technical?</h3>
+        <p>Not at all. Discover AI is designed for ordinary community settings.</p>
+      </div>
+      <div class="card">
+        <h3>Is the community presentation free?</h3>
+        <p>Yes. Discover AI's community introduction is offered as a free educational program.</p>
+      </div>
+      <div class="card">
+        <h3>What happens after the introduction?</h3>
+        <p>Participants can continue exploring AI on their own using the ideas and skills introduced during the session.</p>
+      </div>
+    </div>
+  </div>
 </section>
 
+<section class="section alt" id="contact">
+  <div class="wrap">
+    <div class="contact">
+      <div>
+        <div class="kicker">Bring Discover AI to Your Organization</div>
+        <h2>Let's Help Your Community Discover What's Possible.</h2>
+        <p class="lead">
+          Interested in hosting a free beginner-friendly AI introduction?
+        </p>
+        <p>
+          Discover AI is especially interested in working with libraries,
+          senior centers, community organizations, nonprofits, and other
+          local groups that want to help their communities become more
+          comfortable with AI.
+        </p>
+      </div>
 
-<!-- BOOKING -->
-
-<section class="section altbg" id="book">
-
-<div class="wrap session">
-
-<div>
-
-<div class="kicker">
-Let's discover something
-</div>
-
-<h2>
-Request a Session
-</h2>
-
-<p>
-Tell me a little about what you'd like to explore.
-
-I'll contact you to find a time
-and public meeting place.
-</p>
-
-<p>
-
-<strong>
-Email:
-</strong>
-
-<a href="mailto:daniellewilcott@gmail.com">
-daniellewilcott@gmail.com
-</a>
-
-<br>
-
-<strong>
-Call or text:
-</strong>
-
-<a href="tel:+19167687429">
-916-768-7429
-</a>
-
-</p>
-
-</div>
-
-
-<form id="bookingForm">
-
-<label for="name">
-Name *
-</label>
-
-<input
-id="name"
-required
->
-
-
-<label for="email">
-Email *
-</label>
-
-<input
-id="email"
-type="email"
-required
->
-
-
-<label for="phone">
-Phone *
-</label>
-
-<input
-id="phone"
-type="tel"
-required
->
-
-
-<label for="interest">
-What would you like to explore?
-</label>
-
-<textarea
-id="interest"
-placeholder="A hobby, trip, project, question, or anything you're curious about..."
-></textarea>
-
-
-<label for="times">
-Preferred days/times *
-</label>
-
-<textarea
-id="times"
-required
-placeholder="Example: weekday mornings or Saturday afternoons"
-></textarea>
-
-
-<button
-class="btn"
-type="submit"
->
-Request a Session
-</button>
-
-
-<p class="notice">
-This form opens your email app to send your request.
-It does not collect or store passwords
-or account information.
-</p>
-
-</form>
-
-</div>
-
+      <div class="contactbox">
+        <h3>Let's Talk</h3>
+        <p>
+          Tell me a little about your organization and what you'd like
+          your community to learn.
+        </p>
+        <p>
+          <strong>Email</strong><br>
+          <a href="mailto:daniellewilcott@gmail.com">daniellewilcott@gmail.com</a>
+        </p>
+        <p>
+          <strong>Call or text</strong><br>
+          <a href="tel:+19167687429">916-768-7429</a>
+        </p>
+        <a class="btn" href="mailto:daniellewilcott@gmail.com?subject=Discover%20AI%20Community%20Program">
+          Contact Discover AI
+        </a>
+      </div>
+    </div>
+  </div>
 </section>
-
-
-<!-- FOOTER -->
 
 <footer>
-
-<div class="wrap foot">
-
-<div>
-
-<div class="logo">
-Discover<span>AI</span>
-</div>
-
-<p>
-See what AI can do for you.
-</p>
-
-</div>
-
-
-<div class="contact">
-
-<strong>
-Danielle Wilcott
-</strong>
-
-<br>
-
-<a href="mailto:daniellewilcott@gmail.com">
-daniellewilcott@gmail.com
-</a>
-
-<br>
-
-<a href="tel:+19167687429">
-916-768-7429
-</a>
-
-</div>
-
-</div>
-
+  <div class="wrap foot">
+    <div>
+      <div class="logo">Discover<span>AI</span></div>
+      <p>See what AI can do for you.</p>
+      <p>Free community AI education.</p>
+    </div>
+    <div>
+      <strong>Discover AI</strong><br>
+      Beginner-friendly. Practical. No jargon.<br><br>
+      <a href="#top">Back to top ↑</a>
+    </div>
+  </div>
 </footer>
-
-
-<!-- BOOKING SCRIPT -->
-
-<script>
-
-document
-.getElementById('bookingForm')
-.addEventListener('submit',function(e){
-
-e.preventDefault();
-
-const subject =
-encodeURIComponent(
-'Discover AI — Session Request'
-);
-
-const body =
-encodeURIComponent(
-
-`Name: ${document.getElementById('name').value}
-
-Email: ${document.getElementById('email').value}
-
-Phone: ${document.getElementById('phone').value}
-
-What I'd like to explore: ${
-document.getElementById('interest').value ||
-'Not specified'
-}
-
-Preferred days/times: ${
-document.getElementById('times').value
-}`
-
-);
-
-location.href =
-`mailto:daniellewilcott@gmail.com?subject=${subject}&body=${body}`;
-
-});
-
-</script>
-
 
 </body>
 </html>
