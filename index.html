@@ -338,10 +338,63 @@ ul{
   margin-top:17px!important
 }
 
-.faq{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px
+.faq-accordion{
+  max-width:820px;
+  margin:0 auto;
+  text-align:left
+}
+
+.faq-item{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  margin-bottom:12px;
+  overflow:hidden;
+  box-shadow:0 4px 14px rgba(23,52,95,.05)
+}
+
+.faq-item summary{
+  cursor:pointer;
+  list-style:none;
+  padding:18px 22px;
+  font-size:18px;
+  font-weight:700;
+  color:var(--navy);
+  position:relative;
+  padding-right:52px
+}
+
+.faq-item summary::-webkit-details-marker{
+  display:none
+}
+
+.faq-item summary::after{
+  content:"+";
+  position:absolute;
+  right:22px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:25px;
+  font-weight:400;
+  color:var(--teal)
+}
+
+.faq-item[open] summary{
+  background:var(--sage)
+}
+
+.faq-item[open] summary::after{
+  content:"−"
+}
+
+.faq-answer{
+  padding:0 22px 18px;
+  background:#fff
+}
+
+.faq-answer p{
+  margin:0;
+  font-size:16px
 }
 
 .contact{
@@ -879,6 +932,9 @@ footer a{
 </section>
 
 
+
+
+
 <section class="section" id="faq">
 
   <div class="wrap center">
@@ -888,92 +944,126 @@ footer a{
     </div>
 
     <h2>
-      Getting Started Is Simple
+      Frequently Asked Questions
     </h2>
 
+    <p class="intro">
+      Curious about AI? You're not alone. Open a question to learn more.
+    </p>
 
-    <div class="faq">
+    <div class="faq-accordion">
 
-      <div class="card">
+      <details class="faq-item">
+        <summary>What is Discover AI?</summary>
+        <div class="faq-answer">
+          <p>Discover AI is a free community outreach program designed to demystify artificial intelligence and help people become more comfortable, informed, and confident using it. You don't need to be technical or have previous AI experience.</p>
+        </div>
+      </details>
 
-        <h3>
-          Do I need AI experience?
-        </h3>
+      <details class="faq-item">
+        <summary>Do I need to know anything about AI?</summary>
+        <div class="faq-answer">
+          <p>No. Discover AI is designed for beginners. We start with simple, hands-on experiences and build from there.</p>
+        </div>
+      </details>
 
-        <p>
-          No. Discover AI is designed especially for beginners.
-        </p>
+      <details class="faq-item">
+        <summary>Can I trust AI?</summary>
+        <div class="faq-answer">
+          <p>Not blindly. AI can be extremely useful, but it can also be wrong. One of the most important AI skills is learning how to question, evaluate, and verify what AI gives you.</p>
+        </div>
+      </details>
 
-      </div>
+      <details class="faq-item">
+        <summary>Does AI make things up?</summary>
+        <div class="faq-answer">
+          <p>Yes. AI can sometimes provide information that sounds convincing but isn't true. That's why knowing how to check an answer is just as important as knowing how to ask the question.</p>
+        </div>
+      </details>
 
+      <details class="faq-item">
+        <summary>Is AI dangerous?</summary>
+        <div class="faq-answer">
+          <p>AI has real risks, including misinformation, privacy concerns, bias, security issues, and misuse. Discover AI doesn't tell you what to think about AI. We help you understand it well enough to think for yourself.</p>
+        </div>
+      </details>
 
-      <div class="card">
+      <details class="faq-item">
+        <summary>Is AI going to take my job?</summary>
+        <div class="faq-answer">
+          <p>AI is already changing the way many people work, and some jobs and tasks will change significantly. Exactly what the future looks like is difficult to predict. What you can do is learn how to work alongside increasingly capable technology.</p>
+        </div>
+      </details>
 
-        <h3>
-          Do I need to know the right prompts?
-        </h3>
+      <details class="faq-item">
+        <summary>Is using AI cheating?</summary>
+        <div class="faq-answer">
+          <p>Not necessarily. AI can be used as a learning tool, brainstorming partner, research assistant, or creative collaborator. The important question is whether you're using AI to support your thinking—or replace work you're expected to do yourself.</p>
+        </div>
+      </details>
 
-        <p>
-          No. We start with natural conversation and learn how to steer from there.
-        </p>
+      <details class="faq-item">
+        <summary>Will AI make us less intelligent?</summary>
+        <div class="faq-answer">
+          <p>It depends on how we use it. If we use AI to avoid thinking, it can become a crutch. If we use it to explore ideas, learn, and challenge our thinking, it can become a powerful tool. The goal isn't to let AI think for you. It's to help you think better.</p>
+        </div>
+      </details>
 
-      </div>
+      <details class="faq-item">
+        <summary>What information should I give AI?</summary>
+        <div class="faq-answer">
+          <p>Be careful with sensitive information. Avoid sharing passwords, financial account information, Social Security numbers, confidential business information, or private information about other people. When in doubt, leave it out.</p>
+        </div>
+      </details>
 
+      <details class="faq-item">
+        <summary>Which AI should I use?</summary>
+        <div class="faq-answer">
+          <p>There isn't one AI that's best for everything. Different tools have different strengths. Discover AI isn't about promoting one particular AI company. It's about helping you understand how to choose the right tool for the job.</p>
+        </div>
+      </details>
 
-      <div class="card">
+      <details class="faq-item">
+        <summary>Do I have to pay to use AI?</summary>
+        <div class="faq-answer">
+          <p>No. Many AI tools offer free options, while others have paid plans with additional capabilities. Discover AI focuses on helping people explore what's possible without requiring them to buy anything.</p>
+        </div>
+      </details>
 
-        <h3>
-          Who is this for?
-        </h3>
+      <details class="faq-item">
+        <summary>What if I'm skeptical about AI?</summary>
+        <div class="faq-answer">
+          <p>That's welcome. You don't have to believe AI is amazing, and you don't have to use it. Questions, skepticism, and healthy caution are part of being AI-literate. Discover AI is a place to explore—not a place to be sold on AI.</p>
+        </div>
+      </details>
 
-        <p>
-          Adults, seniors, community members, and anyone curious about AI
-          who wants a comfortable place to start.
-        </p>
+      <details class="faq-item">
+        <summary>What if I don't know what I'd use AI for?</summary>
+        <div class="faq-answer">
+          <p>That's a great place to start. Think about something that takes too long, is confusing, requires research or writing, is frustrating, or is simply something you've always wanted to try. Then ask: "Could AI help me with this?"</p>
+        </div>
+      </details>
 
-      </div>
+      <details class="faq-item">
+        <summary>What's the game about?</summary>
+        <div class="faq-answer">
+          <p>The game is a doorway into AI—not the destination. It's designed to give you a fun, low-pressure, hands-on experience so you can become comfortable interacting with AI. Once you've taken that first step, there's much more to discover.</p>
+        </div>
+      </details>
 
+      <details class="faq-item">
+        <summary>What is the goal of Discover AI?</summary>
+        <div class="faq-answer">
+          <p>Confidence. Curiosity. Understanding. You don't need to become an AI expert. You just need to discover what AI might be able to do for you.</p>
+        </div>
+      </details>
 
-      <div class="card">
+    </div>
 
-        <h3>
-          Does my organization have to be technical?
-        </h3>
-
-        <p>
-          Not at all. Discover AI is designed for ordinary community settings.
-        </p>
-
-      </div>
-
-
-      <div class="card">
-
-        <h3>
-          Is the community presentation free?
-        </h3>
-
-        <p>
-          Yes. Discover AI's community introduction is offered
-          as a free educational program.
-        </p>
-
-      </div>
-
-
-      <div class="card">
-
-        <h3>
-          What happens after the introduction?
-        </h3>
-
-        <p>
-          Participants can continue exploring AI on their own using
-          the ideas and skills introduced during the session.
-        </p>
-
-      </div>
-
+    <div class="quote">
+      <p>
+        “Still have questions? Good. That's what Discover AI is about.”
+      </p>
     </div>
 
   </div>
@@ -1010,7 +1100,6 @@ footer a{
 
       </div>
 
-
       <div class="contactbox">
 
         <h3>
@@ -1036,7 +1125,6 @@ footer a{
           </a>
         </p>
 
-
         <button
           class="btn"
           type="button"
@@ -1047,7 +1135,6 @@ footer a{
         >
           Contact Discover AI
         </button>
-
 
         <form
           id="contactForm"
@@ -1068,7 +1155,6 @@ footer a{
             style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;"
           >
 
-
           <label for="email">
             <strong>Email</strong>
           </label>
@@ -1081,7 +1167,6 @@ footer a{
             style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;"
           >
 
-
           <label for="organization">
             <strong>Organization</strong>
           </label>
@@ -1092,7 +1177,6 @@ footer a{
             type="text"
             style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;"
           >
-
 
           <label for="message">
             <strong>Message</strong>
@@ -1106,13 +1190,11 @@ footer a{
             style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px; resize:vertical;"
           ></textarea>
 
-
           <input
             type="hidden"
             name="_subject"
             value="Discover AI Community Program Inquiry"
           >
-
 
           <button
             class="btn"
