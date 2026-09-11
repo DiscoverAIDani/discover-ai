@@ -7,6 +7,21 @@
 <title>Danielle Wilcott | Founder of Discover AI</title>
 <meta name="description" content="Danielle Wilcott is the founder of Discover AI, a free community outreach program helping adults discover how artificial intelligence can make everyday life easier.">
 
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Danielle Wilcott",
+  "jobTitle": "Founder of Discover AI",
+  "url": "https://discoveraidani.github.io/discover-ai/",
+  "worksFor": {
+    "@type": "Organization",
+    "name": "Discover AI",
+    "url": "https://discoveraidani.github.io/discover-ai/"
+  }
+}
+</script>
+
 <style>
 :root{
   --navy:#17345f;
@@ -19,74 +34,405 @@
   --line:#d8dfda;
   --white:#fff;
 }
-*{box-sizing:border-box;scroll-behavior:smooth}
-body{margin:0;background:var(--cream);color:var(--text);font-family:Arial,sans-serif;line-height:1.65}
-a{color:inherit}
-.wrap{max-width:1100px;margin:auto;padding:0 24px}
-nav{position:sticky;top:0;z-index:20;background:rgba(250,247,239,.97);border-bottom:1px solid var(--line)}
-.navin{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.logo{font:700 29px Georgia,serif;text-decoration:none;color:var(--navy)}
-.logo span{color:var(--teal)}
-.navlinks{display:flex;gap:24px;align-items:center}
-.navlinks a{text-decoration:none;font-size:14px;font-weight:700;color:var(--navy)}
-.btn{display:inline-block;background:var(--teal);color:#fff;text-decoration:none;font-weight:700;padding:14px 24px;border-radius:10px}
-.btn.alt{background:var(--gold);color:var(--navy)}
-.hero{padding:82px 0 76px;background:linear-gradient(135deg,var(--sage),var(--cream) 70%)}
-.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:55px;align-items:center}
-.kicker{text-transform:uppercase;letter-spacing:2px;font-size:13px;font-weight:700;color:var(--teal)}
-h1,h2,h3{font-family:Georgia,serif;color:var(--navy);line-height:1.15}
-h1{font-size:56px;margin:14px 0 18px}
-h1 span{color:var(--teal)}
-.hero h2{font-size:25px;font-style:italic;font-weight:400;margin:0 0 22px}
-.lead{font-size:20px;max-width:680px}
-.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
-.hero-art{min-height:350px;border-radius:32px;background:linear-gradient(145deg,#d3e4d6,#dbe8ed);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 18px 45px rgba(23,52,95,.10)}
-.sun{width:145px;height:145px;border-radius:50%;background:#e5bd72;position:absolute;top:82px}
-.path{width:175px;height:300px;background:#fbf1dc;position:absolute;bottom:-120px;border-radius:50% 50% 0 0}
-.section{padding:78px 0}
-.alt{background:#fff}
-.center{text-align:center}
-.section h2{font-size:40px;margin:0 0 15px}
-.intro{font-size:18px;max-width:720px;margin:0 auto 38px}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:26px}
-.alt .card{background:var(--cream)}
-.icon{font-size:31px}
-.card h3{font-size:23px;margin:12px 0 8px}
-.number{font:700 30px Georgia,serif;color:var(--gold)}
-.quote{margin-top:38px;padding:42px 28px;background:var(--sage);border-radius:25px;text-align:center}
-.quote p{font:italic 27px Georgia,serif;color:var(--navy);max-width:760px;margin:auto}
-.community{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
-.panel{background:#fff;border:1px solid var(--line);border-radius:22px;padding:30px}
-.panel.sage{background:var(--sage)}
-.panel h3{font-size:25px;margin-top:0}
-ul{padding-left:22px}
-.game{padding:76px 24px;background:#f7f3ea;text-align:center;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.game h2{font-size:42px;margin:0 0 16px}
-.game p{font-size:19px;max-width:720px;margin:0 auto 28px}
-.game-note{font-size:14px!important;color:#68747d;margin-top:17px!important}
-.faq{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.contact{display:grid;grid-template-columns:1fr 1fr;gap:28px}
-.contactbox{background:var(--sage);border-radius:22px;padding:30px}
-.contactbox a{color:var(--teal);font-weight:700}
-.contactbox .btn{color:#fff}
-footer{background:var(--navy);color:#fff;padding:45px 0}
-.foot{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}
-footer .logo{color:#fff}
-footer .logo span{color:#8bc5b8}
-footer a{color:#fff}
-@media(max-width:780px){
-  .navlinks{display:none}
-  .hero-grid,.community,.contact{grid-template-columns:1fr}
-  .hero{padding:58px 0}
-  h1{font-size:44px}
-  .cards{grid-template-columns:1fr 1fr}
-  .faq{grid-template-columns:1fr}
+
+*{
+  box-sizing:border-box;
+  scroll-behavior:smooth
 }
+
+body{
+  margin:0;
+  background:var(--cream);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+  line-height:1.65
+}
+
+a{
+  color:inherit
+}
+
+.wrap{
+  max-width:1100px;
+  margin:auto;
+  padding:0 24px
+}
+
+nav{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:rgba(250,247,239,.97);
+  border-bottom:1px solid var(--line)
+}
+
+.navin{
+  min-height:70px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px
+}
+
+.logo{
+  font:700 29px Georgia,serif;
+  text-decoration:none;
+  color:var(--navy)
+}
+
+.logo span{
+  color:var(--teal)
+}
+
+.navlinks{
+  display:flex;
+  gap:24px;
+  align-items:center
+}
+
+.navlinks a{
+  text-decoration:none;
+  font-size:14px;
+  font-weight:700;
+  color:var(--navy)
+}
+
+.btn{
+  display:inline-block;
+  background:var(--teal);
+  color:#fff;
+  text-decoration:none;
+  font-weight:700;
+  padding:14px 24px;
+  border-radius:10px
+}
+
+.btn.alt{
+  background:var(--gold);
+  color:var(--navy)
+}
+
+.hero{
+  padding:82px 0 76px;
+  background:linear-gradient(135deg,var(--sage),var(--cream) 70%)
+}
+
+.hero-grid{
+  display:grid;
+  grid-template-columns:1.08fr .92fr;
+  gap:55px;
+  align-items:center
+}
+
+.kicker{
+  text-transform:uppercase;
+  letter-spacing:2px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--teal)
+}
+
+h1,h2,h3{
+  font-family:Georgia,serif;
+  color:var(--navy);
+  line-height:1.15
+}
+
+h1{
+  font-size:56px;
+  margin:14px 0 18px
+}
+
+h1 span{
+  color:var(--teal)
+}
+
+.hero h2{
+  font-size:25px;
+  font-style:italic;
+  font-weight:400;
+  margin:0 0 22px
+}
+
+.lead{
+  font-size:20px;
+  max-width:680px
+}
+
+.actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:28px
+}
+
+.hero-art{
+  min-height:350px;
+  border-radius:32px;
+  background:linear-gradient(145deg,#d3e4d6,#dbe8ed);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 18px 45px rgba(23,52,95,.10)
+}
+
+.sun{
+  width:145px;
+  height:145px;
+  border-radius:50%;
+  background:#e5bd72;
+  position:absolute;
+  top:82px
+}
+
+.path{
+  width:175px;
+  height:300px;
+  background:#fbf1dc;
+  position:absolute;
+  bottom:-120px;
+  border-radius:50% 50% 0 0
+}
+
+.section{
+  padding:78px 0
+}
+
+.alt{
+  background:#fff
+}
+
+.center{
+  text-align:center
+}
+
+.section h2{
+  font-size:40px;
+  margin:0 0 15px
+}
+
+.intro{
+  font-size:18px;
+  max-width:720px;
+  margin:0 auto 38px
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px
+}
+
+.card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:26px
+}
+
+.alt .card{
+  background:var(--cream)
+}
+
+.icon{
+  font-size:31px
+}
+
+.card h3{
+  font-size:23px;
+  margin:12px 0 8px
+}
+
+.number{
+  font:700 30px Georgia,serif;
+  color:var(--gold)
+}
+
+.quote{
+  margin-top:38px;
+  padding:42px 28px;
+  background:var(--sage);
+  border-radius:25px;
+  text-align:center
+}
+
+.quote p{
+  font:italic 27px Georgia,serif;
+  color:var(--navy);
+  max-width:760px;
+  margin:auto
+}
+
+/* Founder section */
+.founder{
+  margin:38px auto 0;
+  max-width:820px;
+  padding:30px;
+  background:var(--sage);
+  border:1px solid var(--line);
+  border-radius:22px;
+  text-align:left
+}
+
+.founder h3{
+  font-size:26px;
+  margin:0 0 10px
+}
+
+.founder p{
+  margin:0;
+  font-size:17px
+}
+
+.community{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:28px;
+  align-items:start
+}
+
+.panel{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:30px
+}
+
+.panel.sage{
+  background:var(--sage)
+}
+
+.panel h3{
+  font-size:25px;
+  margin-top:0
+}
+
+ul{
+  padding-left:22px
+}
+
+.game{
+  padding:76px 24px;
+  background:#f7f3ea;
+  text-align:center;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line)
+}
+
+.game h2{
+  font-size:42px;
+  margin:0 0 16px
+}
+
+.game p{
+  font-size:19px;
+  max-width:720px;
+  margin:0 auto 28px
+}
+
+.game-note{
+  font-size:14px!important;
+  color:#68747d;
+  margin-top:17px!important
+}
+
+.faq{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px
+}
+
+.contact{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:28px
+}
+
+.contactbox{
+  background:var(--sage);
+  border-radius:22px;
+  padding:30px
+}
+
+.contactbox a{
+  color:var(--teal);
+  font-weight:700
+}
+
+.contactbox .btn{
+  color:#fff
+}
+
+footer{
+  background:var(--navy);
+  color:#fff;
+  padding:45px 0
+}
+
+.foot{
+  display:flex;
+  justify-content:space-between;
+  gap:30px;
+  flex-wrap:wrap
+}
+
+footer .logo{
+  color:#fff
+}
+
+footer .logo span{
+  color:#8bc5b8
+}
+
+footer a{
+  color:#fff
+}
+
+@media(max-width:780px){
+
+  .navlinks{
+    display:none
+  }
+
+  .hero-grid,
+  .community,
+  .contact{
+    grid-template-columns:1fr
+  }
+
+  .hero{
+    padding:58px 0
+  }
+
+  h1{
+    font-size:44px
+  }
+
+  .cards{
+    grid-template-columns:1fr 1fr
+  }
+
+  .faq{
+    grid-template-columns:1fr
+  }
+}
+
 @media(max-width:500px){
-  .cards{grid-template-columns:1fr}
-  h1{font-size:39px}
-  .section h2,.game h2{font-size:33px}
+
+  .cards{
+    grid-template-columns:1fr
+  }
+
+  h1{
+    font-size:39px
+  }
+
+  .section h2,
+  .game h2{
+    font-size:33px
+  }
 }
 </style>
 </head>
@@ -95,7 +441,11 @@ footer a{color:#fff}
 
 <nav>
   <div class="wrap navin">
-    <a class="logo" href="#top">Discover<span>AI</span></a>
+
+    <a class="logo" href="#top">
+      Discover<span>AI</span>
+    </a>
+
     <div class="navlinks">
       <a href="#about">About</a>
       <a href="#what">What AI Can Do</a>
@@ -104,340 +454,779 @@ footer a{color:#fff}
       <a href="#faq">FAQ</a>
       <a href="#contact">Contact</a>
     </div>
-    <a class="btn" href="#contact">Bring Discover AI</a>
+
+    <a class="btn" href="#contact">
+      Bring Discover AI
+    </a>
+
   </div>
 </nav>
 
 <header class="hero" id="top">
+
   <div class="wrap hero-grid">
+
     <div>
-      <div class="kicker">Free Community AI Education</div>
-      <h1>Real AI.<br>Practical Help.<br><span>No Jargon.</span></h1>
-      <h2>See what AI can do for you.</h2>
+
+      <div class="kicker">
+        Free Community AI Education
+      </div>
+
+      <h1>
+        Real AI.<br>
+        Practical Help.<br>
+        <span>No Jargon.</span>
+      </h1>
+
+      <h2>
+        See what AI can do for you.
+      </h2>
+
       <p class="lead">
         Discover how AI can make everyday life easier — without needing
         to be a technology expert.
       </p>
+
       <p>
         Discover AI provides free, beginner-friendly presentations for
         community organizations, seniors, and residents who want a
         comfortable introduction to AI.
       </p>
+
       <div class="actions">
-        <a class="btn" href="#contact">Bring Discover AI to Your Organization</a>
-        <a class="btn alt" href="#what">See What AI Can Do</a>
+
+        <a class="btn" href="#contact">
+          Bring Discover AI to Your Organization
+        </a>
+
+        <a class="btn alt" href="#what">
+          See What AI Can Do
+        </a>
+
       </div>
+
     </div>
 
-    <div class="hero-art" aria-label="Sunrise and path illustration">
+    <div class="hero-art"
+         aria-label="Sunrise and path illustration">
+
       <div class="sun"></div>
       <div class="path"></div>
+
     </div>
+
   </div>
+
 </header>
 
+
 <section class="section" id="about">
+
   <div class="wrap center">
-    <div class="kicker">Why Discover AI?</div>
-    <h2>AI Doesn't Have to Be Intimidating</h2>
+
+    <div class="kicker">
+      Why Discover AI?
+    </div>
+
+    <h2>
+      AI Doesn't Have to Be Intimidating
+    </h2>
+
     <p class="intro">
       You don't have to know the perfect prompt, understand complicated
       technology, or consider yourself "good with computers."
       You just need something you're curious about.
     </p>
 
+
     <div class="cards">
+
       <div class="card">
+
         <div class="icon">💬</div>
-        <h3>Talk Naturally</h3>
+
+        <h3>
+          Talk Naturally
+        </h3>
+
         <p>
           Learn that you can communicate with AI much like you would
           explain something to another person.
         </p>
+
       </div>
+
+
       <div class="card">
+
         <div class="icon">🧭</div>
-        <h3>Learn to Steer</h3>
+
+        <h3>
+          Learn to Steer
+        </h3>
+
         <p>
           Discover how to ask AI to simplify, explain, change, improve,
           or try again when the first answer isn't right.
         </p>
+
       </div>
+
+
       <div class="card">
+
         <div class="icon">💡</div>
-        <h3>Start With What Matters</h3>
+
+        <h3>
+          Start With What Matters
+        </h3>
+
         <p>
           Instead of learning technology for its own sake, start with
           something you actually want to understand or accomplish.
         </p>
+
       </div>
+
     </div>
 
+
     <div class="quote">
+
       <p>
         “You don't have to know the way. You just need to know where you want to go.”
       </p>
+
     </div>
+
+
+    <div class="founder">
+
+      <div class="kicker">
+        Meet Danielle Wilcott
+      </div>
+
+      <h3>
+        Founder of Discover AI
+      </h3>
+
+      <p>
+        Danielle Wilcott created Discover AI to help everyday people
+        discover practical ways artificial intelligence can make life
+        easier — without feeling like they need to become “tech people.”
+      </p>
+
+    </div>
+
   </div>
+
 </section>
 
+
 <section class="section alt" id="what">
+
   <div class="wrap center">
-    <div class="kicker">Everyday Possibilities</div>
-    <h2>What Can AI Actually Do?</h2>
+
+    <div class="kicker">
+      Everyday Possibilities
+    </div>
+
+    <h2>
+      What Can AI Actually Do?
+    </h2>
+
     <p class="intro">
       Here are just a few places we can start. During a presentation,
       you'll see real examples and have a chance to think about how
       AI could help with things in your own life.
     </p>
 
+
     <div class="cards">
+
       <div class="card">
         <div class="icon">🌱</div>
         <h3>Hobbies & Interests</h3>
-        <p>Explore gardening, cooking, crafts, photography, hobbies, and new ideas.</p>
+        <p>
+          Explore gardening, cooking, crafts, photography, hobbies, and new ideas.
+        </p>
       </div>
+
+
       <div class="card">
         <div class="icon">✈️</div>
         <h3>Travel</h3>
-        <p>Brainstorm destinations, organize ideas, build itineraries, and ask questions.</p>
+        <p>
+          Brainstorm destinations, organize ideas, build itineraries, and ask questions.
+        </p>
       </div>
+
+
       <div class="card">
         <div class="icon">📚</div>
         <h3>Learn Something New</h3>
-        <p>Ask AI to explain complicated subjects in everyday language.</p>
+        <p>
+          Ask AI to explain complicated subjects in everyday language.
+        </p>
       </div>
+
+
       <div class="card">
         <div class="icon">📝</div>
         <h3>Writing & Ideas</h3>
-        <p>Brainstorm, organize thoughts, draft something, or make writing easier.</p>
+        <p>
+          Brainstorm, organize thoughts, draft something, or make writing easier.
+        </p>
       </div>
+
+
       <div class="card">
         <div class="icon">🏠</div>
         <h3>Everyday Life</h3>
-        <p>Plan a week, make a list, solve a problem, or think through a decision.</p>
+        <p>
+          Plan a week, make a list, solve a problem, or think through a decision.
+        </p>
       </div>
+
+
       <div class="card">
         <div class="icon">✨</div>
         <h3>Discover Your Own Idea</h3>
-        <p>You don't have to know what AI can do yet. That's exactly what we're here to discover.</p>
+        <p>
+          You don't have to know what AI can do yet.
+          That's exactly what we're here to discover.
+        </p>
       </div>
+
     </div>
+
   </div>
+
 </section>
 
+
 <section class="section" id="community">
+
   <div class="wrap">
+
     <div class="community">
+
       <div>
-        <div class="kicker">Community Program</div>
-        <h2>Free AI Education for Your Community</h2>
+
+        <div class="kicker">
+          Community Program
+        </div>
+
+        <h2>
+          Free AI Education for Your Community
+        </h2>
+
         <p class="lead">
           Discover AI is designed to help community organizations introduce
           adults to AI in a relaxed, practical, beginner-friendly way.
         </p>
+
         <p>
           The goal isn't to turn people into technology experts.
-          It's to help them leave thinking, <strong>“Maybe I can actually use this.”</strong>
+          It's to help them leave thinking,
+          <strong>“Maybe I can actually use this.”</strong>
         </p>
+
       </div>
 
+
       <div class="panel sage">
-        <h3>FREE 30-MINUTE COMMUNITY INTRODUCTION</h3>
+
+        <h3>
+          FREE 30-MINUTE COMMUNITY INTRODUCTION
+        </h3>
+
         <p>
           A relaxed introduction for adults who are curious about AI
           but may feel intimidated by technology.
         </p>
+
         <ul>
           <li>Start with YOU</li>
           <li>Talk naturally with AI</li>
           <li>Learn how to steer the conversation</li>
           <li>Discover practical possibilities</li>
         </ul>
+
       </div>
+
     </div>
 
+
     <div class="quote">
+
       <p>
         “Same Questions. New Possibilities.”
       </p>
+
     </div>
+
   </div>
+
 </section>
 
+
 <section class="section alt">
+
   <div class="wrap">
+
     <div class="community">
+
       <div class="panel">
+
         <div class="number">01</div>
-        <h3>Start With What You Care About</h3>
+
+        <h3>
+          Start With What You Care About
+        </h3>
+
         <p>
-          We don't begin with a lecture about technology. We begin with
-          something people actually want to do, learn, plan, understand,
-          or create.
+          We don't begin with a lecture about technology.
+          We begin with something people actually want to do,
+          learn, plan, understand, or create.
         </p>
+
       </div>
+
+
       <div class="panel">
+
         <div class="number">02</div>
-        <h3>Ask AI Like You'd Ask a Person</h3>
+
+        <h3>
+          Ask AI Like You'd Ask a Person
+        </h3>
+
         <p>
-          There isn't one magical way to phrase a question. If AI doesn't
-          understand, explain what you meant and try again.
+          There isn't one magical way to phrase a question.
+          If AI doesn't understand, explain what you meant and try again.
         </p>
+
       </div>
+
+
       <div class="panel">
+
         <div class="number">03</div>
-        <h3>Make the Answer Work for You</h3>
+
+        <h3>
+          Make the Answer Work for You
+        </h3>
+
         <p>
-          Ask AI to summarize, simplify, give examples, change the format,
-          or focus on just one part.
+          Ask AI to summarize, simplify, give examples,
+          change the format, or focus on just one part.
         </p>
+
       </div>
+
+
       <div class="panel">
+
         <div class="number">04</div>
-        <h3>Keep Exploring</h3>
+
+        <h3>
+          Keep Exploring
+        </h3>
+
         <p>
           Once you understand the conversation, the possibilities become
           much bigger than a single demonstration.
         </p>
+
       </div>
+
     </div>
+
   </div>
+
 </section>
+
 
 <section class="game" id="game">
+
   <div class="wrap">
-    <div class="kicker">Try Discover AI</div>
-    <h2>Curious What AI Can Actually Do?</h2>
+
+    <div class="kicker">
+      Try Discover AI
+    </div>
+
+    <h2>
+      Curious What AI Can Actually Do?
+    </h2>
+
     <p>
-      Try our free interactive AI discovery game. No experience needed.
-      Choose something you're interested in and start exploring.
+      Try our free interactive AI discovery game.
+      No experience needed. Choose something you're interested in
+      and start exploring.
     </p>
-    <a class="btn" href="game.html">🎮 Try the Discover AI Game →</a>
-    <p class="game-note">Simple • Fun • No Experience Needed</p>
+
+    <a class="btn" href="game.html">
+      🎮 Try the Discover AI Game →
+    </a>
+
+    <p class="game-note">
+      Simple • Fun • No Experience Needed
+    </p>
+
   </div>
+
 </section>
+
 
 <section class="section" id="faq">
+
   <div class="wrap center">
-    <div class="kicker">Questions</div>
-    <h2>Getting Started Is Simple</h2>
+
+    <div class="kicker">
+      Questions
+    </div>
+
+    <h2>
+      Getting Started Is Simple
+    </h2>
+
 
     <div class="faq">
+
       <div class="card">
-        <h3>Do I need AI experience?</h3>
-        <p>No. Discover AI is designed especially for beginners.</p>
+
+        <h3>
+          Do I need AI experience?
+        </h3>
+
+        <p>
+          No. Discover AI is designed especially for beginners.
+        </p>
+
       </div>
+
+
       <div class="card">
-        <h3>Do I need to know the right prompts?</h3>
-        <p>No. We start with natural conversation and learn how to steer from there.</p>
+
+        <h3>
+          Do I need to know the right prompts?
+        </h3>
+
+        <p>
+          No. We start with natural conversation and learn how to steer from there.
+        </p>
+
       </div>
+
+
       <div class="card">
-        <h3>Who is this for?</h3>
-        <p>Adults, seniors, community members, and anyone curious about AI who wants a comfortable place to start.</p>
+
+        <h3>
+          Who is this for?
+        </h3>
+
+        <p>
+          Adults, seniors, community members, and anyone curious about AI
+          who wants a comfortable place to start.
+        </p>
+
       </div>
+
+
       <div class="card">
-        <h3>Does my organization have to be technical?</h3>
-        <p>Not at all. Discover AI is designed for ordinary community settings.</p>
+
+        <h3>
+          Does my organization have to be technical?
+        </h3>
+
+        <p>
+          Not at all. Discover AI is designed for ordinary community settings.
+        </p>
+
       </div>
+
+
       <div class="card">
-        <h3>Is the community presentation free?</h3>
-        <p>Yes. Discover AI's community introduction is offered as a free educational program.</p>
+
+        <h3>
+          Is the community presentation free?
+        </h3>
+
+        <p>
+          Yes. Discover AI's community introduction is offered
+          as a free educational program.
+        </p>
+
       </div>
+
+
       <div class="card">
-        <h3>What happens after the introduction?</h3>
-        <p>Participants can continue exploring AI on their own using the ideas and skills introduced during the session.</p>
+
+        <h3>
+          What happens after the introduction?
+        </h3>
+
+        <p>
+          Participants can continue exploring AI on their own using
+          the ideas and skills introduced during the session.
+        </p>
+
       </div>
+
     </div>
+
   </div>
+
 </section>
 
+
 <section class="section alt" id="contact">
+
   <div class="wrap">
+
     <div class="contact">
+
       <div>
-        <div class="kicker">Bring Discover AI to Your Organization</div>
-        <h2>Let's Help Your Community Discover What's Possible.</h2>
+
+        <div class="kicker">
+          Bring Discover AI to Your Organization
+        </div>
+
+        <h2>
+          Let's Help Your Community Discover What's Possible.
+        </h2>
+
         <p class="lead">
           Interested in hosting a free beginner-friendly AI introduction?
         </p>
+
         <p>
           Discover AI is especially interested in working with libraries,
           senior centers, community organizations, nonprofits, and other
           local groups that want to help their communities become more
           comfortable with AI.
         </p>
+
       </div>
 
+
       <div class="contactbox">
-        <h3>Let's Talk</h3>
+
+        <h3>
+          Let's Talk
+        </h3>
+
         <p>
           Tell me a little about your organization and what you'd like
           your community to learn.
         </p>
+
         <p>
           <strong>Email</strong><br>
-          <a href="mailto:daniellewilcott@gmail.com">daniellewilcott@gmail.com</a>
+          <a href="mailto:daniellewilcott@gmail.com">
+            daniellewilcott@gmail.com
+          </a>
         </p>
+
         <p>
           <strong>Call or text</strong><br>
-          <a href="tel:+19167687429">916-768-7429</a>
+          <a href="tel:+19167687429">
+            916-768-7429
+          </a>
         </p>
-        <button class="btn" type="button" id="contactToggle" aria-expanded="false" aria-controls="contactForm" style="color:#ffffff !important; display:inline-block; border:0; cursor:pointer; font:inherit;">
+
+
+        <button
+          class="btn"
+          type="button"
+          id="contactToggle"
+          aria-expanded="false"
+          aria-controls="contactForm"
+          style="color:#ffffff !important; display:inline-block; border:0; cursor:pointer; font:inherit;"
+        >
           Contact Discover AI
         </button>
 
-        <form id="contactForm" action="https://formspree.io/f/mwlkrebk" method="POST" style="display:none; margin-top:1rem; text-align:left;">
-          <label for="name"><strong>Name</strong></label>
-          <input id="name" name="name" type="text" required style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;">
 
-          <label for="email"><strong>Email</strong></label>
-          <input id="email" name="email" type="email" required style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;">
+        <form
+          id="contactForm"
+          action="https://formspree.io/f/mwlkrebk"
+          method="POST"
+          style="display:none; margin-top:1rem; text-align:left;"
+        >
 
-          <label for="organization"><strong>Organization</strong></label>
-          <input id="organization" name="organization" type="text" style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;">
+          <label for="name">
+            <strong>Name</strong>
+          </label>
 
-          <label for="message"><strong>Message</strong></label>
-          <textarea id="message" name="message" rows="5" required style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px; resize:vertical;"></textarea>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            required
+            style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;"
+          >
 
-          <input type="hidden" name="_subject" value="Discover AI Community Program Inquiry">
-          <button class="btn" type="submit" style="color:#ffffff !important; border:0; cursor:pointer; font:inherit;">Send Message</button>
+
+          <label for="email">
+            <strong>Email</strong>
+          </label>
+
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;"
+          >
+
+
+          <label for="organization">
+            <strong>Organization</strong>
+          </label>
+
+          <input
+            id="organization"
+            name="organization"
+            type="text"
+            style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px;"
+          >
+
+
+          <label for="message">
+            <strong>Message</strong>
+          </label>
+
+          <textarea
+            id="message"
+            name="message"
+            rows="5"
+            required
+            style="width:100%; box-sizing:border-box; margin:.35rem 0 .75rem; padding:.7rem; border:1px solid #cbd8d2; border-radius:8px; resize:vertical;"
+          ></textarea>
+
+
+          <input
+            type="hidden"
+            name="_subject"
+            value="Discover AI Community Program Inquiry"
+          >
+
+
+          <button
+            class="btn"
+            type="submit"
+            style="color:#ffffff !important; border:0; cursor:pointer; font:inherit;"
+          >
+            Send Message
+          </button>
+
         </form>
+
       </div>
+
     </div>
+
   </div>
+
 </section>
 
+
 <footer>
+
   <div class="wrap foot">
+
     <div>
-      <div class="logo">Discover<span>AI</span></div>
-      <p>See what AI can do for you.</p>
-      <p>Free community AI education.</p>
+
+      <div class="logo">
+        Discover<span>AI</span>
+      </div>
+
+      <p>
+        See what AI can do for you.
+      </p>
+
+      <p>
+        Free community AI education.
+      </p>
+
     </div>
+
+
     <div>
-      <strong>Discover AI</strong><br>
-      Beginner-friendly. Practical. No jargon.<br><br>
-      <a href="#top">Back to top ↑</a>
+
+      <strong>
+        Discover AI
+      </strong>
+
+      <br>
+
+      Beginner-friendly. Practical. No jargon.
+
+      <br><br>
+
+      <strong>
+        Founded by Danielle Wilcott
+      </strong>
+
+      <br><br>
+
+      <a href="#top">
+        Back to top ↑
+      </a>
+
     </div>
+
   </div>
+
 </footer>
 
+
 <script>
-  const contactToggle = document.getElementById('contactToggle');
-  const contactForm = document.getElementById('contactForm');
-  if (contactToggle && contactForm) {
-    contactToggle.addEventListener('click', () => {
-      const open = contactForm.style.display === 'block';
-      contactForm.style.display = open ? 'none' : 'block';
-      contactToggle.setAttribute('aria-expanded', String(!open));
-      contactToggle.textContent = open ? 'Contact Discover AI' : 'Close Contact Form';
-      if (!open) {
-        contactForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    });
-  }
+
+const contactToggle =
+  document.getElementById('contactToggle');
+
+const contactForm =
+  document.getElementById('contactForm');
+
+if (contactToggle && contactForm) {
+
+  contactToggle.addEventListener('click', () => {
+
+    const open =
+      contactForm.style.display === 'block';
+
+    contactForm.style.display =
+      open ? 'none' : 'block';
+
+    contactToggle.setAttribute(
+      'aria-expanded',
+      String(!open)
+    );
+
+    contactToggle.textContent =
+      open
+        ? 'Contact Discover AI'
+        : 'Close Contact Form';
+
+    if (!open) {
+
+      contactForm.scrollIntoView({
+        behavior:'smooth',
+        block:'nearest'
+      });
+
+    }
+
+  });
+
+}
+
 </script>
 
 </body>
 </html>
+
+Back to top ↑
