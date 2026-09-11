@@ -420,6 +420,64 @@ class DiscoverConversation {
     return{say:next?'The next step is to try one small action based on what you just told me, then use the result to guide the conversation.':'Absolutely. I’ll start with a practical first version using what you have already told me, and we can refine it from there.',choices:['Show me the first step','Give me an example','Make it simpler']};
   }
 
+  directAnswer(x,intent=''){
+    const low=this.normalize(x);
+    const answer=(say,choices=[])=>({say,choices});
+    if(intent==='explore' || /what can (?:i use )?ai (?:do|help with)|how can ai help me/.test(low)){
+      this.s.category='open';this.s.intent='explore';this.s.topic='using AI';this.s.stage='explore';
+      return answer('AI can help with much more than answering questions. You can use it to plan a trip, organize your week, explain something confusing, make a grocery list, work through a problem, compare options, or help draft something. The useful part is that you can keep talking to it and refine the result as you go.', ['Plan a trip','Organize my week','Explain something','Help me create something']);
+    }
+    if(intent==='things' || /find things to do|things to do|what (?:can i|should i) do|activities|places to visit/.test(low)){
+      this.s.category='travel';this.s.intent='things';this.s.topic='things to do';this.s.stage='thingsPlan';
+      return answer('Absolutely. Some examples: find free things to do this weekend, look for outdoor activities, find museums or local attractions, find live events, plan an easy afternoon, or build a low-cost day trip. Give me a place, date, budget, or just a general idea and we can narrow it from there.', ['Free things to do','Outdoor activities','Events this weekend','Plan an easy day']);
+    }
+    if((intent==='learn' || intent==='learnSimple') && /garden|gardening/.test(low)){
+      this.s.category='learn';this.s.intent='learn';this.s.topic='gardening';this.s.stage='learnPractice';
+      return answer('Gardening, in simple terms, is giving a plant the right combination of light, water, soil, space, and time. Start with a plant that fits the amount of sunlight you have, use soil with good drainage, and water when the plant actually needs it rather than on a rigid schedule. Watch the leaves and soil for clues, and change one thing at a time when you are figuring out what works.', ['Show me a beginner example','What should I plant first?','Explain watering']);
+    }
+    if(intent==='learn' || intent==='learnSimple'){
+      const topic=(low.match(/(?:learn|understand|explain|teach me about|teach me|help me with)\s+(?:about\s+)?(.+?)(?:\s+in simple terms|\s+simply|\s+step by step|[.!?]|$)/)||[])[1] || 'that topic';
+      this.s.category='learn';this.s.intent='learn';this.s.topic=topic.trim();this.s.stage='learnPractice';
+      if(/photography|photos|camera/.test(low)) return answer('A good beginner start with photography is to learn three things in this order: light, composition, and focus. Try taking the same subject from three angles and in three kinds of light, then compare the photos. You will start seeing how small changes in position and light change the result before you need to worry about advanced camera settings.', ['Give me a 10-minute exercise','Teach me composition','Explain camera settings']);
+      if(/golf/.test(low)) return answer('A good way to learn golf is to work on one skill at a time instead of trying to fix your whole game. Start with short putting, basic contact, or one simple swing drill, practice it repeatedly, and notice what changes. Then use that result to decide what to work on next.', ['Give me a beginner drill','Start with putting','Explain the swing']);
+      return answer(`Let’s start with the useful basics of ${this.s.topic}. First, understand the main idea, then see one real example, then try a small exercise yourself. You do not need to learn everything at once.`, ['Give me a real example','Teach me step by step','Give me something to try']);
+    }
+    if(intent==='learnSteps' && /garden|gardening/.test(low)){
+      this.s.category='learn';this.s.intent='learn';this.s.topic='gardening';this.s.stage='learnPractice';
+      return answer('Here is a simple beginner process: choose a plant that matches your sunlight, use a container or bed with good drainage, add suitable soil, plant it at the recommended depth, water it thoroughly, and check it regularly. If something looks wrong, change one variable at a time so you can see what helped.', ['Help me choose a plant','Explain watering','Show me an example']);
+    }
+    if(intent==='trip' && /plan|trip|vacation|weekend|travel/.test(low)){
+      this.s.category='travel';this.s.intent='trip';this.s.topic='your trip';this.s.stage='tripPlan';
+      return answer('Sure. A practical trip plan starts with a few anchors rather than filling every hour: where you are going, how much time you have, one or two things you most want to do, a realistic budget, and where you will eat or take a break. For a weekend, that might become one main activity each day plus flexible time around it.', ['Build a sample itinerary','Add a destination','Keep it budget-friendly']);
+    }
+    if(intent==='week' && /plan|organize|week|schedule/.test(low)){
+      this.s.category='everyday';this.s.intent='week';this.s.topic='your week';this.s.stage='weekPlan';
+      return answer('Absolutely. Start by separating fixed commitments from flexible tasks. Put appointments and work commitments on the calendar first, choose two or three priorities for the week, then fit errands and chores around them while leaving some open space. The goal is a week you can actually live, not a perfect schedule.', ['Show me a sample week','Add my commitments','Make it day by day']);
+    }
+    if(intent==='dinner' && /dinner|meal|make|cook|what should/.test(low)){
+      this.s.category='everyday';this.s.intent='dinner';this.s.topic='dinner';this.s.stage='dinnerPlan';
+      return answer('Here is a simple example: if you have chicken, pasta, and spinach, make a one-pan chicken and spinach pasta. Brown the chicken, add the pasta with a little broth or water, cook until tender, then stir in the spinach at the end. Season it and finish with Parmesan or a simple sauce if you have it.', ['Give me exact steps','Use different ingredients','Make it faster']);
+    }
+    if(intent==='groceries' && /grocery|groceries|shopping list|meal plan/.test(low)){
+      this.s.category='everyday';this.s.intent='groceries';this.s.topic='groceries';this.s.stage='groceryMeals';
+      return answer('I can turn a goal into a usable list instead of just naming random groceries. For example, for three dinners I might plan chicken-and-rice bowls, pasta with vegetables, and tacos, then combine overlapping ingredients into one list grouped by produce, meat, dairy, pantry, and extras.', ['Plan three dinners','Make it inexpensive','Use what I already have']);
+    }
+    if(intent==='restaurants' && /find|place|places|restaurant|eat/.test(low)){
+      this.s.category='travel';this.s.intent='restaurants';this.s.topic='places to eat';this.s.stage='restaurantPlan';
+      return answer('For finding a place to eat, give AI whatever matters to you—area, cuisine, price, atmosphere, distance, or dietary preference. For example: “Find three casual Italian restaurants near my hotel under about $30 per person.” In a live AI chat with current search access, that request could be used to narrow current options.', ['Add a location','Add a cuisine','Add a budget']);
+    }
+    if(intent==='create' && /resume|cover letter|job application/.test(low)){
+      this.s.category='create';this.s.intent='create';this.s.topic=/resume/.test(low)?'your resume':'your cover letter';this.s.stage='createPlan';
+      if(/resume/.test(low)) return answer('A good resume starts with the job you want and makes your experience easy to scan. Lead with relevant accomplishments rather than only listing duties. For example, “Managed front-desk operations for 80+ daily visitors while reducing wait times” tells a stronger story than simply “Responsible for front desk.”', ['Rewrite a resume bullet','Tailor it to a job','Build a simple resume']);
+      return answer('A useful cover letter quickly connects you to the specific job. Explain why you are interested, give one or two examples that match what the employer needs, and finish by connecting your experience to the role. It should add context to your resume, not repeat it.', ['Show me an example','Make it shorter','Tailor it to a job']);
+    }
+    if(intent==='problem' && /solve|fix|problem|help/.test(low)){
+      this.s.category='problem';this.s.intent='problem';this.s.topic='the problem';this.s.stage='problemSolution';
+      return answer('Absolutely. Start by separating the symptom from the cause: what is happening, what you expected instead, and what changed just before the problem appeared. If there is an error message, include the exact wording. Then we can work through the likely causes one at a time.', ['Tell me what happened','Show me the first step','Help me troubleshoot']);
+    }
+    return null;
+  }
+
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
     // Topic switches should be explicit and immediate, not treated as answers to the old topic.
@@ -427,6 +485,11 @@ class DiscoverConversation {
     // New explicit subject with a strong intent always wins.
     const detected=this.detectIntent(x);
     if(this.s.stage!=='start' && detected && detected!==this.s.intent && /^(?:help me|i need help|i want to|actually|instead|wait|can you|could you|please|i'm looking to)/i.test(String(text||''))){return this.switchTo(text)}
+    // A direct request should produce an answer, not a meta-response about how AI could help.
+    // This is intentionally before short commands and before stage-specific question loops.
+    const direct=this.directAnswer(x,detected);
+    if(direct)return direct;
+
     // Short conversational controls are still meaningful. Handle them from the
     // current context instead of letting them fall into a generic fallback.
     const shortCommand=this.handleShortCommand(x);
