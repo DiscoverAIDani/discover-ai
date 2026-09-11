@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Discover AI — Conversation Challenge</title>
+<title>Discover AI — Talk to AI</title>
 <style>
 :root{--navy:#17345f;--teal:#187f80;--sage:#e5eee6;--cream:#faf7ef;--gold:#d8b46a;--rose:#edd8dc;--text:#33424d;--white:#fff;--line:#d8dfda;--shadow:0 10px 30px rgba(23,52,95,.08)}
 *{box-sizing:border-box} body{margin:0;background:var(--cream);color:var(--text);font-family:Arial,sans-serif;line-height:1.55}
@@ -21,67 +21,99 @@ main{padding:26px 0 60px}.panel{background:#fff;border:1px solid var(--line);bor
 .example-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}.example-card{border:1px solid var(--line);border-radius:16px;background:#fbfaf6;padding:14px;text-align:left}.example-card .icon{font-size:28px;margin-bottom:6px}.example-card b{display:block;color:var(--navy);margin-bottom:4px}.example-card p{font-size:14px;margin:0 0 8px}.use-example{border:1px solid #c7d9d5;background:#fff;color:var(--navy);padding:8px 10px;border-radius:10px;font-weight:700;cursor:pointer}
 .results{display:none;padding:34px 26px}.results h2{font:700 34px Georgia,serif;color:var(--navy);margin:0 0 6px}.final-score{font-size:60px;font-weight:900;color:var(--teal);margin:8px 0}.rank{display:inline-block;background:var(--gold);padding:8px 14px;border-radius:20px;color:var(--navy);font-weight:900}.summary{max-width:720px;margin:20px auto}.summary div{padding:11px 12px;border-bottom:1px solid var(--line)}.start-new{border:0;background:var(--teal);color:#fff;font-weight:700;padding:12px 18px;border-radius:12px;cursor:pointer}.note{margin-top:12px;font-size:13px;color:#66737b}.progress{font-size:13px;color:#66737b;margin-top:8px}
 @media(max-width:650px){.bubble{max-width:90%}.row{align-items:stretch}.send{padding:0 15px}.example-grid{grid-template-columns:1fr}.chat{min-height:440px}.challengebar{align-items:flex-start}}
+
+/* polish layer */
+:focus-visible{outline:3px solid #d8b46a;outline-offset:2px}
+header{padding:20px 18px}.headrow{display:flex;justify-content:space-between;align-items:center;gap:16px}.back{color:var(--navy);text-decoration:none;font-weight:800;font-size:14px;border:1px solid var(--line);background:#fff;padding:8px 12px;border-radius:12px}.back:hover{background:var(--sage)}
+.game-intro{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.pill{font-size:13px;font-weight:800;border-radius:999px;padding:6px 10px;background:#f5f0df;color:var(--navy);border:1px solid #e5d9b8}.pill.teal{background:#edf7f5;border-color:#cbe1dd}.pill.rose{background:#fbf0f2;border-color:#ead0d5}
+.challengebar{position:sticky;top:0;z-index:5}.cbscore{box-shadow:0 2px 8px rgba(23,52,95,.06)}
+.reward-row{background:#fff}.reward-badge{transition:transform .2s,opacity .2s}.reward-badge.earned{transform:translateY(-1px)}
+.chat{scroll-behavior:smooth}.msg{animation:rise .18s ease-out}@keyframes rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.choice{transition:transform .12s,background .12s,box-shadow .12s}.choice:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(23,52,95,.08)}
+.send{min-width:92px}.send:hover{filter:brightness(.96);transform:translateY(-1px)}.send{transition:transform .12s,filter .12s}
+textarea{background:#fff}textarea::placeholder{color:#7b878d}
+.feedback{animation:rise .18s ease-out}.feedback .pts{white-space:nowrap}
+.controls{position:relative}.choice-label{font-size:12px;font-weight:800;color:#66737b;margin:0 0 7px}.hint{padding:4px 0}.hint:hover{text-decoration:underline}
+.examples-wrap{margin:10px 0 0}.example-grid{margin:10px 0}.use-example{transition:background .12s,transform .12s}.use-example:hover{background:var(--sage);transform:translateY(-1px)}
+.end-note{margin-top:18px;padding:12px 14px;border-radius:14px;background:#f6f8f5;border:1px solid var(--line);font-size:13px}
+.results{text-align:center}.summary{text-align:left}.start-new{margin-top:6px}.result-tip{font-size:15px;max-width:650px;margin:8px auto 0}
+@media(max-width:650px){header{padding:16px 14px}.headrow{align-items:flex-start}.back{font-size:13px}.challengebar{position:static}.row{display:grid;grid-template-columns:1fr auto}.send{min-height:56px}.choice{width:100%;text-align:left}.choices{display:grid;grid-template-columns:1fr}.game-intro{gap:6px}}
 </style>
 </head>
 <body>
-<header><div class="wrap"><div class="brand">Discover<span>AI</span></div><p>See what AI can do for you.</p></div></header>
+<header><div class="wrap"><div class="headrow"><div><div class="brand">Discover<span>AI</span></div><p>See what AI can do for you.</p></div><a class="back" href="index.html#game">← Back to Discover AI</a></div></div></header>
 <main><div class="wrap">
 <section class="panel" id="game">
-  <div class="top"><h1>Let us Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="progress" id="progress">Start anywhere. You can change your mind as you go.</div></div>
+  <div class="top"><h1>Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress">Start anywhere. You can change your mind as you go.</div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type what you're thinking..." aria-label="Your message"></textarea><button class="send" id="send">Send</button></div><button class="hint" id="hint">💡 Show me examples</button><div class="note">Practice simulation — designed to teach conversation skills. It is not connected to a live AI service.</div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="send" id="send">Send</button></div><button class="hint" id="hint" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service.</div></div>
 </section>
-<section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p id="resultText"></p><div class="summary" id="summary"></div><button class="start-new" id="startNew">Try another conversation</button></section>
+<section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="end-note">The goal was not to find perfect words. The goal was to keep a useful conversation going.</div><button class="start-new" id="startNew">Try another conversation</button></section>
 </div></main>
 <script>
 class DiscoverConversation {
   constructor(){this.maxTurns=5;this.reset()}
-  reset(){this.s={stage:'start',category:'',intent:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',ingredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[]}}
-  normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").trim()}
-  uncertain(t){return /^(?:i\s+)?(?:do not|do not) know\b|\bnot sure\b|\bno idea\b|\byou pick\b|\bchoose for me\b|\bsurprise me\b|\bwhatever works\b/i.test(t)}
-  correction(t){return /^(?:actually|instead|wait|no[,.]?\s*(?:i mean|let us)|i meant|never mind|change of plans)\b/i.test(t)}
-  isAck(t){return /^(?:ok|okay|sure|yes|yeah|yep|sounds good|that works|great|alright)\.?$/i.test(t.trim())}
-  amount(t){const m=t.match(/\$?\s*((?:[0-9]{1,3}(?:[,\s][0-9]{3})+)|(?:[0-9]{4,6})|(?:[0-9]{1,3}))(?:\.\d{2})?/);return m?m[1].replace(/[,\s]/g,''):''}
-  detectIntent(t){const x=this.normalize(t);
+  reset(){this.s={stage:'start',category:'',intent:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',ingredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[]}}
+  normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").replace(/\s+/g,' ').trim()}
+  clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*,?\s*/i,'').replace(/^\s*no\s*,?\s*(?:i mean\s*)?/i,'').trim()}
+  uncertain(t){return /^(?:i\s+)?(?:do not know|don't know)\b|\bnot sure\b|\bno idea\b|\byou pick\b|\bchoose for me\b|\bsurprise me\b|\bwhatever works\b/i.test(String(t||''))}
+  correction(t){return /^(?:actually|instead|wait|never mind|change of plans|i meant|no\s*,?\s*i mean)\b/i.test(String(t||''))}
+  isAck(t){return /^(?:ok|okay|sure|yes|yeah|yep|sounds good|good|great|fine|perfect|that works|do that|let's do it|lets do it)\.?$/i.test(String(t||''))}
+  amount(t){const m=String(t||'').match(/(?:\$\s*)?([0-9]{1,4}(?:,[0-9]{3})?(?:\.\d{1,2})?)/);return m?m[1].replace(/,/g,''):''}
+  hasAsked(q){return this.s.asked.includes(this.normalize(q))}
+  ask(q){this.s.lastQuestion=q;this.s.asked.push(this.normalize(q));return q}
+  noteFact(f){const n=this.normalize(f);if(n && !this.s.facts.includes(n))this.s.facts.push(n)}
+  topicLabel(){return this.s.topic || 'this'}
+  detectIntent(t){
+    const x=this.normalize(t);
     if(/what can i use ai for|what can ai do|how can ai help|i do not know what i can use ai for/.test(x))return'explore';
     if(/grocery|groceries|shopping list/.test(x))return'groceries';
     if(/organize my week|organise my week|plan my week|week.*organiz|organize.*week/.test(x))return'week';
-    if(/places? to eat|restaurant|restaurants|somewhere to eat|where.*eat|food nearby|find.*food/.test(x))return'restaurants';
+    if(/place to eat|places to eat|restaurant|restaurants|somewhere to eat|where.*eat|food nearby|find.*food/.test(x))return'restaurants';
     if(/find things to do|things to do|activities|what to do|places to visit/.test(x))return'things';
     if(/plan (a )?(trip|vacation)|weekend trip|trip to|vacation to|travel to|destination/.test(x))return'trip';
     if(/make (a )?cake|bake a cake|birthday cake/.test(x))return'cake';
-    if(/birthday card|thank you card|write (a )?(card|letter)|make a card|write a story/.test(x))return'create';
-    if(/solve a problem|fix (this|it|something)|help me (solve|fix)|problem with|bill is|not working/.test(x))return'problem';
+    if(/birthday card|thank you card|write (a )?(card|letter|story)|make a card/.test(x))return'create';
+    if(/solve a problem|fix (this|it|something)|help me (solve|fix)|problem with|bill is|not working|ants? in my|pests? in my|bug[s]? in my/.test(x))return'problem';
     if(/teach me.*step by step|step by step|show me how/.test(x))return'learnSteps';
     if(/explain.*simple|explain.*simply|simple terms/.test(x))return'learnSimple';
-    if(/learn|study|understand|research|teach|practice|quiz|camera|phone|computer|iphone|android|email|text message|printer|tv|television|remote|app|device/.test(x))return'learn';
-    if(/plan dinner|what.*make.*dinner|dinner tonight|make dinner/.test(x))return'dinner';
+    if(/learn|study|understand|research|teach|practice|quiz|camera|phone|computer|iphone|android|email|text message|printer|tv|television|remote|app|device|golf/.test(x))return'learn';
+    if(/plan dinner|what.*make.*dinner|dinner tonight|make dinner|what.*for dinner|dinner|chicken|pasta|steak|noodles|salmon|rice|tacos|casserole/.test(x))return'dinner';
     return'';
   }
-  detectCategory(t){const x=this.normalize(t);
+  detectCategory(t){
+    const x=this.normalize(t);
     if(/travel|trip|vacation|hotel|flight|destination|restaurant|eat|food|things to do|activities/.test(x))return'travel';
-    if(/learn|study|understand|research|teach|explain|practice|quiz/.test(x))return'learn';
+    if(/learn|study|understand|research|teach|explain|practice|quiz|golf/.test(x))return'learn';
     if(/create|write|writing|idea|project|card|story|cake|bake|birthday/.test(x))return'create';
-    if(/problem|solve|fix|bill|cost|lower|reduce|save money|confusing|not working/.test(x))return'problem';
+    if(/problem|solve|fix|bill|cost|lower|reduce|save money|confusing|not working|ants?|pest|bug|roach|mice|spider/.test(x))return'problem';
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  stripCorrection(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*,?\s*/i,'').replace(/^\s*no\s*,?\s*(?:i mean\s*)?/i,'').trim()}
-  clearContext(keepCategory=false){const c=this.s.category;this.s.topic='';this.s.goal='';this.s.intent='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';if(!keepCategory)this.s.category='';return c}
-  switchTo(t){const clean=this.stripCorrection(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext(false);this.s.category=cat;this.s.intent=intent;return this.routeIntent(clean,intent)}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];return this}
+  switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;return this.routeIntent(clean,intent)}
+  startChoice(t){
+    const x=this.normalize(t);
+    if(/travel|trip|vacation/.test(x)){this.s.category='travel';this.s.stage='topic';return{say:'Great. Tell me what you are trying to do with the trip, and we can build from there.',choices:['Plan the trip','Find things to do','Find places to eat']}}
+    if(/learn|study|understand/.test(x)){this.s.category='learn';this.s.stage='topic';return{say:'Great. Tell me what you want to learn or understand. It can be as broad or specific as you like.',choices:['Something practical','A hobby or interest','Something I am curious about']}}
+    if(/create|write|project|card|cake/.test(x)){this.s.category='create';this.s.stage='topic';return{say:'Great. Tell me what you want to make, write, or plan. We can shape the idea as we go.',choices:['Write something','Make something','Plan a project']}}
+    if(/problem|solve|fix|bill|cost/.test(x)){this.s.category='problem';this.s.stage='problemTopic';return{say:'Absolutely. Tell me what is going wrong in your own words. You do not have to explain it perfectly.'}}
+    if(/everyday|daily|home|week|shopping|dinner/.test(x)){this.s.category='everyday';this.s.stage='topic';return{say:'Perfect. Tell me what you want help with in your everyday life.',choices:['Dinner','Groceries','My week']}}
+    return this.openStart('',false)
+  }
   routeIntent(clean,intent){
     if(intent==='explore')return this.exploreStart();
-    if(intent==='dinner')return this.dinnerStart(true);
-    if(intent==='groceries')return this.groceryStart(true);
-    if(intent==='week')return this.weekStart(true);
-    if(intent==='restaurants')return this.restaurantStart(true);
-    if(intent==='things')return this.thingsStart(true);
+    if(intent==='dinner')return this.dinnerStart(clean,true);
+    if(intent==='groceries')return this.groceryStart(clean,true);
+    if(intent==='week')return this.weekStart(clean,true);
+    if(intent==='restaurants')return this.restaurantStart(clean,true);
+    if(intent==='things')return this.thingsStart(clean,true);
     if(intent==='trip')return this.tripStart(clean,true);
     if(intent==='cake')return this.cakeStart(clean,true);
-    if(intent==='create')return this.createTaskStart(clean,true);
+    if(intent==='create')return this.createStart(clean,true);
     if(intent==='problem')return this.problemStart(clean,true);
     if(intent==='learnSteps')return this.learnStart(clean,'steps',true);
     if(intent==='learnSimple')return this.learnStart(clean,'simple',true);
@@ -93,458 +125,368 @@ class DiscoverConversation {
     if(this.s.category==='everyday')return this.everydayStart(clean,true);
     return this.openStart(clean,true);
   }
-  shouldSwitch(t){if(this.s.stage==='start'||!this.s.category)return false;const clean=this.stripCorrection(t);if(!this.correction(t))return false;const intent=this.detectIntent(clean);return !!intent && intent!==this.s.intent}
-  startChoice(t){const x=this.normalize(t);
-    if(/travel|trip|vacation/.test(x)){this.s.category='travel';this.s.intent='';this.s.stage='topic';return this.travelStart('',false)}
-    if(/learn|study|understand/.test(x)){this.s.category='learn';this.s.intent='';this.s.stage='topic';return this.learnStart('', '', false)}
-    if(/create|write|project|card|cake/.test(x)){this.s.category='create';this.s.intent='';this.s.stage='topic';return this.createStart('',false)}
-    if(/problem|solve|fix|bill|cost/.test(x)){this.s.category='problem';this.s.intent='';this.s.stage='problemTopic';return{say:'That\'s a great place to start. Tell me a little about what\'s going on. It can be as simple as a few words.',choices:[]}}
-    if(/everyday|dinner|grocery|week|shopping/.test(x)){this.s.category='everyday';this.s.intent='';this.s.stage='everydayTopic';return{say:'Absolutely. What everyday thing would you like help with?',choices:['Plan dinner','Make a grocery list','Organize my week']}}
-    if(/not sure/.test(x)){this.s.category='open';this.s.intent='explore';this.s.stage='explore';return this.exploreStart()}
-    const intent=this.detectIntent(t);if(intent)return this.switchTo(t);
-    this.s.category='open';this.s.stage='topic';return this.openStart(t,false);
+  exploreStart(){this.s.intent='explore';this.s.stage='explore';this.s.topic='using AI';return{say:'There are a lot of possibilities, so let’s make this practical. AI can help plan things, explain things, organize information, solve everyday problems, or help create something.',choices:['Help me plan something','Help me solve a problem','Help me learn something','Help me create something']}}
+  openStart(clean=true,sw=true){if(clean&&clean!==true&&clean!==''){this.s.topic=clean;this.noteFact(clean);this.s.stage='openGoal';return{say:`Tell me what you would like ${this.topicLabel()} to help you accomplish, and I’ll work from there.`}}
+    this.s.stage='openGoal';return{say:'Tell me something you would like help with. It can be a real task, a question, or just an idea you are curious about.'}}
+  everydayStart(clean,sw){this.s.category='everyday';if(clean){this.s.topic=clean;this.noteFact(clean)}this.s.stage='everydayGoal';if(clean&&/organize my week|plan my week|week/.test(this.normalize(clean))){this.s.intent='week';return this.weekStart(clean,true)}if(clean&&/grocery|groceries|shopping/.test(this.normalize(clean))){this.s.intent='groceries';return this.groceryStart(clean,true)}if(clean&&/dinner|chicken|pasta|steak|noodles|meal/.test(this.normalize(clean))){this.s.intent='dinner';return this.dinnerStart(clean,true)}return{say:clean?`Got it. I can help with ${clean}. What would make the biggest difference right now?`: 'Tell me what everyday thing you want help with.',choices:['Dinner','Groceries','Organize my week']}}
+  dinnerStart(clean,sw){this.s.category='everyday';this.s.intent='dinner';this.s.topic='dinner';this.s.stage='dinnerDetails';if(clean && clean!==true){this.noteFact(clean);const low=this.normalize(clean);const ing=low.match(/(?:with|using|have)\s+(.+)$/);if(ing)this.s.ingredients=ing[1].split(/\s*,\s*|\s+and\s+/).filter(Boolean)}return{say:'Sure. Let’s make this useful. Tell me what ingredients you already have, or I can choose a simple dinner for you.',choices:['I will list what I have','You choose','Something quick']}}
+  groceryStart(clean,sw){this.s.category='everyday';this.s.intent='groceries';this.s.topic='groceries';this.s.stage='groceryCount';if(clean&&clean!==true){this.noteFact(clean);const m=clean.match(/\b(\d+)\s+dinners?\b/i);if(m)this.s.mealCount=Number(m[1])}if(this.s.mealCount)return{say:`Got it — a grocery list for ${this.s.mealCount} dinners. I can choose the meals for you and keep the list practical.`,choices:['You choose the dinners','I have some meals in mind','Keep it inexpensive']};return{say:'Absolutely. How many dinners do you want the grocery list to cover?',choices:['2 dinners','3 dinners','5 dinners']}}
+  weekStart(clean,sw){this.s.category='everyday';this.s.intent='week';this.s.topic='your week';this.s.stage='weekDetails';return{say:'Absolutely. We can turn a messy week into a short priority list and then place things where they fit. Start by giving me the things that are already on your plate.',choices:['Work or appointments','Errands and chores','Family or personal plans']}}
+  restaurantStart(clean,sw){this.s.category='travel';this.s.intent='restaurants';this.s.topic='places to eat';this.s.stage='restaurantDetails';if(clean&&clean!==true){this.s.location=/near me|nearby/.test(this.normalize(clean))?'near me':clean;this.noteFact(clean);return{say:`I’ll use ${this.s.location==='near me'?'places near you':this.s.location} as the starting point. What kind of food sounds good?`,choices:['Any kind','Seafood','Italian','Mexican']}}return{say:'Sure. Where are you looking for a place to eat?',choices:['Near me','In Sacramento','Near my hotel']}}
+  thingsStart(clean,sw){this.s.category='travel';this.s.intent='things';this.s.topic='things to do';this.s.stage='thingsDetails';if(clean&&clean!==true){this.s.location=clean;this.noteFact(clean);return{say:`Great. I’ll use ${clean} as the area. What kind of outing sounds good?`,choices:['Something outdoors','Museums or sights','Food and a little exploring']}}return{say:'Absolutely. What area are you looking around?',choices:['Sacramento','Near my hotel','Somewhere nearby']}}
+  tripStart(clean,sw){this.s.category='travel';this.s.intent='trip';this.s.topic=clean&&clean!==true?clean:'a trip';this.s.stage='tripDetails';if(clean&&clean!==true)this.noteFact(clean);return{say:`Great. ${this.s.topic==='a trip'?'Tell me where you are thinking about going and what kind of trip you want.':'I can help shape that trip around what you want to do and how much time and money you have.'}`,choices:['Relaxing','Sightseeing','A mix of both']}}
+  learnStart(clean,mode,sw){this.s.category='learn';this.s.intent='learn';this.s.topic=clean&&clean!==true?clean:(this.s.topic||'the subject');this.s.stage='learnGoal';this.s.details.push(mode||'');if(clean&&clean!==true)this.noteFact(clean);if(/golf/i.test(this.normalize(this.s.topic))){return{say:'Got it. Improving at golf can mean a lot of different things, so we can make it concrete—swing, putting, consistency, or course strategy.',choices:['Give me an example','Focus on my swing','Focus on putting']}}return{say:`Got it. I can help you understand ${this.s.topic}. Do you want a simple explanation, an example, or something you can practice?`,choices:['Simple explanation','Give me an example','Let me practice']}}
+  createStart(clean,sw){this.s.category='create';this.s.intent='create';this.s.topic=clean&&clean!==true?clean:'something';this.s.stage='createGoal';if(clean&&clean!==true)this.noteFact(clean);return{say:`Great. Let’s make ${this.s.topic} useful rather than perfect. What are you trying to create or accomplish with it?`,choices:['Something simple','Something fun','Something polished']}}
+  cakeStart(clean,sw){this.s.category='create';this.s.intent='cake';this.s.topic='a cake';this.s.stage='cakeDetails';return{say:'Fun. I can help you pick a flavor, recipe, and decoration plan. What kind of cake sounds good?',choices:['Chocolate','Vanilla','You choose']}}
+  problemStart(clean,sw){this.s.category='problem';this.s.intent='problem';this.s.stage='problemGoal';if(clean&&clean!==true){this.s.topic=clean;this.noteFact(clean)}return clean&&clean!==true?{say:`I understand the problem is ${clean}. What outcome do you want most?`,choices:['Understand it','Fix it','Get rid of it','Lower or reduce it']}:{say:'Tell me what is going wrong in your own words. I’ll help you sort it out.'}}
+
+  isFreeWrittenInput(text){
+    const x=String(text||'').trim(), low=this.normalize(x);
+    if(!x) return false;
+    // Keep the very short control words on the existing scripted paths.
+    if(this.isAck(x) || this.uncertain(x)) return false;
+    if(/^(?:yes|no|ok|okay|sure|great|thanks|thank you|yep|yeah)\.?$/i.test(x)) return false;
+    // Treat natural sentences, questions, personal details, and mixed requests as free-written input.
+    return x.split(/\s+/).length>=4 ||
+      /[?!]/.test(x) ||
+      /\b(?:i|my|me|we|our|because|but|and|with|without|tonight|tomorrow|this week|right now)\b/i.test(low);
   }
-  exploreStart(){this.s.stage='explore';this.s.intent='explore';return{say:'That\'s completely okay. We can explore together. AI can help with everyday tasks, planning, learning, writing, comparing choices, and more. What sounds most useful?',choices:['Help me solve a problem','Help me plan something','Help me make something','Help me learn something']}}
-  everydayStart(clean,sw){this.s.stage='everydayTopic';return{say:sw?`Of course. Let us work on ${clean} instead. What would you like help with?`:'Absolutely. What everyday thing would you like help with?',choices:['Plan dinner','Make a grocery list','Organize my week']}}
-  travelStart(clean,sw){if(clean){this.s.topic=clean}this.s.stage='travelTopic';return{say:clean?(sw?`Sure — let us work on ${clean}. What part would you like help with?`:`Great. Let us use ${clean}. What part would you like help with?`):'Great — let\'s use travel as our example. What are you thinking about?',choices:['Plan a trip','Find places to eat','Find things to do']}}
-  learnStart(clean,mode,sw){if(clean)this.s.topic=clean;this.s.stage='learnTopic';this.s.intent=mode?('learn'+mode):'learn';return{say:clean?(sw?`Absolutely. Let us work on ${clean}. What would be most useful?`:`Great. Let us explore ${clean}. What would be most useful?`):'Perfect. What would you like to learn or understand?',choices:['Explain it simply','Give me an example','Teach me step by step']}}
-  createStart(clean,sw){if(clean)this.s.topic=clean;this.s.stage='createTopic';return{say:clean?(sw?`Of course. Let us switch to ${clean}. What would you like to make?`:`Great. Let us work on ${clean}. What would you like to make?`):'I like that. What would you like to create or work on?',choices:['Give me ideas','Help me choose','Make a plan']}}
-  problemStart(clean,sw){if(clean)this.s.topic=clean;this.s.category='problem';this.s.stage='problemTopic';if(clean&&sw)return this.continueProblemTopic(clean);return{say:clean?`Got it — you're dealing with ${clean}. What would you like help with first?`:'That\'s a great place to start. Tell me a little about the problem. It can be as simple as a few words.',choices:clean?['Understand it','Find a solution','Make a plan','I\'m not sure']:[]}}
-  continueProblemTopic(clean){this.s.stage='problemGoal';return{say:`Got it — you're dealing with ${clean}. What would you like help with first?`,choices:['Understand it','Find a solution','Make a plan','I\'m not sure']}}
-  dinnerStart(sw){this.s.category='everyday';this.s.intent='dinner';this.s.stage='dinnerDetails';return{say:sw?'Sure. Let\'s work on dinner instead. What ingredients do you have, or what kind of dinner sounds good?':'Sure! What ingredients do you have, or what kind of dinner sounds good?',choices:[]}}
-  groceryStart(sw){this.s.category='everyday';this.s.intent='groceries';this.s.stage='groceryDetails';return{say:sw?'Absolutely. Let\'s work on your grocery shopping instead. What would you like help with?':'Absolutely. What would you like help with for groceries?',choices:['Make a grocery list','Plan a few dinners','Help me decide what to buy']}}
-  weekStart(sw){this.s.category='everyday';this.s.intent='week';this.s.stage='weekDetails';return{say:sw?'Of course. Let\'s organize your week instead. What do you have coming up?':'Absolutely. Let\'s organize your week. What do you have coming up?',choices:[]}}
-  restaurantStart(sw){this.s.category='travel';this.s.intent='restaurants';this.s.stage='restaurantDetails';return{say:'Absolutely. I can help you find places to eat. Where are you looking?',choices:['Near me','In Sacramento','Near my hotel']}}
-  thingsStart(sw){this.s.category='travel';this.s.intent='things';this.s.stage='thingsDetails';return{say:'Sure! I can help you find things to do. Where are you looking?',choices:['In Sacramento','Near me','Near my hotel']}}
-  tripStart(clean,sw){this.s.category='travel';this.s.intent='trip';this.s.stage='tripDetails';this.s.topic=clean||'';return{say:clean?`Great. Let us plan ${clean}. Where are you thinking of going?`:'Great. Let\'s plan a trip. Where are you thinking of going?',choices:[]}}
-  cakeStart(clean,sw){this.s.category='create';this.s.intent='cake';this.s.stage='cakeDetails';this.s.topic=clean||'a cake';return{say:`Absolutely. Let us work on ${this.s.topic}. What kind of cake sounds good?`,choices:['Chocolate','Vanilla','Fruit','You pick']}}
-  createTaskStart(clean,sw){this.s.category='create';this.s.intent='create';this.s.stage='createResult';this.s.topic=clean||'your project';return{say:`Great. Let us work on ${this.s.topic}. What would you like the finished result to do?`,choices:['Give me ideas','Help me make a plan','Help me write it']}}
-  openStart(clean,sw){this.s.category='open';this.s.stage='openGoal';this.s.topic=clean||'';return{say:clean?`Okay — ${clean}. What would you like AI to help you do with that?`:'Tell me a little more about what you have in mind.',choices:['Solve a problem','Plan something','Make something','Learn something']}}
 
+  extractNaturalFacts(text){
+    const low=this.normalize(text), facts=[];
+    const amounts = [...String(text).matchAll(/(?:\$\s*|\b(?:budget|spend|cost|under|around|about)\s*\$?\s*)(\d{1,4}(?:,\d{3})?(?:\.\d{1,2})?)/gi)].map(m=>m[1].replace(/,/g,''));
+    if(amounts.length) facts.push(`budget ${amounts[0]}`);
+    const days=(low.match(/\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|tonight|tomorrow|this weekend|next week)\b/g)||[]);
+    days.forEach(d=>facts.push(d));
+    const common=(low.match(/\b(?:chicken|beef|steak|pork|turkey|fish|salmon|pasta|rice|noodles|potatoes|vegetables?|salad|seafood|italian|mexican|thai|chinese|pizza|vegetarian|vegan|healthy|quick|easy|cheap|inexpensive|quiet|casual|outdoors?|museum|shopping|golf|putting|swing|gardening|camera|photos?|phone|computer|printer|email)\b/g)||[]);
+    common.forEach(c=>facts.push(c));
+    if(/pet|dog|cat|kid|children|child/.test(low)) facts.push('household/pet consideration');
+    return [...new Set(facts)];
+  }
 
-  normPhrase(t){return this.normalize(String(t||'')).replace(/[^a-z0-9$]+/g,' ').replace(/\s+/g,' ').trim()}
-  freshChoices(items){
-    if(!Array.isArray(items)||items.length===0)return [];
-    const seen=new Set(this.s.promptHistory||[]);
-    const local=new Set();
-    const out=(items||[]).filter(v=>{
-      const k=this.normPhrase(v);
-      if(!k||seen.has(k)||local.has(k))return false;
-      local.add(k);return true;
-    }).slice(0,4);
-    if(out.length<2){
-      const pools={
-        dinner:['Show me the ingredients','Give me cooking steps','Give me another dinner idea','Make it simpler'],
-        grocery:['Add another food','Change the budget','Organize it differently','Show me a sample list'],
-        week:['Add another item','Put things in order','Start with Monday','Make it simpler'],
-        restaurant:['Add one more preference','Change the budget','Add distance','Find different options'],
-        things:['Add another interest','Change the time','Add a budget','Show different options'],
-        trip:['Change the dates','Change the budget','Compare options','Make it simpler'],
-        learn:['Tell me more','Give me an example','Start with step 1','Make it simpler'],
-        create:['Give me another idea','Help me choose','Make a simple plan','Make it simpler'],
-        problem:['Add another detail','Compare options','Make a plan','Simplify it'],
-        open:['Tell me more','Give me an example','Make a plan','Start small']
-      };
-      const pool=pools[this.s.category]||pools.open;
-      for(const v of pool){
-        const k=this.normPhrase(v);
-        if(k&&!seen.has(k)&&!local.has(k)){out.push(v);local.add(k);}
-        if(out.length>=3)break;
-      }
+  handleFreeWritten(text){
+    const x=String(text||'').trim(), low=this.normalize(x);
+    const currentTopic=(this.s.topic||'').trim();
+    const currentIntent=this.s.intent||'';
+    const currentCat=this.s.category||'';
+    const topicLow=this.normalize(currentTopic);
+
+    const hasAny=(re)=>re.test(low);
+    const isTravel=/\b(?:trip|travel|vacation|hotel|sightseeing|monterey|san francisco|yosemite|weekend trip|road trip|destination|flight)\b/.test(low);
+    const isWeek=/\b(?:organize my week|organise my week|plan my week|this week|next week|weekly schedule|appointments|schedule|errands)\b/.test(low);
+    const isGrocery=/\b(?:grocery|groceries|shopping list|groceries list|shop for|meal prep|meal plan|dinners?\s+(?:for|per|this)\s+week)\b/.test(low);
+    const isDinner=/\b(?:dinner|meal tonight|what can i make|what should i make|cook|chicken|pasta|steak|noodles|salmon|rice|tacos)\b/.test(low);
+    const isProblem=/\b(?:fix|solve|problem|broken|not working|get rid|remove|eliminate|lower (?:the|my)|reduce (?:the|my)|save money|ants?|pests?|bugs?|roach|mice?|spiders?)\b/.test(low);
+    const isLearn=/\b(?:learn|teach|explain|understand|research|practice|quiz|golf|gardening|camera|photography|phone|computer|printer|email)\b/.test(low);
+    const isCreate=/\b(?:write|draft|create|make|build|birthday card|thank you card|cake|story|project|craft|brainstorm)\b/.test(low);
+    const asksExample=/\b(?:give me|show me|an?)\s+example\b/.test(low);
+    const asksWhy=/\bwhy\b/.test(low);
+    const asksHow=/^(?:how do i|how can i|what should i do|where do i start|how to)\b/.test(low);
+
+    // First answer questions about the current topic rather than routing them into a new menu.
+    if(currentTopic && asksExample){
+      if(/golf/.test(low+' '+topicLow)) return {say:'Here is a concrete golf example: “I have 20 minutes to practice and my putting is inconsistent. Give me three drills I can repeat.” That gives AI a skill, a time limit, and a clear result.',choices:['Build the 20-minute drill','Make it simpler','Try another example']};
+      if(/dinner|meal/.test(low+' '+topicLow)) return {say:'Here is a concrete dinner example: “I have chicken, pasta, and spinach and I want a one-pan dinner tonight.” AI can turn that into a specific meal instead of giving you a giant recipe list.',choices:['Build that dinner','Make it quicker','Try another example']};
+      if(/grocery|grocer|shopping/.test(low+' '+topicLow)) return {say:'Here is a concrete grocery example: “Plan three inexpensive dinners using some of the ingredients I already have, then make one shopping list.” That tells AI both the goal and the limits.',choices:['Plan the dinners','Build the list','Make it simpler']};
+      return {say:`Here is a concrete example using ${currentTopic}: give AI the result you want, add one detail that matters, and then react to what it gives you. You can refine the answer instead of starting over.`,choices:['Make it simpler','Try another example']};
     }
-    return out.slice(0,4);
+
+    if(currentTopic && asksWhy){
+      if(/golf/.test(topicLow)) return {say:'Golf usually gets easier to improve when you isolate one skill. A repeatable practice target—like short putting, solid contact, or fewer slices—gives you something you can actually measure.',choices:['Focus on putting','Work on my swing','Make it simpler']};
+      if(/ant|pest|bug|roach|mice|mouse|spider/.test(topicLow)) return {say:'They often return because the source has not been addressed: an entry point, food, moisture, or the colony itself. Treating the visible ones without changing the source can give only temporary results.',choices:['Show me the practical steps','Make it simpler']};
+      if(/bill|cost|gas|electric|utility/.test(topicLow)) return {say:'A higher bill generally comes from using more, paying a higher rate, or seeing a new charge. Comparing the new bill with a normal one quickly shows which changed.',choices:['Help me compare them','Make it simpler']};
+      return {say:`The useful way to look at ${currentTopic} is to separate what is causing it, what you can control, and what result you want. That keeps the conversation focused on something useful.`,choices:['Give me an example','Make it simpler']};
+    }
+
+    if(currentTopic && asksHow){
+      if(/golf/.test(topicLow)) return {say:'For golf, start with one small practice target. For example: 10 minutes of short putts, 10 minutes of one swing drill, then a few normal shots to see whether the change holds.',choices:['Make a putting routine','Make a swing routine','Make it simpler']};
+      if(/ant|pest|bug|roach|mice|mouse|spider/.test(topicLow)) return {say:'Start with the source: clean away the food or water they are following, wipe the visible trail, and watch where the next ones appear. That helps you find the entry point instead of treating only the ants you can see.',choices:['Keep them from coming back','Make it simpler']};
+      if(/dinner|meal/.test(topicLow)) return {say:'Start with what you already have. Pick one main ingredient, add one easy side, and keep the cooking to a small number of steps. For tonight, one-pan chicken with pasta and spinach would fit that approach.',choices:['Give me the steps','Make it simpler']};
+      if(/week|schedule/.test(topicLow)) return {say:'Start with fixed commitments, then place one or two flexible tasks around them. Leave some open space so the plan is realistic instead of filling every minute.',choices:['Show me a sample week','Add errands']};
+      return {say:`I’d start with the smallest useful action for ${currentTopic||'that'} and use the result to decide what comes next. You do not need to solve the whole thing at once.`,choices:['Give me an example','Make it simpler']};
+    }
+
+    // Recognize a genuine topic change even when the user does not say "actually".
+    const newIntent = isTravel?'trip':isWeek?'week':isGrocery?'groceries':isDinner?'dinner':isProblem?'problem':isLearn?'learn':isCreate?'create':'';
+    if(currentTopic && newIntent && newIntent!==currentIntent && /^(?:i\s+|we\s+|my\s+|our\s+|help|can you|could you|please|let's|id like|i'd like|i need|i want)/i.test(low)){
+      return this.switchTo(x);
+    }
+
+    // Existing-topic free text: use what the person just said as new information.
+    if(currentTopic){
+      this.extractNaturalFacts(x).forEach(f=>this.noteFact(f));
+
+      if(currentIntent==='dinner' || /dinner|meal/.test(topicLow)){
+        const proteins=(low.match(/\b(?:chicken|beef|steak|pork|turkey|fish|salmon|beans)\b/g)||[]);
+        const carbs=(low.match(/\b(?:pasta|rice|noodles|potatoes)\b/g)||[]);
+        const greens=(low.match(/\b(?:spinach|broccoli|salad|vegetables?)\b/g)||[]);
+        const parts=[...new Set([...proteins,...carbs,...greens])];
+        if(parts.length){this.s.ingredients=[...new Set([...(this.s.ingredients||[]),...parts])];}
+        if(/quick|easy|tired|one pan|no time|tonight/.test(low)){
+          this.s.stage='dinnerPlan';
+          const base=parts.length?parts.join(' and '):'what you have on hand';
+          return {say:`That sounds like a night for something easy. I’d make ${base} into a one-pan dinner and keep the steps short: cook the main ingredient, add the starch or vegetable, season it, and finish with a simple sauce or cheese if you have it.`,choices:['Give me the exact steps','Swap an ingredient','Make it even simpler']};
+        }
+        return {say:`Perfect. I’ll build the dinner around ${parts.length?parts.join(' and '):'those ingredients'} and keep the rest flexible. That means you can change the protein, side, or cooking time later without starting over.`,choices:['Make it quick','Give me the recipe','Give me another idea']};
+      }
+
+      if(currentIntent==='groceries' || /grocery|grocer|shopping/.test(topicLow)){
+        const count=(low.match(/\b([2-9])\s+dinners?\b/)||[])[1];
+        if(count)this.s.mealCount=Number(count);
+        const budget=/\$\s*\d+|under \$?\d+|cheap|inexpensive|budget/.test(low);
+        const prefs=[];
+        if(/healthy|high protein|vegetarian|vegan/.test(low))prefs.push('your food preference');
+        if(/quick|easy|simple/.test(low))prefs.push('easy meals');
+        const n=this.s.mealCount||3;
+        return {say:`Got it. I’ll use ${n} dinners${prefs.length?' with '+prefs.join(' and '):''}${budget?' and keep the cost in mind':''}. I can reuse ingredients across meals so the final shopping trip stays manageable.`,choices:['Plan the dinners','Build the shopping list','Make it cheaper']};
+      }
+
+      if(currentIntent==='week' || /week|schedule/.test(topicLow)){
+        if(/appointment|doctor|meeting|work|school|errand|laundry|clean|birthday|dinner/.test(low)) this.s.details.push(x);
+        return {say:`That belongs in the plan. I’d place fixed commitments first, then fit flexible tasks around them and leave some breathing room. I’ll keep what you just added as part of the same week rather than starting over.`,choices:['Show me a simple plan','Put these in priority order','Keep it lighter']};
+      }
+
+      if(currentIntent==='learn' || /golf/.test(topicLow)){
+        if(/golf/.test(topicLow)){
+          if(/20 minutes|15 minutes|30 minutes|time|practice|slice|hook|putt|putting|swing|score|game/.test(low)){
+            const mins=(low.match(/\b\d+\s*minutes?\b/)||[])[0]||'a short practice window';
+            return {say:`That gives us a real practice constraint. With ${mins}, I’d choose one skill, one drill, and one simple way to measure it. For a slice, spend most of the session repeating one contact-focused drill rather than changing several things at once.`,choices:['Build the drill','Make it simpler']};
+          }
+          if(/better|improve|practice/.test(low)) return {say:'Let’s make “better” measurable. For one practice session, choose either putting, contact, consistency, or distance and work on that one thing for the whole session. That gives you a clear before-and-after instead of trying to fix everything.',choices:['Choose putting','Choose contact','Choose consistency']};
+        }
+        return {say:`That helps me tailor the explanation. I’ll use what you just told me as part of ${currentTopic} and build the next useful piece from it rather than restarting the conversation.`,choices:['Give me an example','Make it simpler','Give me a practice task']};
+      }
+
+      if(currentIntent==='problem' || currentCat==='problem'){
+        if(/ant|pest|bug|roach|mice|mouse|spider/.test(topicLow)){
+          if(/dog|cat|pet|child|kid|safe/.test(low)) return {say:'Since safety around a pet or child matters, stick with cleaning the trail, removing food and water sources, and sealing entry points first. If a product is used later, follow its label and keep it inaccessible.',choices:['What should I do first?','What if they keep coming back?','Make it simpler']};
+          if(/gone|get rid|remove|eliminate/.test(low)) return {say:'Understood. The goal is to stop the cycle, not just kill the visible ants: clean the trail, remove what attracts them, find the entry point, and seal it once the activity settles.',choices:['What should I do first?','What if they return?','Make it simpler']};
+          if(/keep.*coming back|return/.test(low)) return {say:'Then focus on the source. Clean up food and moisture, follow the trail to the entry point, and close the gap once you know where they are getting in. Repeated spraying alone may not solve the source.',choices:['Make that pet-safe','Show me the first step','Make it simpler']};
+        }
+        if(/bill|cost|gas|electric|utility/.test(topicLow)) return {say:'That gives us something concrete. Compare the current bill with a normal one and look for the first big change—usage, rate, or a new charge. That tells us where to focus before changing anything.',choices:['Show me what to compare','Make it simpler']};
+        return {say:`That helps clarify the problem. I’ll keep ${currentTopic} as the context and use this new detail to narrow the solution instead of asking you to repeat the situation.`,choices:['Show me the next step','Make it simpler']};
+      }
+
+      if(currentIntent==='trip' || currentCat==='travel'){
+        if(/seafood|italian|mexican|thai|chinese|vegetarian|vegan/.test(low)){this.s.interest=low;}
+        if(/\$\s*\d+|under \$?\d+|budget|cheap|inexpensive/.test(low)){this.s.budget=x;}
+        if(/walking|walks|easy walks|hiking/.test(low)) this.noteFact('easy walking');
+        return {say:`Great. I’ll use that preference with the trip details you already gave me. That means the plan can be filtered around what you actually enjoy instead of giving you a generic itinerary.`,choices:['Build a simple plan','Add another preference','Compare options']};
+      }
+
+      // General fallback: reflect the meaning, not the exact words, and continue with a useful action.
+      const factList=this.extractNaturalFacts(x);
+      const extra=factList.length?` I’m keeping in mind ${factList.slice(0,4).join(', ')}.`:'';
+      return {say:`That helps. I’m treating what you just wrote as new information about ${currentTopic}, not as a request to start over.${extra} I’ll build from the conversation we already have.`,choices:['Show me an example','Make it simpler','Keep going']};
+    }
+
+    // Brand-new free-written request: answer it immediately when possible.
+    this.extractNaturalFacts(x).forEach(f=>this.noteFact(f));
+    if(isTravel){
+      this.s.category='travel';this.s.intent='trip';this.s.topic=x;this.s.stage='tripPlan';
+      const dest=(x.match(/\bto\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*)/ )||[])[1] || (x.match(/\b(?:in|around)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*)/ )||[])[1];
+      const prefs=[];if(/seafood/.test(low))prefs.push('seafood');if(/easy walks|walking|walks/.test(low))prefs.push('easy walking');
+      const budget=(x.match(/\$\s*\d[\d,]*/)||[])[0];
+      if(dest)this.s.location=dest;if(budget)this.s.budget=budget;if(prefs.length)this.s.interest=prefs.join(' and ');
+      return {say:`That sounds like a real trip we can plan around${dest?' to '+dest:''}. I’ll keep ${prefs.length?prefs.join(' and ')+ ' and ':''}${budget?'your '+budget+' budget ':'the priorities you already gave me '}in the plan and build the itinerary from there.`,choices:['Build a simple itinerary','Add another preference','Compare options']};
+    }
+    if(isWeek){
+      this.s.category='everyday';this.s.intent='week';this.s.topic='your week';this.s.stage='weekPlan';
+      return {say:`I can work with that. I’d put fixed commitments first, then fit flexible tasks around them and leave some open time. That makes the plan realistic instead of packed.`,choices:['Show me a simple plan','Make it day by day']};
+    }
+    if(isGrocery){
+      this.s.category='everyday';this.s.intent='groceries';this.s.topic='groceries';this.s.stage='groceryMeals';
+      const m=low.match(/\b([2-9])\s+dinners?\b/);if(m)this.s.mealCount=Number(m[1]);
+      const n=this.s.mealCount||3;
+      return {say:`Absolutely. I’ll start with ${n} practical dinners, reuse ingredients where it makes sense, and turn them into one shopping list. I’ll keep any preferences you included in your message with the plan.`,choices:['Pick the dinners','Build the shopping list','Keep it inexpensive']};
+    }
+    if(isDinner){
+      this.s.category='everyday';this.s.intent='dinner';this.s.topic='dinner';this.s.stage='dinnerPlan';
+      const parts=this.extractNaturalFacts(x).filter(f=>['chicken','beef','steak','pork','turkey','fish','salmon','pasta','rice','noodles','potatoes','spinach','broccoli','salad','vegetarian'].includes(f));
+      if(parts.length)this.s.ingredients=parts;
+      return {say:`I can work with that. I’ll turn ${parts.length?parts.join(' and '):'what you have on hand'} into one practical dinner idea and keep the steps simple.`,choices:['Give me the first idea','Make it quick','Use what I have']};
+    }
+    if(isProblem){
+      this.s.category='problem';this.s.intent='problem';this.s.topic=x;this.s.stage='problemSolution';
+      return this.problemDirectHelp();
+    }
+    if(isLearn){
+      this.s.category='learn';this.s.intent='learn';this.s.topic=x;this.s.stage='learnPractice';
+      if(/golf/.test(low)) return {say:'Absolutely. We can make golf improvement practical by choosing one skill and one repeatable drill instead of trying to fix your whole game at once.',choices:['Give me a drill','Work on putting','Work on my swing']};
+      return {say:`I can work with that. I’ll explain ${x} in plain language first and use your next message to shape the explanation around what you actually care about.`,choices:['Give me an example','Make it simpler','Show me step by step']};
+    }
+    if(isCreate){
+      this.s.category='create';this.s.intent='create';this.s.topic=x;this.s.stage='createPlan';
+      return {say:`I can work with that. I’ll start with a rough version or a few directions so you have something concrete to react to, then we can improve the part you care about.`,choices:['Give me ideas','Start a draft','Make it simpler']};
+    }
+    this.s.category='open';this.s.topic=x;this.s.stage='openBuild';
+    return {say:`I can work with that. I’ve got the main idea, and I’ll build from what you actually wrote rather than forcing you through a list of questions.`,choices:['Give me an example','Make it simpler','Keep going']};
   }
-  alternateSay(stage){
-    const variants={
-      dinnerPreference:[
-        'Good choice. Let us use that preference. What would you like next: the recipe, the shopping list, or substitutions?',
-        'Perfect. We can build from that. Would you like the recipe, the basic cooking steps, or a few variations?'
-      ],
-      dinnerResult:[
-        'We have enough to move forward. What would help most now: ingredients, cooking steps, or a shopping list?',
-        'Nice. The dinner idea is taking shape. Which would you like next: the recipe, substitutions, or a shopping list?'
-      ],
-      groceryBudget:[
-        'Got it. One last detail can help me tailor the list: what budget feels comfortable for these meals?',
-        'Okay. Let us set a spending range so the grocery ideas fit your needs. What amount sounds reasonable?'
-      ],
-      groceryResult:[
-        'The plan is taking shape. Would you like the list arranged for a grocery store trip or grouped with each dinner?',
-        'Great. I can organize the list in a way that is easiest to use. Do you prefer aisle order or dinner-by-dinner?'
-      ],
-      weekDetails:[
-        'We can take this one piece at a time. What is the next thing that needs to happen this week?',
-        'Let us add one more item to the picture. What else is on your plate this week?'
-      ],
-      weekNext:[
-        'We have enough to start organizing. Would you rather see a simple priority list or a day-by-day plan?',
-        'That gives us a useful picture of your week. Should we put the items in priority order or place them on specific days?'
-      ],
-      restaurantInterest:[
-        'Great. That tells me what kind of food you want. About how much would you like to spend per person?',
-        'Nice choice. Now let us add a budget so the restaurant ideas fit your plans. What feels comfortable per person?'
-      ],
-      restaurantBudget:[
-        'Thanks. I have the food preference and location. What rough amount would you like me to use for your restaurant budget?',
-        'Okay. Give me a ballpark budget, and I can use it as another filter for the restaurant suggestions.'
-      ],
-      restaurantResult:[
-        'We have the main pieces. Would you like to narrow it by distance, atmosphere, or look at ideas now?',
-        'That is enough to start. What should we refine next: how far, what kind of atmosphere, or the actual restaurant ideas?'
-      ],
-      thingsInterest:[
-        'Good choice. About how much time do you want to spend on the outing?',
-        'Nice. Let us match the ideas to your schedule. How much time do you have?'
-      ],
-      thingsResult:[
-        'We have the place, interest, and time. Would you like a few choices or a simple plan?',
-        'That gives us a workable starting point. Should I turn it into a plan or show you several options?'
-      ],
-      tripDates:[
-        'Great. Now let us make sure the trip fits your spending plans. What kind of budget are you thinking about?',
-        'Those dates give us a starting point. What budget would feel comfortable for the trip?'
-      ],
-      tripBudget:[
-        'Good. We have the destination, timing, and budget. Would you like a simple itinerary or a few options to compare?',
-        'The main pieces are in place. Should we build one straightforward itinerary or compare a few choices?'
-      ],
-      learnGoal:[
-        'No problem. Let us choose the learning style that feels easiest for you. Would you prefer a simple explanation, an example, or step-by-step help?',
-        'That is okay. We can start gently. Would an explanation, a real-world example, or step-by-step practice help most?'
-      ],
-      learnResult:[
-        'We can keep building from here. Would you like another example, a simpler explanation, or the first step?',
-        'You are doing well. What would be most helpful next: make it simpler, see an example, or take the first step?'
-      ],
-      createGoal:[
-        'That is okay. Let us make the choice easier. Would you like more ideas, help choosing one, or a simple plan?',
-        'We can narrow it down together. Should we brainstorm, choose an idea, or turn one idea into a plan?'
-      ],
-      createResult:[
-        'Nice. The project is taking shape. Would you like a first draft, a simple plan, or a few more ideas?',
-        'We have something useful to build on. What should come next: a draft, a plan, or more possibilities?'
-      ],
-      problemGoal:[
-        'No problem. Let us narrow the goal down. Would you rather understand the situation, look for a solution, or make a plan?',
-        'We can figure that out together. Which would help most right now: understanding it, solving it, or planning the next step?'
-      ],
-      problemDetail:[
-        'Let us add one useful piece of information. What is one thing you know about what is happening?',
-        'We can work with what you know. What is one detail that might help explain the problem?'
-      ],
-      problemResult:[
-        'The picture is getting clearer. Would you like to compare options, make a plan, or simplify the issue?',
-        'Good. We have enough to work with. Should we compare choices, make a plan, or break the problem into smaller pieces?'
-      ],
-      openGoal:[
-        'That is a useful direction. What is one detail that would help me make the answer fit you better?',
-        'Good starting point. What is one thing about your situation that you want me to keep in mind?'
-      ],
-      openResult:[
-        'That gives us something to work with. What would you like to add next, or would you like to change direction?',
-        'We can build from there. Add one more detail, ask me to simplify, or tell me you want to try something different.'
-      ]
-    };
-    const arr=variants[stage]||[
-      'Got it. Let us build on what you just told me. What would be most helpful next?',
-      'Thanks. We can keep moving from there. What would you like to do next?'
-    ];
-    const seen=new Set(this.s.aiResponses||[]);
-    const fresh=arr.find(v=>!seen.has(this.normPhrase(v)));
-    if(fresh)return fresh;
-    const n=(this.s.aiResponses||[]).length+1;
-    return `Thanks — we have covered that part. Let us take the next step in a new way (${n}).`;
+
+  responseFor(text){
+    let x=this.clean(text), low=this.normalize(x);
+    // Topic switches should be explicit and immediate, not treated as answers to the old topic.
+    if(this.s.stage!=='start' && this.correction(text)){const intent=this.detectIntent(x);if(intent && intent!==this.s.intent)return this.switchTo(text)}
+    // New explicit subject with a strong intent always wins.
+    const detected=this.detectIntent(x);
+    if(this.s.stage!=='start' && detected && detected!==this.s.intent && /^(?:help me|i need help|i want to|actually|instead|wait|can you|could you|please|i'm looking to)/i.test(String(text||''))){return this.switchTo(text)}
+    // Acknowledgements should advance the current conversation rather than restart it.
+    if(this.isAck(x))return this.handleAck();
+
+    // On the opening turn, a real sentence should be treated as a real request—not
+    // forced through a category menu first.
+    if(this.s.stage==='start' && this.isFreeWrittenInput(text)){
+      const naturalStart=this.handleFreeWritten(x);
+      if(naturalStart)return naturalStart;
+    }
+
+    // Free-written natural language gets a contextual response before stage-specific
+    // menus can turn it into a dead-end. This is still a simulation, but it is designed
+    // to interpret the meaning of ordinary sentences and build on existing context.
+    if(this.isFreeWrittenInput(text)){
+      const natural=this.handleFreeWritten(x);
+      if(natural)return natural;
+    }
+
+    switch(this.s.stage){
+      case 'start': {
+        const lower=this.normalize(x);
+        if(/travel|trip|vacation/.test(lower)||/learn|study|understand/.test(lower)||/create|write|project|card|cake/.test(lower)||/problem|solve|fix|bill|cost/.test(lower)||/everyday|daily|home|week|shopping|dinner/.test(lower)) return this.startChoice(x);
+        this.s.category=this.detectCategory(x);this.s.intent=detected||'';return this.routeIntent(x,detected||'');
+      }
+      case 'topic': return this.handleTopic(x);
+      case 'everydayGoal': return this.handleEverydayGoal(x);
+      case 'dinnerDetails': return this.handleDinnerDetails(x);
+      case 'dinnerPlan': return this.handleDinnerPlan(x);
+      case 'groceryCount': return this.handleGroceryCount(x);
+      case 'groceryMeals': return this.handleGroceryMeals(x);
+      case 'groceryBudget': return this.handleGroceryBudget(x);
+      case 'weekDetails': return this.handleWeekDetails(x);
+      case 'weekPlan': return this.handleWeekPlan(x);
+      case 'restaurantDetails': return this.handleRestaurantDetails(x);
+      case 'restaurantInterest': return this.handleRestaurantInterest(x);
+      case 'restaurantBudget': return this.handleRestaurantBudget(x);
+      case 'restaurantPlan': return this.handleRestaurantPlan(x);
+      case 'thingsDetails': return this.handleThingsDetails(x);
+      case 'thingsPlan': return this.handleThingsPlan(x);
+      case 'tripDetails': return this.handleTripDetails(x);
+      case 'tripPlan': return this.handleTripPlan(x);
+      case 'learnGoal': return this.handleLearnGoal(x);
+      case 'learnExample': return this.handleLearnExample(x);
+      case 'learnPractice': return this.handleLearnPractice(x);
+      case 'createGoal': return this.handleCreateGoal(x);
+      case 'createPlan': return this.handleCreatePlan(x);
+      case 'cakeDetails': return this.handleCakeDetails(x);
+      case 'cakePlan': return this.handleCakePlan(x);
+      case 'problemGoal': return this.handleProblemGoal(x);
+      case 'problemSolution': return this.handleProblemSolution(x);
+      case 'problemPlan': return this.handleProblemPlan(x);
+      case 'problemFollowup': return this.handleProblemFollowup(x);
+      case 'explore': return this.handleExplore(x);
+      case 'openGoal': return this.handleOpenGoal(x);
+      case 'openBuild': return this.handleOpenBuild(x);
+      default: return this.continueNaturally(x);
+    }
+  }
+  handleTopic(x){
+    this.s.topic=x;this.noteFact(x);const low=this.normalize(x);
+    if(/ant|ants|bug|pest|roach|mice|mouse|spider|flea|bill|cost|price|expense|not working|broken/.test(low)){
+      this.s.category='problem';this.s.intent='problem';this.s.stage='problemGoal';
+      return{say:`I can help with ${x}. Tell me what you want to happen, and I’ll work from there.`,choices:['Get rid of it','Fix it','Understand it','Lower the cost']};
+    }
+    if(/golf|garden|gardening|phone|computer|camera|email|printer|research|learn/.test(low)){
+      this.s.category='learn';this.s.intent='learn';this.s.stage='learnGoal';
+      if(/golf/.test(low)) return{say:'Absolutely. We can make golf practice specific instead of trying to improve everything at once. What would help most?',choices:['My swing','Putting','Consistency','Course strategy']};
+      return{say:`Okay — let’s work with ${x}. What would be most useful right now?`,choices:['A simple explanation','An example','Step-by-step help']};
+    }
+    if(/dinner|meal|chicken|pasta|steak|noodles|groceries|grocery|shopping/.test(low)) return this.routeIntent(x,this.detectIntent(x)||'dinner');
+    if(/travel|trip|vacation|hotel|restaurant|eat|things to do|activities/.test(low)) return this.routeIntent(x,this.detectIntent(x)||'trip');
+    if(/birthday|card|cake|write|project|craft|create/.test(low)){this.s.category='create';this.s.intent=this.detectIntent(x)||'create';this.s.stage='createGoal';return{say:`Great. I can help with ${x}. What are you hoping to make or accomplish?`,choices:['Get ideas','Start a draft','Make a plan']}};
+    this.s.stage='openGoal';return{say:`Okay — let’s work with ${x}. What result would make this useful to you?`,choices:['Get started','Learn the basics','Solve a problem']}
+  }
+  handleEverydayGoal(x){return this.routeIntent(x,this.detectIntent(x)||'')}
+  handleDinnerDetails(x){
+    const low=this.normalize(x);
+    if(this.uncertain(x)||/you choose|pick/i.test(low)){this.s.ingredients=[];this.s.details.push('AI chooses dinner');this.s.stage='dinnerPlan';return{say:'No problem. I’ll choose something simple and flexible. How about a quick chicken-and-pasta skillet with a simple salad? It uses common ingredients and does not require anything fancy.',choices:['Give me the recipe','Make it even simpler','Use different meat']}}
+    if(/something quick|quick/i.test(low)){this.s.details.push('quick');this.s.stage='dinnerPlan';return{say:'Let’s keep it quick: think 20–30 minutes, one pan if possible, and ingredients you already have. Tell me what you have and I’ll build it around that.',choices:['Chicken','Pasta','Steak','I’ll list what I have']}}
+    this.s.ingredients=x.split(/\s*,\s*|\s+and\s+/).filter(Boolean);this.s.details.push(...this.s.ingredients);this.s.stage='dinnerPlan';return{say:`Great — I’ll build the dinner around ${this.s.ingredients.join(' and ')}. A simple approach is to make the main ingredients the center of the meal and keep the sides easy.`,choices:['Give me the recipe','Make it quick','What else could I add?']}
+  }
+  handleDinnerPlan(x){const low=this.normalize(x);if(/quick|easy|tired|one pan|no time|tonight/.test(low)){return{say:'Then keep it to one pan and about 20 minutes: sauté the chicken, add the pasta with a little water or broth, fold in the spinach at the end, and season to taste. One meal, very little cleanup.',choices:['Give me the exact amounts','Make it even simpler','Swap the chicken']}}if(/recipe|steps|how to|how do i/.test(low)){return{say:'Here is a simple plan: cook the protein first, add the pasta or starch, season to taste, and finish with whatever vegetable or sauce you have. I would keep the steps short so dinner is easy to follow.',choices:['Make it more detailed','Give me a shopping list','Change the main ingredient']}}if(/simpler|simple/.test(low)){return{say:'Absolutely: cook the main ingredient, add one easy side, season it, and serve. You do not need a complicated recipe for a good dinner.',choices:['Another idea','Give me the recipe','That works']}}if(/different meat/.test(low)){this.s.ingredients=['a different protein'];return{say:'Sure. Chicken, ground turkey, sausage, or beans would all work. I would choose based on what you already have rather than buying a lot of extras.',choices:['Chicken','Turkey','Beans']}}return this.continueNaturally(x)}
+  handleGroceryCount(x){const m=this.amount(x);if(m&&Number(m)<=10&&/dinner|meal|grocer|list/i.test(this.normalize(x))){this.s.mealCount=Number(m)}else if(/2/.test(x))this.s.mealCount=2;else if(/3/.test(x))this.s.mealCount=3;else if(/5/.test(x))this.s.mealCount=5;if(this.s.mealCount){this.s.stage='groceryMeals';return{say:`Perfect — I’ll build this for ${this.s.mealCount} dinners. Do you want me to choose the meals, or are there meals you already want included?`,choices:['You choose the meals','I have meals in mind','Keep it inexpensive']}}if(this.uncertain(x)){this.s.mealCount=3;this.s.stage='groceryMeals';return{say:'No problem. Three dinners is a nice middle ground, so I’ll use that unless you tell me otherwise.',choices:['You choose the meals','Keep it inexpensive']}}return{say:'Tell me how many dinners you want the list to cover. I can choose the meals too.',choices:['2 dinners','3 dinners','5 dinners']}}
+  handleGroceryMeals(x){const low=this.normalize(x);if(this.uncertain(x)||/you choose|pick/i.test(low)){this.s.stage='groceryBudget';return{say:`I’ll choose the meals and keep them practical: one chicken dinner, one pasta-based dinner, and one flexible dinner that can use leftovers.`,choices:['Keep it inexpensive','About $50','You choose the budget']}}this.s.details.push(x);this.s.stage='groceryBudget';return{say:'Great. I’ll include those preferences and keep the list organized so it is easy to shop from.',choices:['Keep it inexpensive','About $50','You choose the budget']}}
+  handleGroceryBudget(x){const low=this.normalize(x),a=this.amount(x);if(a)this.s.budget=a;else if(/inexpensive|cheap|budget/.test(low))this.s.budget='inexpensive';else if(this.uncertain(x))this.s.budget='moderate';this.s.stage='openBuild';const meals=this.s.mealCount||3;const budgetText=this.s.budget?` with a ${this.s.budget==='inexpensive'?'budget-friendly':this.s.budget+' dollar'} budget`:'';return{say:`Great. I have enough to sketch a ${meals}-dinner grocery plan${budgetText}. I’d keep the list grouped by produce, meat, dairy, pantry, and extras so it is easy to use in the store.`,choices:['Show me the list','Make it cheaper','Swap a dinner']}}
+  handleWeekDetails(x){if(this.uncertain(x)){this.s.details.push('unknown');this.s.stage='weekPlan';return{say:'That is okay. I can still start with a simple priority structure: appointments first, must-do tasks second, and flexible chores around them.',choices:['Make a simple plan','Make it day by day']}}this.s.details.push(x);this.s.stage='weekPlan';return{say:`Good — I’ll put ${x} into the plan. The easiest way to avoid an overloaded week is to separate fixed commitments from flexible tasks.`,choices:['Make a simple plan','Make it day by day']}}
+  handleWeekPlan(x){const low=this.normalize(x);if(/day by day|daily|calendar/.test(low)){return{say:'Here is the idea: put fixed appointments on the calendar first, give each day one or two priorities, and leave some open space for things that take longer than expected.',choices:['Make it simpler','Add errands','Add personal time']}}return{say:'A simple weekly plan works well: three priorities, a few scheduled commitments, and a short list of things that can wait. That keeps the week from becoming one giant to-do list.',choices:['Day by day','Add errands','Make it simpler']}}
+  handleRestaurantDetails(x){const low=this.normalize(x);if(/near me|nearby/.test(low)){this.s.location='near me';this.s.stage='restaurantInterest';return{say:'Perfect. I’ll focus on places near you. What kind of food sounds good?',choices:['Any kind','Seafood','Italian','Mexican']}}this.s.location=x;this.s.stage='restaurantInterest';return{say:`Got it — I’ll use ${x} as the location. What kind of food sounds good?`,choices:['Any kind','Seafood','Italian','Mexican']}}
+  handleRestaurantInterest(x){const low=this.normalize(x);if(/casual|quiet|family|romantic|outdoor|patio|upscale/.test(low)){this.s.details.push(x);return{say:`I’ll keep the ${x} atmosphere in mind. Now I can narrow the choices by price so you do not get a list that is all over the place.`,choices:['Under $20','About $30','About $50','No preference']}}this.s.interest=x;this.s.stage='restaurantBudget';return{say:`Sounds good — ${x} works. About how much would you like to spend per person?`,choices:['Under $20','About $30','About $50','No preference']}}
+  handleRestaurantBudget(x){const a=this.amount(x);this.s.budget=a||this.uncertain(x)?(a||'no preference'):x;this.s.stage='restaurantPlan';return{say:`Great. Now I have the location, food preference, and a price range. That is enough to make a useful shortlist without making you answer a dozen questions.`,choices:['Find ideas','Add distance','Add atmosphere']}}
+  handleRestaurantPlan(x){const low=this.normalize(x);if(/find|idea|search|recommend/.test(low)){return{say:`I would narrow it to a few options that match ${this.s.interest||'your food preference'} around ${this.s.location||'your area'} and stay near ${this.s.budget||'your budget'}. In a real AI chat, this is where you would ask it to search current options.`,choices:['Make the request more specific','Change the budget']}}return this.continueNaturally(x)}
+  handleThingsDetails(x){this.s.details.push(x);this.s.stage='thingsPlan';return{say:`Nice. I’ll keep ${x} as the kind of outing you want. From there, I would narrow by how much time you have and whether you want something relaxed or more active.`,choices:['Keep it relaxed','Give me an afternoon plan','Make it free']}}
+  handleThingsPlan(x){const low=this.normalize(x);if(/free|no cost/.test(low))return{say:'Then I would prioritize parks, walks, public spaces, free community events, and places where browsing does not cost anything. That gives you options without locking you into tickets.',choices:['Give me examples','Keep it nearby']};return{say:'For an afternoon, I would pick one main stop, leave time for a meal or coffee, and avoid packing the schedule so tightly that the outing becomes work.',choices:['Make it more specific','Add lunch','Keep it simple']}}
+  handleTripDetails(x){const low=this.normalize(x);if(/sightseeing|relaxing|mix/.test(low))this.s.details.push(x);else this.s.details.push(x);this.s.stage='tripPlan';return{say:`Good. That tells me the feel of the trip. The next practical pieces are time, budget, and what you most want to experience. I can keep the plan flexible instead of filling every hour.`,choices:['Keep it budget-friendly','Make it relaxed','Build a simple itinerary']}}
+  handleTripPlan(x){const low=this.normalize(x);if(/budget|cheap|inexpensive/.test(low))return{say:'For a budget-friendly trip, I would spend on the one or two things that matter most and keep lodging, transportation, and meals flexible. That gives you room for surprises.',choices:['Build the itinerary','Make it even simpler']};return{say:'A simple itinerary should have a few anchors—a main activity, a meal, and some open time—rather than a minute-by-minute schedule.',choices:['Show me an example','Add more activities','Keep it relaxed']}}
+  handleLearnGoal(x){const low=this.normalize(x);if(/example/.test(low)){this.s.stage='learnExample';if(/golf/.test(this.normalize(this.s.topic))){return{say:'Sure. For golf, instead of asking “How do I get better?”, you could ask: “I keep hitting my drives inconsistently. Give me one thing to practice at the range today.” That gives AI a specific problem and a manageable next step.',choices:['Make that simpler','Give me another example']}}return{say:`For ${this.s.topic}, a good real-world request would describe what you are trying to do, what is getting in the way, and what kind of help you want. That gives AI something concrete to work with.`,choices:['Make that simpler','Give me another example']}}if(/simple|explain/.test(low)||this.s.details[0]==='simple'){this.s.stage='learnPractice';return{say:`Here is the simple version: start with the basic idea, see one example, then try it yourself. You do not need to understand everything at once.`,choices:['Give me an example','Let me practice']}}this.s.stage='learnPractice';return{say:`Great. Let’s make ${this.s.topic} practical. I’ll keep the explanation focused and give you a small thing you can try rather than a wall of information.`,choices:['Give me an example','Let me practice']}}
+  handleLearnExample(x){if(/simpler|simple/.test(this.normalize(x)))return{say:'In plain language: tell AI what you want to improve, describe the problem, and ask for one manageable thing to try next.',choices:['Use that idea','Give me another example']};return{say:'Here is another useful pattern: “This is what I am doing now. This is what is not working. What is one change I should try first?” That invites AI to help without needing a perfect prompt.',choices:['Make that simpler','Use that idea']}}
+  handleLearnPractice(x){const low=this.normalize(x);if(/example/.test(low))return this.handleLearnExample(x);if(/practice|try/.test(low)){return{say:`Good. Try one small step with ${this.s.topic}: do it once, notice what happens, and then tell AI what happened. The next response can build on the result instead of starting over.`,choices:['That makes sense','What next?']}}return{say:`You can keep ${this.s.topic} manageable by asking for one step, trying it, and then reporting back what happened. That is where the conversation becomes genuinely useful.`,choices:['Give me an example','What next?']}}
+  handleCreateGoal(x){this.s.goal=x;this.s.stage='createPlan';return{say:`Great. Now I know the goal. I’d start with a rough version rather than trying to get it perfect on the first try.`,choices:['Draft it','Give me ideas','Make it simpler']}}
+  handleCreatePlan(x){const low=this.normalize(x);if(/idea/.test(low))return{say:`Let’s brainstorm three directions for ${this.s.topic}: one simple, one playful, and one more polished. Then you can pick the one that feels right.`,choices:['Pick the easiest','Make one more playful','Draft one']};if(/draft|write/.test(low))return{say:`I would make a first draft now, then revise it once you know what you want to keep. AI is particularly useful when you treat the first answer as a starting point rather than the final product.`,choices:['Make it warmer','Make it shorter','Try another version']};return{say:`That gives us enough to move from idea to action. The next step is to make a rough version and then improve the part you care about most.`,choices:['Draft it','Give me ideas','Make it simpler']}}
+  handleCakeDetails(x){const flavor=this.uncertain(x)?'a flavor you choose':x;this.s.details.push(flavor);this.s.stage='cakePlan';return{say:`Great. I’ll build the cake around ${flavor}. A simple plan is to keep the cake and decoration separate so the baking stays manageable.`,choices:['Give me the recipe','Decorating ideas','Shopping list']}}
+  handleCakePlan(x){return{say:'For a simple cake project, I would keep the ingredient list short, bake the cake first, let it cool completely, and decorate after that. It is easier and less stressful that way.',choices:['Make it simpler','Give me a shopping list']}}
+  handleProblemGoal(x){const low=this.normalize(x);if(this.uncertain(x)){this.s.goal='find a workable solution';this.s.stage='problemSolution';return this.problemDirectHelp()}if(/get rid|remove|gone|away|stop|prevent|eliminate/.test(low)){this.s.goal='get rid of it';this.s.stage='problemSolution';return this.problemDirectHelp()}if(/fix|solve|solution/.test(low)){this.s.goal='fix it';this.s.stage='problemSolution';return this.problemDirectHelp()}if(/lower|reduce|save money|cost less/.test(low)){this.s.goal=x;this.s.stage='problemSolution';return this.problemDirectHelp()}if(/understand|why|explain/.test(low)){this.s.goal='understand what is happening';this.s.stage='problemSolution';return this.problemDirectHelp()}this.s.goal=x;this.s.stage='problemSolution';return this.problemDirectHelp()}
+  problemDirectHelp(){const topic=this.normalize(this.s.topic),goal=this.normalize(this.s.goal);if(/ant|ants|bug|pest|roach|mice|mouse|spider|flea/.test(topic)){this.s.details.push('pest-control');return{say:'If your goal is simply to get the ants gone, I would start with the basics instead of asking you a dozen questions: wipe away the trail, remove nearby food and water, check where they are entering, and seal the entry point once the activity settles. If they keep returning, bait can work better than spraying the visible trail because it can reach the colony.',choices:['Make that safer for pets','What should I do first?','How do I keep them from coming back?']}}if(/bill|cost|price|expense|money/.test(topic)){return{say:'If the goal is to lower the bill, start by comparing it with a normal month and identify what changed—usage, rates, or a new charge. That tells us where to focus instead of making random cuts.',choices:['Show me how','Make that simpler','What should I check first?']}}if(/phone|computer|printer|tv|remote|app|device/.test(topic)){return{say:'Let’s start with what you can observe. Try the action once and note exactly what happens, including any message on the screen. That gives us a concrete clue instead of guessing.',choices:['I can do that','Make it simpler']}}return{say:`Let’s work toward ${this.s.goal||'a solution'} by starting with the simplest useful action, then using what happens next to decide the following step.`,choices:['Give me the first step','Make it simpler']}}
+  handleProblemSolution(x){
+    const low=this.normalize(x),topic=this.normalize(this.s.topic),isPest=/ant|ants|bug|pest|roach|mice|mouse|spider|flea/.test(topic);
+    if(this.uncertain(x)) return{say:'That is fine. I can choose the next practical step and keep it simple.',choices:['Give me the first step','Make it simpler']};
+    if(/how to|how do i|how can i|what do i do|where do i start/.test(low)){
+      if(isPest)return{say:'Start by wiping away the visible trail and removing food or water they may be following. Then watch where the next ants appear; that points you toward the entry point without making you guess.',choices:['How do I keep them from coming back?','Make that simpler']};
+      return{say:'Start with the smallest action that gives you useful information. Do that first, then use the result to decide the next step.',choices:['Give me the first step','Make it simpler']}
+    }
+    if(/just want.*gone|get them gone|want them gone|make them go away/.test(low)&&isPest){return{say:'Understood. Then skip the deep dive: clean the trail, remove nearby food and water, find the entry point, and deal with that source. The goal is to stop the cycle, not just kill the ants you can see.',choices:['What if they keep coming back?','Make that simpler']}};
+    if(/safer for pets/.test(low)){return{say:'For a pet-safe approach, focus first on cleaning the trail, removing food and water sources, and sealing obvious entry points. If you use bait or another product, follow the label and keep it inaccessible to pets and children.',choices:['What if they keep coming back?','Make that simpler']}};
+    if(/what should i do first|first step/.test(low)){
+      if(isPest)return{say:'First, wipe the visible trail with soapy water and put away anything the ants may be feeding on. Then watch where they return so you can find the entry point.',choices:['How do I seal the entry point?','What if they keep coming back?']};
+      return{say:'Start with the smallest action that gives you new information. Once you see what happens, use that result to choose the next step.',choices:['What next?','Make it simpler']}
+    }
+    if(/seal|entry point/.test(low)&&isPest)return{say:'Once the activity settles, check baseboards, window frames, door thresholds, and small cracks for the entry point. Seal the gap with an appropriate household sealant.',choices:['What if they keep coming back?','Make that simpler']};
+    if(/keep.*coming back|prevent|returning/.test(low)&&isPest)return{say:'To keep them from returning, remove food residue, address small water sources, empty trash regularly, and close the entry points you find. If the colony keeps returning, a bait-based approach may work better than spraying the visible trail.',choices:['What if that does not work?','Make it simpler']};
+    return{say:'That helps. I can build from the last step instead of starting the explanation over. The next move depends on what you noticed after trying it.',choices:['What happened next?','Make it simpler']}
+  }
+  handleProblemPlan(x){return this.handleProblemSolution(x)}
+  handleProblemFollowup(x){return this.handleProblemSolution(x)}
+  handleExplore(x){const low=this.normalize(x);if(/plan/.test(low))return this.switchTo('Help me plan my week.');if(/solve/.test(low))return this.switchTo('Help me solve a problem.');if(/learn/.test(low))return this.switchTo('Explain gardening in simple terms.');if(/create|make/.test(low))return this.switchTo('Give me ideas for a birthday card.');return{say:'A useful AI conversation usually starts with a real goal. Tell me one thing you would like help doing, and we will turn it into a useful request together.',choices:[]}}
+  handleOpenGoal(x){if(this.uncertain(x)){this.s.stage='openBuild';return{say:'That is okay. I can help choose a direction. We could plan something, learn something, make something, or solve an everyday problem.',choices:['Plan something','Learn something','Make something','Solve a problem']}}this.s.goal=x;this.noteFact(x);this.s.stage='openBuild';return{say:`Good. I understand the goal now: ${x}. I can start with a useful first pass and then adjust it based on what you tell me next.`,choices:['Start with a simple answer','Give me an example','Make it more specific']}}
+  handleOpenBuild(x){const low=this.normalize(x);if(/simple|simpler/.test(low))return{say:`Sure. I’ll keep the answer focused on the part that matters most, rather than giving you everything at once.`,choices:['Give me one example','Keep going']};if(/example/.test(low))return{say:`Here is the pattern: tell AI what you want, include one detail that matters, then react to the answer. You can say “that is not what I meant” or “make this simpler” and keep going.`,choices:['Make it simpler','Show me another example']};if(/more specific|specific/.test(low))return{say:'A stronger request adds one concrete detail—who it is for, where it is happening, how much time or money you have, or what result you want. You do not need a long prompt.',choices:['Show me an example','Keep going']};return{say:'That is enough to work from. I would give a first answer now, then let your next reaction shape the conversation instead of asking you to define everything up front.',choices:['Give me an example','Make it simpler']}}
+  handleAck(){
+    const stage=this.s.stage;
+    const topic=this.normalize(this.s.topic);
+    if(stage==='problemSolution' && /ant|ants|bug|pest|roach|mice|spider|flea/.test(topic)) return this.problemDirectHelp();
+    if(stage==='learnPractice') return{say:`Good. Keep it small: try one thing with ${this.s.topic}, notice what happens, and then tell AI the result. That is how a useful conversation builds context.`,choices:['What next?','Make it simpler']};
+    if(stage==='dinnerPlan') return{say:'Great. I would keep that dinner simple and flexible rather than adding more ingredients just to make it complicated.',choices:['Give me the recipe','Another dinner idea']};
+    return this.continueNaturally('okay');
+  }
+  continueNaturally(x){
+    const topic=this.topicLabel();
+    if(this.correction(x))return this.switchTo(x);
+    if(this.uncertain(x))return{say:`No problem. I can make the next choice for you. We’ll keep ${topic} simple and practical rather than adding more questions.`,choices:['Keep it simple','Show me an example']};
+    return{say:`That gives me something useful to work with. I’ll build on what you just said instead of starting over.`,choices:['Keep going','Make it simpler']};
   }
   ensureFresh(r){
-    const out={say:r&&r.say?String(r.say):'',choices:Array.isArray(r&&r.choices)?r.choices.slice():[]};
-    const key=this.normPhrase(out.say);
-    if(key && (this.s.aiResponses||[]).includes(key)) out.say=this.alternateSay(this.s.stage);
-    out.choices=this.freshChoices(out.choices);
-    if(out.say)this.s.aiResponses.push(this.normPhrase(out.say));
-    out.choices.forEach(c=>this.s.promptHistory.push(this.normPhrase(c)));
+    const out={say:r&&r.say?String(r.say):'Let’s keep building from there.',choices:Array.isArray(r&&r.choices)?r.choices.slice():[]};
+    const key=this.normalize(out.say);
+    if(key&&this.s.aiResponses.includes(key)){
+      const alternates=[
+        'That helps. I can use that detail to move us forward without repeating the last answer.',
+        'Good — I’ll build on that rather than asking you the same thing again.',
+        'Understood. Let’s take the next useful step from there.'
+      ];
+      out.say=alternates.find(a=>!this.s.aiResponses.includes(this.normalize(a)))||'Understood. Let’s move to the next useful step.';
+    }
+    out.choices=out.choices.filter((c,i,a)=>a.findIndex(v=>this.normalize(v)===this.normalize(c))===i && !this.s.promptHistory.slice(-8).includes(this.normalize(c))).slice(0,4);
+    if(out.say)this.s.aiResponses.push(this.normalize(out.say));
+    out.choices.forEach(c=>this.s.promptHistory.push(this.normalize(c)));
     return out;
   }
-
-  contextualFollowUp(text){
-    const x=this.normalize(text);
-    const topic=(this.s.topic||'').trim() || 'that';
-    const goal=(this.s.goal||'').trim();
-    const category=this.s.category;
-    const asksExample=/\b(give me an example|show me an example|an example|show me how)\b/.test(x);
-    const asksHow=/^(?:how to|how do i|how can i|what do i do|what should i do)\b/.test(x);
-    const wantsImprove=/\b(get better|improve|better at it|improve at it|learn more|practice)\b/.test(x);
-    const wantsIdeas=/\b(get ideas|some ideas|give me ideas|brainstorm|choose one|pick one)\b/.test(x);
-    if(!(asksExample||asksHow||wantsImprove||wantsIdeas)) return null;
-
-    if(category==='everyday'){
-      if(this.s.intent==='dinner') return {say:`Absolutely. For ${topic}, here is a simple example: start with what you already have, choose one main ingredient, then add one or two easy sides. If you tell me what is in your kitchen, I can help turn it into an actual dinner.`,choices:['Tell me what I need','Give me the steps','Make it simpler']};
-      if(this.s.intent==='groceries') return {say:`Sure. For your grocery plan, a good example is to choose a few dinners first and then combine their ingredients into one list. We can keep it simple and avoid buying things you do not need.`,choices:['Pick the dinners','Build the list','Keep it inexpensive']};
-      if(this.s.intent==='week') return {say:`Absolutely. For organizing your week, an easy approach is to start with the things that cannot move—appointments, work, or family plans—then fit errands and flexible tasks around them.`,choices:['Show me an example','Start with Monday','Keep it simple']};
-      if(wantsImprove||asksHow){
-        const tl=topic.toLowerCase();
-        if(/golf/.test(tl)) return {say:`Absolutely. If you want to get better at golfing, we can pick one part to work on instead of trying to fix everything at once. For example, we could focus on your swing, putting, consistency, or distance. Which sounds most useful?`,choices:['My swing','Putting','Consistency','Distance']};
-        if(/camera|canon|photography|photos/.test(tl)) return {say:`Absolutely. To get better with your camera, we can start with one skill—such as focusing, exposure, or taking sharper photos—and practice it with a simple example. What would you like to improve first?`,choices:['Taking sharper photos','Learning the settings','Taking better people photos']};
-        return {say:`Absolutely. If you want to get better at ${topic}, let's break it into one manageable skill at a time. Tell me what “better” would look like to you, and we can work out a practical first step.`,choices:['Show me an example','Start with the basics','Make it simpler']};
-      }
-      if(asksExample) return {say:`Sure. Here's a simple example using ${topic}: start with one small goal, try it, notice what works, and then ask AI to help you improve the next part.`,choices:['Show me the first step','Give me another example','Make it simpler']};
-      return {say:`Absolutely. For ${topic}, we can take this one step at a time. Tell me what you are trying to accomplish, and I will help you work out the next practical step.`,choices:['Give me an example','Show me the first step','Make it simpler']};
-    }
-
-    if(category==='travel'){
-      if(this.s.intent==='restaurants') return {say:`Sure. For example, you could ask: “Find a casual restaurant in ${this.s.location||'Sacramento'} with good seafood, under $30 per person, within 10 minutes of my hotel.” That gives AI a place, food preference, budget, and distance.`,choices:['Change the budget','Add distance','Try another example']};
-      if(this.s.intent==='things') return {say:`Here's a useful example: “Find a few low-cost things to do in ${this.s.location||'Sacramento'} this afternoon, with little walking.” Notice how the extra details make the request much more useful.`,choices:['Add a budget','Add more details','Make me a plan']};
-      if(this.s.intent==='trip') return {say:`For example, you could say: “Plan a 3-day trip with a relaxed pace, a comfortable hotel, good food, and a moderate budget.” Then we can add the destination and dates.`,choices:['Add dates','Add a budget','Make it simpler']};
-      return {say:`Absolutely. For ${topic}, a good example is to tell AI what you want to do, where you will be, and what matters most to you—such as cost, time, or comfort.`,choices:['Give me a travel example','Help me make a plan','Make it simpler']};
-    }
-
-    if(category==='learn'){
-      return {say:`Sure. For ${topic}, I can give you a plain-language example, then explain why it works, and then walk you through it step by step. You can stop me anytime and ask for a simpler explanation.`,choices:['Give me an example','Teach me step by step','Make it simpler']};
-    }
-
-    if(category==='create'){
-      if(wantsIdeas) return {say:`Absolutely. For ${topic}, let's brainstorm a few directions first rather than making you choose the perfect one. We can come up with a simple version, a fun version, and a more creative version, then pick the one you like.`,choices:['Give me 3 ideas','Pick the easiest','Make one more fun']};
-      if(asksExample) return {say:`Here's a simple example for ${topic}: start with a rough first version, then ask AI to improve one part at a time—wording, layout, tone, or details.`,choices:['Improve the wording','Improve the design','Make it simpler']};
-      if(asksHow||wantsImprove) return {say:`Sure. For ${topic}, we can work on it in small pieces: choose the idea, make a rough first version, then improve the part you like least.`,choices:['Show me the first step','Give me an example','Make it simpler']};
-    }
-
-    if(category==='problem'){
-      const tl=topic.toLowerCase();
-      if(/ant|ants|bug|insect|pest|roach|mice|mouse|spider|fleas/.test(tl)) return {say:`Absolutely. Since the problem is ${topic}, a practical starting point is to find where they are getting in, remove food or water they are reaching, clean the trail, and then work on keeping them from returning. Tell me where you are seeing them most often and we can narrow it down.`,choices:['They are in the kitchen','They are in the bathroom','Tell me the safest next step']};
-      if(/bill|cost|expensive|gas|electric|utility/.test(tl)) return {say:`Let's make that concrete. For ${topic}, we can first compare the current amount with an earlier bill, then look at usage and rates, and then decide what change is most likely to help.`,choices:['Compare two bills','Help me lower it','Explain that simply']};
-      return {say:`Absolutely. For ${topic}, a good first move is to separate the problem into what you know, what you do not know, and what you want to change. Then we can work on one piece at a time.`,choices:['Help me break it down','What should I try first?','Make it simpler']};
-    }
-
-    if(category==='open'){
-      if(wantsIdeas) return {say:`Sure. We can brainstorm without deciding yet. We could use AI to plan something, learn something, solve an everyday problem, compare choices, or make something creative.`,choices:['Plan something','Solve a problem','Make something','Learn something']};
-      if(asksHow||asksExample||wantsImprove) return {say:`Absolutely. We can use ${topic} as the starting point and work it out together. Tell me what result you would like, even if you are not sure how to get there.`,choices:['Give me an example','Help me choose','Make it simpler']};
-    }
-    return null;
-  }
-
-  ackResponse(){
-    const stage=this.s.stage;
-    if(stage==='dinnerPreference')return{say:'Great. Let us keep going. Would you like a simple recipe, basic steps, or a couple of variations?',choices:['Simple recipe','Basic steps','Variations']};
-    if(stage==='dinnerResult')return{say:'Great. Would you like the shopping list, substitutions, or the recipe steps next?',choices:['Shopping list','Substitutions','Recipe steps']};
-    if(stage==='groceryBudget')return{say:'No problem. About how much would you like to spend on these groceries?',choices:['Keep it inexpensive','About $50','You choose']};
-    if(stage==='groceryResult')return{say:'Great. Would you like the list organized by aisle or by dinner?',choices:['By aisle','By dinner']};
-    if(stage==='weekDetails')return{say:'Great. What is one thing you know has to happen this week?'};
-    if(stage==='weekNext')return{say:'Great. We have enough to start. Would you like a day-by-day plan or a simple priority list?',choices:['Day-by-day plan','Priority list']};
-    if(stage==='restaurantInterest')return{say:'Great. About how much would you like to spend per person?',choices:['Under $20','About $30','About $50','No preference']};
-    if(stage==='restaurantBudget')return{say:'No problem. Give me a rough budget, such as $20, $50, or $100.'};
-    if(stage==='restaurantResult')return{say:'Great. Would you like to add distance, atmosphere, or find ideas now?',choices:['Add distance','Add atmosphere','Find ideas now']};
-    if(stage==='thingsInterest')return{say:'Great. How much time do you have?',choices:['A couple of hours','Half a day','All day']};
-    if(stage==='thingsResult')return{say:'Great. Would you like a simple plan or a few options?',choices:['Make a plan','Give me options','Make it simpler']};
-    if(stage==='tripDates')return{say:'Great. What kind of budget do you have in mind?',choices:['Keep it inexpensive','About $500','About $1,000','You choose']};
-    if(stage==='tripBudget')return{say:'Great. Would you like a simple itinerary or a few options to compare?',choices:['Simple itinerary','A few options']};
-    if(stage==='learnGoal')return{say:`No problem. Would you like a simple explanation, an example, or step-by-step help with ${this.s.topic||'it'}?`,choices:['Explain it simply','Give me an example','Teach me step by step']};
-    if(stage==='learnResult')return{say:'Great. Would you like me to make that simpler, give you an example, or start with step 1?',choices:['Make it simpler','Give me an example','Start with step 1']};
-    if(stage==='createGoal')return{say:`No problem. What would you like to do with ${this.s.topic||'your project'} next?`,choices:['Give me ideas','Help me choose','Make a plan']};
-    if(stage==='createResult')return{say:'Great. Would you like more ideas, a first draft, or a simple plan?',choices:['More ideas','First draft','A plan']};
-    if(stage==='problemGoal')return{say:'No problem. Do you want to understand it, find a solution, or make a plan?',choices:['Understand it','Find a solution','Make a plan']};
-    if(stage==='problemDetail')return{say:'Great. What is one useful detail about the situation that you know?',choices:[]};
-    if(stage==='problemResult')return{say:'Great. Would you like to compare options, make a plan, or simplify the problem?',choices:['Compare options','Make a plan','Explain simply']};
-    return{say:'Great. Let us keep going. What would you like to add next?',choices:[]};
-  }
-  responseFor(text){const x=text.trim(),low=this.normalize(x);
-    if(this.s.stage==='start')return this.startChoice(x);
-    if(this.shouldSwitch(x))return this.switchTo(x);
-    if(this.correction(x)){
-      const clean=this.stripCorrection(x);const intent=this.detectIntent(clean);if(intent)return this.switchTo(x);
-      return{say:'Absolutely. You can change direction at any time. Tell me what you want to work on now.',choices:[]};
-    }
-    if(this.isAck(x))return this.ackResponse();
-    const contextual=this.contextualFollowUp(x);
-    if(contextual) return contextual;
-    if(this.s.stage==='explore'){
-      if(this.uncertain(x))return{say:'That is okay. Here are a few easy starting points: planning a meal, organizing your week, finding ideas for a trip, learning something new, or solving an everyday problem. Which sounds useful?',choices:['Plan dinner','Organize my week','Plan a trip','Solve a problem']};
-      const intent=this.detectIntent(x);if(intent)return this.switchTo(x);
-      this.s.category=this.detectCategory(x);this.s.stage='topic';return{say:'Great. Tell me what you have in mind, and we\'ll take it one step at a time.'};
-    }
-    if(this.s.stage==='travelTopic'){
-      const intent=this.detectIntent(x);
-      if(intent==='restaurants')return this.restaurantStart(false);
-      if(intent==='things')return this.thingsStart(false);
-      if(intent==='trip')return this.tripStart(x,false);
-      if(this.uncertain(x))return{say:'No problem. We can start simple. Do you want to plan a trip, find places to eat, or find things to do?',choices:['Plan a trip','Find places to eat','Find things to do']};
-      this.s.topic=x;return{say:`Got it — ${x}. What would you like help with: planning, food, activities, or budget?`,choices:['Planning','Food','Activities','Budget']};
-    }
-    if(this.s.stage==='everydayTopic'){
-      const intent=this.detectIntent(x);if(intent==='dinner')return this.dinnerStart(false);if(intent==='groceries')return this.groceryStart(false);if(intent==='week')return this.weekStart(false);
-      if(this.uncertain(x))return{say:'No problem. We can start with something simple. Do you want to plan dinner, make a grocery list, or organize your week?',choices:['Plan dinner','Make a grocery list','Organize my week']};
-      this.s.topic=x;return{say:`Got it — ${x}. What would you like help with first?`,choices:['Make a plan','Get ideas','Make it simpler']};
-    }
-    if(this.s.stage==='dinnerDetails'){
-      if(this.uncertain(x)){this.s.details.push('AI chooses');this.s.stage='dinnerResult';return{say:'No problem. I can choose something simple for you. Would you rather use chicken, beef, pasta, or whatever you have on hand?',choices:['Chicken','Beef','Pasta','Whatever I have']};}
-      this.s.ingredients=x.split(/\s*(?:,|&|and)\s*/i).filter(Boolean);this.s.stage='dinnerPreference';return{say:`Great — ${x}. What sounds best: something quick, comforting, or lighter?`,choices:['Quick','Comforting','Lighter']};
-    }
-    if(this.s.stage==='dinnerPreference'){
-      if(this.isAck(x)){return{say:'Great. Let\'s keep going. Would you like a simple recipe, basic steps, or a couple of variations?',choices:['Simple recipe','Basic steps','Variations']}}
-      this.s.details.push(x);this.s.stage='dinnerResult';const ing=this.s.ingredients.join(' and ');return{say:`Perfect — let us make a ${low.includes('quick')?'quick ':''}${ing||'dinner'} idea. Would you like the simple recipe, basic steps, or a couple of variations?`,choices:['Simple recipe','Basic steps','Variations']};
-    }
-    if(this.s.stage==='dinnerResult'){
-      return{say:`Here\'s the next step: I can keep the ${this.s.details[0]||'dinner'} simple and build it around what you already have. You can also ask for a shopping list or substitutions.`,choices:['Shopping list','Substitutions','Make it simpler']};
-    }
-    if(this.s.stage==='groceryDetails'){
-      const n=low.match(/\b([235])\b/)||low.match(/(two|three|five)/);
-      if(n){this.s.mealCount={2:2,3:3,5:5,two:2,three:3,five:5}[n[1]]||3;this.s.stage='groceryMeals';return{say:`Great. We will plan ${this.s.mealCount} dinners. Tell me a few foods you already have, or say "you pick" and I will choose the meals.`,choices:['You pick','I already have chicken','I already have pasta']}}
-      if(/grocery list|list/i.test(low)){this.s.stage='groceryCount';return{say:'Absolutely. How many dinners do you want the list to cover?',choices:['2 dinners','3 dinners','5 dinners']}}
-      if(/plan.*dinner|dinners/i.test(low)){this.s.stage='groceryCount';return{say:'Sure. How many dinners would you like to plan?',choices:['2 dinners','3 dinners','5 dinners']}}
-      if(this.uncertain(x)){this.s.stage='groceryCount';return{say:'That is okay. I can make the choices for you. How many dinners do you want to cover?',choices:['2 dinners','3 dinners','5 dinners']}}
-      this.s.stage='groceryCount';return{say:`Got it — ${x}. How many dinners should we plan for?`,choices:['2 dinners','3 dinners','5 dinners']};
-    }
-    if(this.s.stage==='groceryCount'){
-      if(this.uncertain(x)){this.s.mealCount=3;this.s.details=['AI chooses meals'];this.s.stage='groceryBudget';return{say:'No problem. I will choose three simple dinners for you. Do you have a grocery budget in mind?',choices:['Keep it inexpensive','About $50','You choose']}}
-      const n=low.match(/\b([235])\b/)||low.match(/(two|three|five)/);this.s.mealCount=n?({2:2,3:3,5:5,two:2,three:3,five:5}[n[1]]||3):3;this.s.stage='groceryMeals';return{say:`Great. We will plan ${this.s.mealCount} dinners. Tell me a few foods you already have, or say "you pick" and I will choose the meals.`,choices:['You pick','I already have chicken','I already have pasta']};
-    }
-    if(this.s.stage==='groceryMeals'){
-      if(this.uncertain(x)||/you pick/i.test(low)){this.s.details=['AI chooses meals'];this.s.stage='groceryBudget';return{say:`No problem. I will choose ${this.s.mealCount} simple dinner ideas. Do you have a budget in mind for the groceries?`,choices:['Keep it inexpensive','About $50','You choose']}}
-      this.s.ingredients=x;this.s.stage='groceryBudget';return{say:`Got it — I will build the ${this.s.mealCount} dinners around ${x}. Do you have a grocery budget in mind?`,choices:['Keep it inexpensive','About $50','You choose']};
-    }
-    if(this.s.stage==='groceryBudget'){
-      if(this.uncertain(x)||/you choose/i.test(low)){this.s.budget='AI choice';this.s.stage='groceryResult';return{say:`Okay. I will keep the ${this.s.mealCount} dinners practical and budget-conscious. Would you like the shopping list organized by aisle or by dinner?`,choices:['By aisle','By dinner']}}
-      const a=this.amount(x);this.s.budget=a||x;this.s.stage='groceryResult';return{say:`Got it — I will keep ${this.s.mealCount} dinners around ${a?'$'+a:x}. Would you like the shopping list organized by aisle or by dinner?`,choices:['By aisle','By dinner']};
-    }
-    if(this.s.stage==='groceryResult')return{say:'Perfect. That is enough information for AI to build a useful grocery list. Notice how each answer gave AI another piece of the puzzle.',choices:['By aisle','By dinner','Make it simpler']};
-    if(this.s.stage==='weekDetails'){
-      if(this.uncertain(x)){this.s.details.push('unknown schedule');this.s.stage='weekResult';return{say:'That is okay. We can start small. What is one thing you know has to happen this week?',choices:[]}}
-      this.s.details.push(x);this.s.stage='weekNext';return{say:`Got it — ${x}. What else needs to happen this week?`,choices:[]};
-    }
-    if(this.s.stage==='weekNext'){
-      if(this.isAck(x)){return{say:'Great. We have enough to start. Would you like to put these in order, find open time, or make a simple day-by-day plan?',choices:['Put them in order','Find open time','Day-by-day plan']}}
-      this.s.details.push(x);this.s.stage='weekResult';return{say:`Perfect. I have ${this.s.details.join(' and ')}. Would you like a simple day-by-day plan or just a short priority list?`,choices:['Day-by-day plan','Priority list']};
-    }
-    if(this.s.stage==='weekResult')return{say:'Nice. You gave AI real information about your week instead of trying to phrase a perfect prompt. That is exactly how to use it.'};
-    if(this.s.stage==='restaurantDetails'){
-      if(this.uncertain(x)){this.s.location='nearby';this.s.stage='restaurantInterest';return{say:'No problem. I can start with nearby options. What kind of food sounds good?',choices:['Any kind','Seafood','Italian','Mexican']}}
-      if(/near me/i.test(low)){this.s.location='near me';this.s.stage='restaurantInterest';return{say:'Sure. I can start with places near you. What kind of food sounds good?',choices:['Any kind','Seafood','Italian','Mexican']}}
-      if(/hotel|sacramento|city|neighborhood/i.test(low)){this.s.location=x;this.s.stage='restaurantInterest';return{say:`Perfect. I will use ${x} as the location. What kind of food sounds good?`,choices:['Any kind','Seafood','Italian','Mexican']}}
-      this.s.location=x;this.s.stage='restaurantInterest';return{say:`Got it — ${x}. What kind of food sounds good?`,choices:['Any kind','Seafood','Italian','Mexican']};
-    }
-    if(this.s.stage==='restaurantInterest'){
-      if(/^(?:city|town|area|neighborhood)$/i.test(low)){return{say:'Sure. Which city or area?',choices:[]}}
-      if(/sacramento|city|town|neighborhood|hotel|downtown|midtown/i.test(low) && !/seafood|italian|mexican|thai|chinese|pizza|burger|food|restaurant/i.test(low)){
-        this.s.location=x;return{say:`Got it — I will use ${x} as the location. What kind of food sounds good?`,choices:['Any kind','Seafood','Italian','Mexican']}
-      }
-      this.s.interest=this.isAck(x)?'any kind':x;this.s.stage='restaurantBudget';return{say:'Great. About how much would you like to spend per person?',choices:['Under $20','About $30','About $50','No preference']};
-    }
-    if(this.s.stage==='restaurantBudget'){
-      const a=this.amount(x);this.s.budget=a||x;this.s.stage='restaurantResult';return{say:`Perfect. We now have a location (${this.s.location}), food preference (${this.s.interest}), and budget (${a?'$'+a:x}). That is enough to start looking for restaurant ideas.`,choices:['Add distance','Add atmosphere','Find ideas now']};
-    }
-    if(this.s.stage==='restaurantResult')return{say:'Nice. You gave AI the details that actually matter. Adding one more preference can make the suggestions even more useful.'};
-    if(this.s.stage==='thingsDetails'){
-      if(this.uncertain(x)){this.s.location='nearby';this.s.stage='thingsInterest';return{say:'That is okay. I can suggest a mix. What sounds most interesting?',choices:['Food','Nature','History','Shopping']}}
-      if(/^(?:city|town|area)$/i.test(low))return{say:'Sure. Which city or area?',choices:[]};
-      this.s.location=x;this.s.stage='thingsInterest';return{say:`Great. I will look around ${x}. What sounds most interesting?`,choices:['Food','Nature','History','Shopping']};
-    }
-    if(this.s.stage==='thingsInterest'){this.s.interest=this.isAck(x)?'a mix':x;this.s.stage='thingsResult';return{say:`Great. I will use ${this.s.location} and ${this.s.interest} to narrow the ideas. How much time do you have?`,choices:['A couple of hours','Half a day','All day']}}
-    if(this.s.stage==='thingsResult'){
-      if(/budget|spend|cost|price|under \\$/i.test(low)){this.s.stage='thingsBudget';return{say:'Sure. About how much would you like to spend?',choices:['Free or very cheap','About $25','About $50','No preference']}}
-      this.s.time=x;return{say:`Perfect. Now we have a place, an interest, and about ${x}. AI can turn that into a practical list of things to do.`,choices:['Make a plan','Give me options','Make it simpler']}
-    }
-    if(this.s.stage==='thingsBudget'){
-      this.s.budget=this.amount(x)||x;this.s.stage='thingsFinal';return{say:`Got it — I will keep the budget around ${this.s.budget==='No preference'?'your preference':('$'+this.s.budget)}. Would you like a simple plan or a few options?`,choices:['Make a plan','Give me options']}
-    }
-    if(this.s.stage==='thingsFinal')return{say:'Great. You gave AI a place, an interest, a time frame, and a budget. That is enough to make the request much more specific.'};
-    if(this.s.stage==='tripDetails'){
-      this.s.location=x;this.s.stage='tripDates';return{say:`Great. We will work with ${x}. When are you thinking of going?`,choices:['This month','Next month',"I do not know yet"]};
-    }
-    if(this.s.stage==='tripDates'){
-      if(this.uncertain(x)){this.s.dates='flexible';this.s.stage='tripBudget';return{say:'No problem. We will keep the dates flexible for now. What kind of budget do you have in mind?',choices:['Keep it inexpensive','About $500','About $1,000','You choose']}}
-      this.s.dates=x;this.s.stage='tripBudget';return{say:`Got it — ${x}. What kind of budget do you have in mind?`,choices:['Keep it inexpensive','About $500','About $1,000','You choose']};
-    }
-    if(this.s.stage==='tripBudget'){
-      this.s.budget=this.uncertain(x)?'AI choice':(this.amount(x)||x);this.s.stage='tripResult';return{say:`Perfect. We have ${this.s.location}, ${this.s.dates}, and a ${this.s.budget==='AI choice'?'flexible':('rough '+this.s.budget)} budget. Would you like a simple itinerary or a few options to compare?`,choices:['Simple itinerary','A few options']};
-    }
-    if(this.s.stage==='tripResult')return{say:'Great. You just turned a broad travel idea into a request AI can actually work with.'};
-    if(this.s.stage==='learnTopic'){
-      if(/^(?:use|using) (?:my|the) /i.test(x) && /camera|phone|computer|device|printer|tv|television/i.test(x)){
-        this.s.topic=x.replace(/^using\s+/i,'').replace(/^use\s+/i,'').trim();
-        this.s.stage='learnGoal';
-        return{say:`Got it — you want help using ${this.s.topic}. What are you trying to do with it?`,choices:['Get started','Learn the basics','Fix a problem']};
-      }
-      if(this.uncertain(x)){this.s.stage='learnGoal';return{say:'That is completely okay. What would help most: understanding the basics, seeing an example, or learning how to do it?',choices:['The basics','An example','Step by step']}}
-      this.s.topic=x;this.s.stage='learnGoal';return{say:`Great. Let us explore ${x}. What would be most useful?`,choices:['Explain it simply','Give me an example','Teach me step by step']};
-    }
-    if(this.s.stage==='learnGoal'){
-      if(this.uncertain(x)){this.s.goal='choose';this.s.stage='learnResult';return{say:`No problem. I will start with a simple explanation of ${this.s.topic||'it'} and then we can build from there. Would you like an example next or the first step?`,choices:['Example','First step']}}
-      this.s.goal=x;this.s.stage='learnResult';if(/step/i.test(low))return{say:`Absolutely. Let us learn ${this.s.topic||'this'} one step at a time. I will give you one manageable step, then you can tell me what happened before we continue.`,choices:['What is step 1?','Make that simpler']};if(/example/i.test(low))return{say:`Sure. I will use a real-world example of ${this.s.topic||'this'} and explain why it works.`,choices:['Another example','Step by step']};return{say:`Perfect. I know the subject and what you want from it. I can now tailor the explanation to you.`,choices:['Make it simpler','Give me an example','Teach me step by step']};
-    }
-    if(this.s.stage==='learnResult')return{say:`Nice. You just told AI how you learn best instead of trying to invent a perfect prompt.`,choices:['Make it simpler','Give me an example','Start with step 1']};
-    if(this.s.stage==='createTopic'){
-      if(/^(?:get|give me|some) ideas$|^brainstorm$/i.test(low)){this.s.stage='createGoal';return{say:'Absolutely. What would you like ideas for?',choices:['A card','A meal','A project','A story']}}
-      if(this.uncertain(x)){this.s.stage='createGoal';return{say:'No problem. We can brainstorm together. What sounds useful: a card, a meal, a project, a story, or something else?',choices:['A card','A meal','A project','A story']}}
-      this.s.topic=x;this.s.stage='createGoal';return{say:`Great. Let us work on ${x}. What would you like the finished result to do?`,choices:['Give me ideas','Help me choose','Make a plan']};
-    }
-    if(this.s.stage==='createGoal'){
-      if(!this.s.topic){
-        if(this.uncertain(x)){this.s.goal='ideas';this.s.stage='createGoal';return{say:'That is okay. Let us narrow it down. What would you like ideas for?',choices:['A card','A meal','A project','A story']}}
-        const specific=this.detectIntent(x);
-        if(specific==='cake'||specific==='create'){this.s.topic=x;this.s.goal=this.s.goal||'ideas';this.s.stage='createResult';return{say:`Great. I will help with ${x}. What would you like next: more ideas, a first draft, or a simple plan?`,choices:['More ideas','First draft','A plan']}}
-        if(/card|meal|project|story|garden|party|gift|letter|recipe/i.test(low)){this.s.topic=x;this.s.goal=this.s.goal||'ideas';this.s.stage='createResult';return{say:`Great. I will help with ${x}. What would you like next: more ideas, a first draft, or a simple plan?`,choices:['More ideas','First draft','A plan']}}
-      }
-      if(this.uncertain(x)){this.s.goal='ideas';this.s.stage='createResult';return{say:`That is okay. Let us brainstorm a few possibilities for ${this.s.topic||'it'}. What sounds better: simple, funny, practical, or creative?`,choices:['Simple','Funny','Practical','Creative']}}
-      this.s.goal=x;this.s.stage='createResult';return{say:`Perfect. Now I know what you want the ${this.s.topic||'project'} to accomplish. What should we do next?`,choices:['First draft','A plan','More ideas']};
-    }
-    if(this.s.stage==='createResult')return{say:`Great. You're steering the project by giving AI a goal and then refining it. That is how a conversation becomes useful.`,choices:['Make it simpler','Try another idea']};
-    if(this.s.stage==='cakeDetails'){
-      const flavor=this.uncertain(x)||/you pick/i.test(low)?'a surprise flavor':x;this.s.details.push(flavor);this.s.stage='cakeNext';return{say:`Great. I will build ${this.s.topic} around ${flavor}. Would you like a simple recipe or decorating ideas?`,choices:['Simple recipe','Decorating ideas','Both']};
-    }
-    if(this.s.stage==='cakeNext')return{say:`Perfect. We can keep building from there. You could ask for the ingredient list, baking steps, or a shopping list.`,choices:['Ingredient list','Baking steps','Shopping list']};
-    if(this.s.stage==='problemTopic'){
-      if(this.uncertain(x))return{say:'That is okay. Give me just one small detail about the problem — what changed, what you expected, or what is bothering you most?',choices:[]}
-      this.s.topic=x;this.s.stage='problemGoal';return{say:`Got it — you're dealing with ${x}. What would you like help with first?`,choices:['Understand it','Find a solution','Make a plan','I\'m not sure']};
-    }
-    if(this.s.stage==='problemGoal'){
-      if(this.uncertain(x))return{say:'That is okay. We can narrow it down. Do you want to understand what is happening, look for a solution, or make a plan?',choices:['Understand it','Find a solution','Make a plan']};
-      const topicLow=this.normalize(this.s.topic||'');
-      const goalMatch=/(get rid of|remove|stop|prevent|fix|solve|lower|reduce|save|avoid|clean up|deal with|make .* go away|make .* better)/i.test(low);
-      const howRequest=/^(?:how to|how do i|how can i|what do i do|what should i do|where do i start)\??$/i.test(low);
-      if(goalMatch){
-        this.s.goal=x;this.s.stage='problemDetail';
-        if(/ant|ants|bug|insect|pest|mice|mouse|roach|roaches|spider|fleas/i.test(topicLow))return{say:`Absolutely. Let us focus on ${this.s.goal}. Before choosing a solution, it helps to know where the problem is starting. Where are you noticing them most?`};
-        if(/bill|cost|price|expense|money/i.test(topicLow))return{say:`Absolutely. Let us focus on ${this.s.goal}. What changed most — the amount, the rate, or another charge?`};
-        if(/camera|phone|computer|printer|tv|remote|device|app/i.test(topicLow))return{say:`Absolutely. Let us focus on ${this.s.goal}. What happens when you try to do it?`};
-        return{say:`Absolutely. Let us focus on ${this.s.goal}. What is one thing you have already noticed or tried?`};
-      }
-      if(howRequest){
-        if(this.s.goal){this.s.stage='problemDetail';return{say:`Yes. Let us work through how to ${this.s.goal.toLowerCase()}. Tell me one thing you already know or have tried, and we will choose the next step.`};}
-        return{say:`Sure. Let us work out how to handle ${this.s.topic||'this'}. What result do you want most?`,choices:['Get rid of it','Fix it','Understand it']};
-      }
-      this.s.goal=x;this.s.stage='problemDetail';return{say:`Okay. Let us focus on ${this.s.goal}. What is one detail that could help explain the situation?`};
-    }
-    if(this.s.stage==='problemDetail'){
-      const topicLow=this.normalize(this.s.topic||''), goalLow=this.normalize(this.s.goal||'');
-      const howRequest=/^(?:how to|how do i|how can i|what do i do|what should i do|where do i start)\??$/i.test(low);
-      if(this.uncertain(x)){this.s.details.push('unknown');this.s.stage='problemResult';return{say:'No problem. We can still work with what you know. Would you like me to break the problem into smaller steps?',choices:['Yes','Make it simpler']}}
-      if(howRequest){
-        this.s.details.push('asked how');this.s.stage='problemResult';
-        if(/ant|ants|bug|insect|pest|mice|mouse|roach|roaches|spider|fleas/i.test(topicLow) && /get rid|remove|stop|prevent|deal with/i.test(goalLow))return{say:`Absolutely. Let us start simple. First, look for where the ants are entering and clean away food or sugary residue they may be following. Then we can work on keeping them from coming back. Where are you seeing the most activity?`,choices:['Kitchen','Bathroom','Near a door or window','Several places']};
-        if(/bill|cost|price|expense|money/i.test(topicLow))return{say:`Absolutely. We can take it one step at a time. First, compare what changed from the last normal bill. Was it the amount, a new charge, or the rate?`,choices:['Amount','New charge','Rate','Not sure']};
-        if(/camera|phone|computer|printer|tv|remote|device|app/i.test(topicLow))return{say:`Absolutely. Start by telling me exactly what happens when you try it. Then we can choose the next step. What happens when you try?`};
-        return{say:`Absolutely. We can take it one step at a time. Tell me what you have already tried, even if it did not work. That gives us a useful starting point.`};
-      }
-      this.s.details.push(x);this.s.stage='problemResult';
-      if(/ant|ants|bug|insect|pest|mice|mouse|roach|roaches|spider|fleas/i.test(topicLow) && /get rid|remove|stop|prevent|deal with/i.test(goalLow))return{say:`Good. Now I know the problem is ${this.s.topic} and your goal is to ${this.s.goal.toLowerCase()}. A useful next step is to look for the source and remove what is attracting them. What have you already tried?`,choices:['Nothing yet','I cleaned the area','I used a product']};
-      return{say:`That is useful. Now AI has the problem, your goal, and another detail. Would you like to compare options, make a plan, or simplify the issue?`,choices:['Compare options','Make a plan','Explain simply']};
-    }
-    if(this.s.stage==='problemResult')return{say:'Nice. Notice what happened: you gave AI a problem, a goal, and a useful detail. You did not need a perfect prompt.'};
-    if(this.s.stage==='openGoal'){
-      if(this.uncertain(x))return this.exploreStart();
-      this.s.goal=x;this.s.stage='openResult';return{say:`Got it. You want AI to help with ${this.s.goal}. What is one detail that would make the answer fit you better?`};
-    }
-    if(this.s.stage==='openResult')return{say:'Perfect. One useful detail can make a big difference. You can keep adding details, or change direction if you need to.'};
-    return{say:`We can keep building on ${this.s.topic||'that'}. You can add a detail, ask for an example, ask me to simplify it, or change direction at any time.`,choices:['Add a detail','Give me an example','Make it simpler']};
-  }
-  scoreFor(text){const x=text.trim(),low=this.normalize(x);let points=10,why='You kept the conversation moving.';
-    if(this.correction(x)){points=20;why='You corrected or redirected the conversation instead of starting over.'}
-    else if(this.uncertain(x)){points=18;why='You were comfortable saying you were unsure and let the conversation help you decide.'}
-    else if(/\b(?:actually|instead|wait|no|i mean)\b/i.test(low)){points=18;why='You clarified what you meant so AI could follow you.'}
-    else if(this.amount(x)||/sacramento|near me|nearby|hotel|monday|tuesday|wednesday|thursday|friday|saturday|sunday|minutes?|hours?|chicken|pasta|steak|noodles|seafood|italian|mexican|thai|chinese|quick|casual|quiet|under\s*\$?/i.test(low)){points=20;why='You added a concrete detail that gives AI something useful to work with.'}
-    else if(/simpler|simple|shorter|step by step|example|first step|slow down|too much/i.test(low)){points=20;why='You told AI how you wanted the help presented.'}
-    else if(x.length>=14){points=16;why='You gave AI enough information to build on your answer.'}
-    else if(x.length>=6){points=13;why='You gave AI something useful to continue from.'}
-    return{points,why};
-  }
+  scoreFor(text){const x=text.trim(),low=this.normalize(x);let points=10,why='You kept the conversation moving.';if(this.correction(x)){points=20;why='You corrected or redirected the conversation instead of starting over.'}else if(this.uncertain(x)){points=18;why='You were comfortable saying you were unsure and let the conversation help you decide.'}else if(this.amount(x)||/sacramento|near me|nearby|hotel|monday|tuesday|wednesday|thursday|friday|saturday|sunday|minutes?|hours?|chicken|pasta|steak|noodles|seafood|italian|mexican|thai|chinese|quick|casual|quiet|pet|golf|swing|putting/i.test(low)){points=20;why='You added a concrete detail that gives AI something useful to work with.'}else if(/simpler|simple|shorter|step by step|example|first step|slow down|too much/i.test(low)){points=20;why='You told AI how you wanted the help presented.'}else if(x.length>=14){points=16;why='You gave AI enough information to build on your answer.'}else if(x.length>=6){points=13;why='You gave AI something useful to continue from.'}return{points,why}}
   process(text){const t=String(text||'').trim();if(!t||this.s.done)return null;const before=this.s.stage;const raw=this.responseFor(t);const r=this.ensureFresh(raw);const isFollowUp=before!=='start';if(isFollowUp){this.s.turns++;const sc=this.scoreFor(t);this.s.score=Math.min(100,this.s.score+sc.points);this.s.history.push({text:t,points:sc.points,why:sc.why});if(this.s.turns>=this.maxTurns)this.s.done=true}return{response:r,score:this.s.score,last:this.s.history[this.s.history.length-1]||null}}
 }
 
@@ -555,8 +497,8 @@ const game=document.getElementById('game'),results=document.getElementById('resu
 const rewards=[['🌱','First Step'],['💬','Conversation Builder'],['🧭','Context Navigator'],['🎯','AI Guide'],['🏆','Discover AI Champion']];
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function add(who,text){const d=document.createElement('div');d.className='msg '+(who==='AI'?'ai':'user');d.innerHTML='<div class="bubble"><div class="who">'+who+'</div>'+esc(text)+'</div>';chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
-function setChoices(items=[]){choices.innerHTML='';items.forEach(x=>{const b=document.createElement('button');b.className='choice';b.textContent=x;b.onclick=()=>{input.value=x;input.focus();}});}
-function renderChoices(items=[]){choices.innerHTML='';items.forEach(x=>{const b=document.createElement('button');b.className='choice';b.textContent=x;b.onclick=()=>{input.value=x;input.focus();};choices.appendChild(b)});}
+function setChoices(items=[]){renderChoices(items)}
+function renderChoices(items=[]){choices.innerHTML='';const has=Array.isArray(items)&&items.length>0;document.getElementById('choiceLabel').style.display=has?'block':'none';items.forEach(x=>{const b=document.createElement('button');b.className='choice';b.type='button';b.textContent=x;b.onclick=()=>{input.value=x;submit();};choices.appendChild(b)});}
 function renderRewards(){rewardRow.innerHTML='';rewards.forEach((r,i)=>{const d=document.createElement('div');d.className='reward-badge '+(engine.s.turns>i?'earned':'');d.textContent=r[0]+' '+r[1];rewardRow.appendChild(d)})}
 function updateBar(){const n=engine.s.turns;turnEl.textContent=n<5?`Follow-up ${n+1} of 5`:'Challenge complete';fill.style.width=(Math.min(n,5)/5*100)+'%';scoreEl.textContent=engine.s.score;renderRewards()}
 function showResponse(r){if(!r)return;add('AI',r.say||'');renderChoices(r.choices||[]);progress.textContent='Keep talking naturally. You can change direction at any time.'}
@@ -565,7 +507,7 @@ function finish(){const sc=engine.s.score;let rk='AI Explorer',txt='You practice
 function resetUI(){engine.reset();chat.innerHTML='';choices.innerHTML='';feedback.style.display='none';results.style.display='none';game.style.display='block';turnEl.textContent='Choose a starting point';fill.style.width='0%';scoreEl.textContent='0';renderRewards();add('AI',"That is a great place to start!\n\nWhat would you like help with?");progress.textContent='Choose a starting point, or type your own idea.';renderChoices(['🌱 Everyday life','✈️ Travel','📚 Learn something','🎨 Create something','🔧 Help me solve a problem','💡 I\'m not sure'])}
 function submit(){if(engine.s.done)return;const t=input.value.trim();if(!t)return;renderChoices([]);input.value='';add('You',t);const out=engine.process(t);showResponse(out.response);if(out.last)feedbackShow(out.last);updateBar();if(engine.s.done){send.disabled=true;input.disabled=true;setTimeout(finish,250)}}
 send.onclick=submit;input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submit()}});startNew.onclick=()=>{send.disabled=false;input.disabled=false;resetUI()};
-hint.onclick=()=>{const old=document.getElementById('examples');if(old){old.remove();return}const wrap=document.createElement('div');wrap.id='examples';wrap.className='example-grid';const key=engine.s.category||'open';const lists={open:[['💡','Explore AI','What can I use AI for in everyday life?'],['📅','Plan something','Help me plan my week.'],['🛒','Shopping','Help me make a grocery list for three dinners.'],['📖','Learn','Explain gardening in simple terms.']],everyday:[['🍳','Dinner','What can I make for dinner with what I have?'],['🛒','Groceries','Help me make a grocery list for three dinners.'],['📅','Organize','Help me organize my week.'],['🔧','Problem','Help me figure out how to lower a bill.']],travel:[['🗺️','Things to do','Help me find things to do in Sacramento.'],['🍽️','Eat','Help me find a good place to eat near me.'],['📍','Nearby','What are some interesting places near my hotel?'],['📅','Day plan','Help me plan a day with lunch and sightseeing.']],learn:[['📖','Simple','Explain gardening in simple terms.'],['🔎','Example','Give me an example of how that works.'],['👣','Step by step','Teach me how to do it step by step.'],['🧠','Practice','Quiz me on what I just learned.']],create:[['💭','Ideas','Give me some ideas for a birthday card.'],['⭐','Choose','Which idea would be easiest?'],['📝','Plan','Help me make a plan for it.'],['✨','Improve','How could I make this better?']],problem:[['🔧','Lower a bill','Help me figure out how to lower a bill.'],['💰','Save money','How can I save money on this?'],['📝','Plan','Help me make a plan to solve this.'],['❓','Understand','Help me understand what is happening.']]};const items=lists[key]||lists.open;items.forEach(it=>{const d=document.createElement('div');d.className='example-card';d.innerHTML='<div class="icon">'+it[0]+'</div><b>'+it[1]+'</b><p>'+it[2]+'</p><button class="use-example">Use this example</button>';d.querySelector('button').onclick=()=>{input.value=it[2];input.focus()};wrap.appendChild(d)});chat.appendChild(wrap);chat.scrollTop=chat.scrollHeight};
+hint.onclick=()=>{const old=document.getElementById('examples');if(old){old.remove();hint.setAttribute('aria-expanded','false');return} hint.setAttribute('aria-expanded','true');const wrap=document.createElement('div');wrap.id='examples';wrap.className='example-grid';const key=engine.s.category||'open';const lists={open:[['💡','Explore AI','What can I use AI for in everyday life?'],['📅','Plan something','Help me plan my week.'],['🛒','Shopping','Help me make a grocery list for three dinners.'],['📖','Learn','Explain gardening in simple terms.']],everyday:[['🍳','Dinner','What can I make for dinner with what I have?'],['🛒','Groceries','Help me make a grocery list for three dinners.'],['📅','Organize','Help me organize my week.'],['🔧','Problem','Help me figure out how to lower a bill.']],travel:[['🗺️','Things to do','Help me find things to do in Sacramento.'],['🍽️','Eat','Help me find a good place to eat near me.'],['📍','Nearby','What are some interesting places near my hotel?'],['📅','Day plan','Help me plan a day with lunch and sightseeing.']],learn:[['📖','Simple','Explain gardening in simple terms.'],['🔎','Example','Give me an example of how that works.'],['👣','Step by step','Teach me how to do it step by step.'],['🧠','Practice','Quiz me on what I just learned.']],create:[['💭','Ideas','Give me some ideas for a birthday card.'],['⭐','Choose','Which idea would be easiest?'],['📝','Plan','Help me make a plan for it.'],['✨','Improve','How could I make this better?']],problem:[['🔧','Lower a bill','Help me figure out how to lower a bill.'],['💰','Save money','How can I save money on this?'],['📝','Plan','Help me make a plan to solve this.'],['❓','Understand','Help me understand what is happening.']]};const items=lists[key]||lists.open;items.forEach(it=>{const d=document.createElement('div');d.className='example-card';d.innerHTML='<div class="icon">'+it[0]+'</div><b>'+it[1]+'</b><p>'+it[2]+'</p><button class="use-example">Use this example</button>';d.querySelector('button').onclick=()=>{input.value=it[2];input.focus()};wrap.appendChild(d)});chat.appendChild(wrap);chat.scrollTop=chat.scrollHeight};
 window.__discoverGame={engine,resetUI};resetUI();
 </script>
 </body>
