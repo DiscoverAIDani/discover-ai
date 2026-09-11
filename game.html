@@ -102,6 +102,17 @@ class DiscoverConversation {
     if(/create|write|project|card|cake/.test(x)){this.s.category='create';this.s.stage='topic';return{say:'Great. Tell me what you want to make, write, or plan. We can shape the idea as we go.',choices:['Write something','Make something','Plan a project']}}
     if(/problem|solve|fix|bill|cost/.test(x)){this.s.category='problem';this.s.stage='problemTopic';return{say:'Absolutely. Tell me what is going wrong in your own words. You do not have to explain it perfectly.'}}
     if(/everyday|daily|home|week|shopping|dinner/.test(x)){this.s.category='everyday';this.s.stage='topic';return{say:'Perfect. Tell me what you want help with in your everyday life.',choices:['Dinner','Groceries','My week']}}
+    // If the player says they are not sure at the starting point, do not ask
+    // them to define a goal. Give concrete, low-pressure examples instead.
+    if(this.uncertain(t)){
+      this.s.category='open';this.s.intent='explore';this.s.stage='explore';this.s.topic='using AI';
+      return{say:'That is completely okay. You do not have to know yet. Here are a few real things we could try together:',choices:[
+        'Plan a trip or outing',
+        'Plan dinner or groceries',
+        'Organize my week',
+        'Learn something I am curious about'
+      ]};
+    }
     return this.openStart('',false)
   }
   routeIntent(clean,intent){
@@ -453,8 +464,29 @@ class DiscoverConversation {
   }
   handleProblemPlan(x){return this.handleProblemSolution(x)}
   handleProblemFollowup(x){return this.handleProblemSolution(x)}
-  handleExplore(x){const low=this.normalize(x);if(/plan/.test(low))return this.switchTo('Help me plan my week.');if(/solve/.test(low))return this.switchTo('Help me solve a problem.');if(/learn/.test(low))return this.switchTo('Explain gardening in simple terms.');if(/create|make/.test(low))return this.switchTo('Give me ideas for a birthday card.');return{say:'A useful AI conversation usually starts with a real goal. Tell me one thing you would like help doing, and we will turn it into a useful request together.',choices:[]}}
-  handleOpenGoal(x){if(this.uncertain(x)){this.s.stage='openBuild';return{say:'That is okay. I can help choose a direction. We could plan something, learn something, make something, or solve an everyday problem.',choices:['Plan something','Learn something','Make something','Solve a problem']}}this.s.goal=x;this.noteFact(x);this.s.stage='openBuild';return{say:`Good. I understand the goal now: ${x}. I can start with a useful first pass and then adjust it based on what you tell me next.`,choices:['Start with a simple answer','Give me an example','Make it more specific']}}
+  handleExplore(x){
+    const low=this.normalize(x);
+    if(/trip|travel|outing|vacation|day out/.test(low))return this.switchTo('Help me plan a trip.');
+    if(/dinner|grocer|meal|shopping/.test(low))return this.switchTo('Help me plan dinner.');
+    if(/week|organize|organise|schedule/.test(low))return this.switchTo('Help me organize my week.');
+    if(/solve|problem|fix|bill|cost/.test(low))return this.switchTo('Help me solve a problem.');
+    if(/learn|curious|understand|garden/.test(low))return this.switchTo('Explain gardening in simple terms.');
+    if(/create|make|write|card|project/.test(low))return this.switchTo('Give me ideas for a birthday card.');
+    if(this.uncertain(x)){
+      return{say:'No problem. Let me give you some ideas instead of making you come up with one. AI can help plan something, make everyday tasks easier, learn about a hobby, compare choices, or help with a project.',choices:[
+        'Plan a trip or outing',
+        'Make dinner easier',
+        'Organize my week',
+        'Help me learn something'
+      ]};
+    }
+    return{say:'Let’s make this concrete. Here are a few easy places to start: planning something, solving an everyday problem, learning about a topic, or making something. Pick whichever sounds interesting.',choices:['Plan something','Solve a problem','Learn something','Make something']}}
+  handleOpenGoal(x){
+    if(this.uncertain(x)){
+      this.s.stage='openBuild';
+      return{say:'No problem. I will give you a few concrete possibilities instead of asking you to figure out the perfect request. We could plan something, make an everyday task easier, learn about a hobby, or work on a project.',choices:['Plan something','Make an everyday task easier','Learn about a hobby','Work on a project']};
+    }
+    this.s.goal=x;this.noteFact(x);this.s.stage='openBuild';return{say:`Good. I understand the goal now: ${x}. I can start with a useful first pass and then adjust it based on what you tell me next.`,choices:['Start with a simple answer','Give me an example','Make it more specific']}}
   handleOpenBuild(x){const low=this.normalize(x);if(/simple|simpler/.test(low))return{say:`Sure. I’ll keep the answer focused on the part that matters most, rather than giving you everything at once.`,choices:['Give me one example','Keep going']};if(/example/.test(low))return{say:`Here is the pattern: tell AI what you want, include one detail that matters, then react to the answer. You can say “that is not what I meant” or “make this simpler” and keep going.`,choices:['Make it simpler','Show me another example']};if(/more specific|specific/.test(low))return{say:'A stronger request adds one concrete detail—who it is for, where it is happening, how much time or money you have, or what result you want. You do not need a long prompt.',choices:['Show me an example','Keep going']};return{say:'That is enough to work from. I would give a first answer now, then let your next reaction shape the conversation instead of asking you to define everything up front.',choices:['Give me an example','Make it simpler']}}
   handleAck(){
     const stage=this.s.stage;
