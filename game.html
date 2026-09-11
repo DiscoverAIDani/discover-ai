@@ -362,6 +362,9 @@ class DiscoverConversation {
     switch(this.s.stage){
       case 'start': {
         const lower=this.normalize(x);
+        // Handle uncertainty before the generic open-ended route. This is important:
+        // "I'm not sure" is a meaningful conversational response, not a topic.
+        if(this.uncertain(x)) return this.startChoice(x);
         if(/travel|trip|vacation/.test(lower)||/learn|study|understand/.test(lower)||/create|write|project|card|cake/.test(lower)||/problem|solve|fix|bill|cost/.test(lower)||/everyday|daily|home|week|shopping|dinner/.test(lower)) return this.startChoice(x);
         this.s.category=this.detectCategory(x);this.s.intent=detected||'';return this.routeIntent(x,detected||'');
       }
