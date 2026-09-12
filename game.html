@@ -47,21 +47,21 @@ function words(s){return norm(s).split(/\s+/).filter(Boolean)}
 function norm(s){return String(s||'').toLowerCase().replace(/[’]/g,"'").replace(/\s+/g,' ').trim()}
 function words(s){return norm(s).split(/\s+/).filter(Boolean)}
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function cleanText(s){return String(s||'').trim().replace(/^[\s]*(?:actually|instead|wait|never mind|change of plans|i meant|no,? i mean)\s*/i,'').trim()}
+function cleanText(s){return String(s||'').trim().replace(/^[\s]*(?:actually|instead|wait|never mind|change of plans|i meant|no,? i mean)\s*/i,'').replace(/^[,;:]+\s*/,'').trim()}
 function extractTopic(s){return cleanText(s).replace(/^(?:help me|can you|could you|please|i want to|i would like to|i'd like to|i need help with|tell me about|explain|what is|what are|how is|how are|how do i|how does)\s*/i,'').replace(/[.!?]+$/,'').trim()}
 function classify(s){const x=norm(s);
   if(/\b(?:roth ira|401\s*\(?k\)?|medicare|medicaid|inflation|credit score|budget|photosynthesis|artificial intelligence|qr code|browser)\b/.test(x))return'general';
   if(/\b(?:bill|electric|utility|invoice|charge|rate|usage|statement)\b/.test(x))return'bill';
   if(/\b(?:trip|travel|vacation|hotel|beach|things to do|restaurant|eat|outing|weekend away|day trip|visit|sightsee|itinerary)\b/.test(x))return'travel';
   if(/\b(?:dinner|recipe|cook|meal|grocer|grocery|shopping list)\b/.test(x))return'food';
-  if(/\b(?:garden|gardening|golf|photograph|photography|camera|history|science|math|kite|flying|learn|study|explain|understand)\b/.test(x))return'learn';
+  if(/\b(?:garden|gardening|golf|photograph|photography|camera|history|science|math|kite|flying|plumbing|learn|study|explain|understand)\b/.test(x))return'learn';
   if(/\b(?:write|letter|card|resume|story|project|create|craft|brainstorm|poem)\b/.test(x))return'create';
   if(/\b(?:computer|phone|printer|email|app|device|technology|tech|password|settings|wifi)\b/.test(x))return'tech';
   if(/\b(?:problem|broken|not working|fix|ants|pest|bug|mice|spider|leak|repair)\b/.test(x))return'problem';
   return'general';
 }
 function isAck(s){return /^(?:ok|okay|sure|yes|yeah|yep|sounds good|good|great|fine|perfect|thanks|thank you|that works|that makes sense|do that|do it|go ahead)\.?$/i.test(String(s||'').trim())}
-function isUncertain(s){return /^(?:i\s+)?(?:don't know|do not know|not sure|no idea|you pick|choose for me|surprise me|whatever works)\.?$/i.test(String(s||'').trim())}
+function isUncertain(s){return /^(?:i\s+)?(?:don't know|do not know|not sure|no idea|you pick|choose for me|surprise me|whatever works)\.?$/i.test(norm(s))}
 function isCorrection(s){return /^(?:actually|instead|wait|never mind|change of plans|i meant|no,? i mean)\b/i.test(String(s||''))}
 function isOutputRequest(s){return /\b(?:make me|make a|turn (?:that|this) into|create a|build me|give me a|give me an|shopping list|checklist|itinerary|schedule|plan|comparison|table|summary|steps|directions|draft|rewrite|recipe|routine)\b/i.test(String(s||''))}
 function isSimpleRequest(s){const x=String(s||'').trim();return /\b(?:make it simpler|make it very simple|very simple|simpler|plain language|easier to understand|shorter|briefly|in simple terms|explain (?:(?:that|this|it) )?simply|can you explain (?:that|this) simply|slow down)\b/i.test(x)||/^(?:simple|simpler|explain simply|make simpler|easy|easier)\??$/i.test(x)}
@@ -82,7 +82,7 @@ const travelPhotos=[['beach','Santa Cruz Beach Boardwalk','Rides, games, great f
 
 function isGeneralQuestion(s){const x=norm(s);return /^(?:what|why|how|when|where|who|which|can|should|is|are|do|does|did|would|could)\b/.test(x) || /\?$/.test(x)}
 function isGreeting(s){return /^(?:hi|hello|hey|good morning|good afternoon|good evening|hiya|howdy)[!. ]*$/i.test(String(s||'').trim())}
-function isThanks(s){return /^(?:thanks|thank you|thanks a lot|appreciate it)[!. ]*$/i.test(String(s||'').trim())}
+function isThanks(s){return /^(?:thanks|thank you|thanks a lot|appreciate it|i appreciate it|much appreciated)[!. ]*$/i.test(String(s||'').trim())}
 function isHowToRequest(s){const x=norm(s);return /^(?:how to|how do i|how can i|show me how to|teach me how to)\b/.test(x) || /\bhow to\b/.test(x)}
 function isDefinitionQuestion(s){const x=norm(s);return /^(?:what is|what are|who is|who was|where is|when was|why is|why are)\b/.test(x)}
 function subjectFromQuestion(s){const q=String(s||'').trim().replace(/[?]+$/,''); return q.replace(/^(?:what is|what are|who is|who was|where is|when was|why is|why are|what does|how does|how do|how to|how can i|show me how to|teach me how to)\s*/i,'').replace(/\b(?:do|work|mean)\b$/i,'').trim();}
@@ -104,7 +104,7 @@ function genericDefinition(subject){
 function extractFacts(s){const x=norm(s), out=[];
   const money=String(s).match(/\$\s*[0-9][0-9,]*(?:\.\d{1,2})?/g)||[]; out.push(...money);
   const nums=x.match(/\b\d+\s*(?:day|days|hour|hours|minute|minutes|people|person|nights|night)\b/g)||[]; out.push(...nums);
-  const phrases=['santa cruz','sacramento','monterey','mendocino','san francisco','yosemite','seafood','italian','mexican','vegetarian','vegan','chicken','pasta','steak','garden','golf','photography','kids','children','grandchildren','dog','cat','quiet','relaxed','easy','inexpensive','budget','outdoors'];
+  const phrases=['santa cruz','sacramento','monterey','mendocino','san francisco','yosemite','seafood','italian','mexican','vegetarian','vegan','chicken','chickn','pasta','steak','garden','golf','photography','kids','children','grandchildren','dog','cat','quiet','relaxed','easy','inexpensive','budget','outdoors'];
   phrases.forEach(k=>{if(x.includes(k))out.push(k)}); return [...new Set(out)];
 }
 function absorb(s){const clean=String(s||'').trim(); if(!clean)return; memory.details.push(clean); extractFacts(clean).forEach(f=>memory.facts.push(f)); memory.facts=[...new Set(memory.facts)].slice(-14); const low=norm(clean); const m=clean.match(/\$\s*([0-9][0-9,]*(?:\.\d{1,2})?)/); if(m){const amt=Number(m[1].replace(/,/g,'')); if(category==='bill')memory.constraints.billAmount=amt; else if(category==='travel' || category==='food'){if(/budget|spend|under|around|about|only have|have \$|\$/.test(low))memory.constraints.budget=amt;}} const d=low.match(/\b(\d+)\s*(day|days|night|nights)\b/); if(d)memory.constraints.days=Number(d[1]); }
@@ -157,6 +157,7 @@ function directAnswer(s){
   const x=norm(s), q=String(s||'').trim();
   if(isGreeting(q)) return {text:'Hi! I’m Luna. What would you like help with today? You can ask a question, tell me what you are trying to do, or just give me an idea.',choices:['Plan something','Learn something','Solve a problem','Give me an idea']};
   if(isThanks(q)) return {text:'You’re welcome. 😊',choices:['Ask another question','Keep going','Start something new']};
+  if(/^(?:tell me about|teach me about)\s+/i.test(q)){const subject=q.replace(/^(?:tell me about|teach me about)\s+/i,'').replace(/[?!.]+$/,'').trim(); return genericDefinition(subject);}
   if(/what is a roth ira|define roth ira/.test(x)) return {text:'A Roth IRA is a retirement account you open yourself and fund with money that has already been taxed. Qualified withdrawals can generally be tax-free, subject to the rules that apply to you.',choices:['How is it different from a 401(k)?','Explain that simply','Who can use one?']};
   if(/what is a 401\s*\(?k\)?/.test(x)) return {text:'A 401(k) is an employer retirement plan. Money is usually contributed from your paycheck, and some employers add a matching contribution.',choices:['How is it different from a Roth IRA?','Explain that simply','What should I look for?']};
   if(/what is photosynthesis/.test(x)) return {text:'Photosynthesis is the process plants use to turn light energy, water, and carbon dioxide into sugars they use to grow. Oxygen is released as part of the process.',choices:['Explain it simply','Give me an everyday example','Why does it matter?']};
@@ -234,12 +235,15 @@ function makePlan(){
 
 function contextualDirectAnswer(s){
   const x=norm(s).replace(/[?!.]+$/,'');
+  if(category==='tech' && /printer/.test(x) && /not working|won't print|will not print|doesn't print|does not print/.test(x))return {text:'For a printer that is not working, start with three checks: make sure it has power, check for an error message, and make sure your computer or phone is connected to the right printer. Tell me which of those looks wrong and we’ll take the next step.',choices:['It has an error message','It says offline','Make it simpler']};
   if(category==='travel' && /^(?:cheap|inexpensive|budget)$/.test(x))return {text:'Got it. I’ll keep the trip inexpensive. We can focus on free or low-cost activities, simple meals, and avoiding unnecessary travel costs.',choices:['Add my budget','Make it more relaxed','Show me options']};
+  if(category==='tech' && /printer/.test(norm(topic)) && /not working|won't print|will not print|doesn't print|does not print/.test(x))return {text:'For a printer that is not working, start with three checks: make sure it has power, check whether it shows an error message, and make sure the computer or phone is connected to the right printer. If you tell me what you see, we can take the next step.',choices:['It has an error message','It says offline','Make it simpler']};
   if(category==='tech' && /^(?:stuck|help|still stuck)$/.test(x))return {text:'That’s okay. Tell me the last thing you remember seeing on the screen, or what happened when you tried the step. We can take it one step at a time.',choices:['Make it simpler','What should I do next?','Start over']};
   if(category==='general' && /\b401k\b|\b401 k\b/.test(norm(topic)) && /difference|different/.test(x))return {text:'A 401(k) is usually connected to an employer, while a Roth IRA is an account you open yourself. They also have different tax rules and contribution limits.',choices:['Make it simpler','Give me an example','What should I compare?']};
   if(category==='general' && /\broth ira\b/.test(norm(topic)) && /difference|different/.test(x))return {text:'A Roth IRA is an account you open yourself, while a 401(k) is usually provided through an employer. Their tax rules and contribution limits are different.',choices:['Make it simpler','Give me an example','What should I compare?']};
   if(category==='general' && /\bcredit score\b/.test(norm(topic)) && /improv|better|raise|increase/.test(x))return {text:'Common ways to help a credit score include paying bills on time, keeping credit card balances manageable, and avoiding unnecessary new credit applications. Your credit history and situation matter.',choices:['Make it simpler','What affects it most?','Give me an example']};
   if(category==='general' && /\bmedicaid\b/.test(norm(topic)) && /difference|different/.test(x))return {text:'Medicaid and Medicare are different programs. Medicaid is based mainly on eligibility rules such as income and other circumstances, while Medicare is mainly for people 65 and older and some younger people with certain disabilities or conditions.',choices:['Make it simpler','Give me an example','Tell me more']};
+  if(category==='learn' && /science|weather/.test(norm(topic)) && /weather|how does weather work/.test(x))return {text:'Weather is driven by changes in the atmosphere, including temperature, air pressure, moisture, and wind. Clouds and precipitation form when moist air cools and water changes form.',choices:['Explain it simply','Give me an example','What should I watch for?']};
   if(category==='general' && /weather/.test(norm(topic))){
     if(/^tomorrow$/.test(x)||/^this weekend$/.test(x))return {text:`For ${x} weather, I need the place you care about. Once you give me the location, we can turn that into a clear weather question or plan.`,choices:['Add my location','Make it simpler','Plan around the weather']};
     if(/plan around|outdoor/.test(x))return {text:'For a weather-based plan, first decide the place and the day. Then use the forecast to choose the best time, clothing, and whether you need an indoor backup.',choices:['Add my location','Make it simpler','Give me an example']};
@@ -248,7 +252,7 @@ function contextualDirectAnswer(s){
     if(/^(?:changed|what changed|what's changed|what is changed|what happened)\??$/i.test(x) || /what changed|changed from last month|different from last month/.test(x)) return {text:'To see what changed, compare this bill with a normal month. Look first at the amount due, then usage, rates, and any new fee or charge. That usually shows where the difference came from.',choices:['Make it simpler','What should I check first?','How could I lower it?']};
     if(/understand|walk me through|help me read|what am i looking at/.test(x))return {text:'Absolutely. Start with three things: the amount due, what changed from a normal month, and any new or unusual charge. We can go through each part one at a time.',choices:['Explain it simply','What changed?','What does this charge mean?']};
     if(/biggest|largest|main change/.test(x))return {text:'On your bill, the biggest change is the item whose dollar amount increased the most from a normal month. Check usage first, then the rate and any new fee; that tells you what actually caused the increase.',choices:['Show me what to compare','How could I lower it?','Make a checklist']};
-    if(/why did it go up|why is it higher|why so high/.test(x))return {text:'A higher utility bill usually comes from using more, paying a higher rate, or having a new charge. Comparing this bill with a normal month helps separate those causes.',choices:['Show me what changed','What is the biggest change?','How could I lower it?']};
+    if(/why did it go up|why is it higher|why so high|higher this month|higher than last month|more this month|went up this month/.test(x))return {text:'A higher utility bill usually comes from using more, paying a higher rate, or having a new charge. Comparing this bill with a normal month helps separate those causes.',choices:['Show me what changed','What is the biggest change?','How could I lower it?']};
   }
   if(category==='travel'){
     if(/where should we go|what should we do|which is best|what would you recommend/.test(x))return {text:`For ${topic||'this trip'}, I’d choose based on the things you’ve already said matter most — time, budget, walking, pace, and who is going.${factSummary()}`,choices:['Show me photos','Build the itinerary','Keep it relaxed']};
@@ -259,9 +263,21 @@ function contextualDirectAnswer(s){
       return {text:`Based on what we discussed${factSummary()}, I’d keep the shopping list short and avoid buying ingredients you already have.`,choices:['Build the list','Make it cheaper','Plan another dinner']};
     }
   }
+  if(category==='general' && /qr code/.test(norm(topic)) && /scan|camera/.test(x))return {text:'To scan a QR code, open your phone’s camera, point it at the square code, and hold the phone steady for a moment. When a link appears, tap it if you trust the website.',choices:['Explain it simply','What if it does not scan?','Show me an example']};
+  if(category==='general' && /browser/.test(norm(topic)) && /address|website address|address box/.test(x))return {text:'The website address box is the long box near the top of your browser. You can click it, type a website address, and press Enter to go there.',choices:['Explain it simply','Give me an example','What is a browser?']};
+
   if(category==='learn') {
-    if(/^(?:water|watering)$/.test(x)) return {text:`For ${topic||'the plant'}, watering depends on the plant and its growing conditions. A simple rule is to check the soil and follow the needs of that specific plant rather than watering on a fixed schedule.`,choices:['Make it simpler','Give me an example','What plant is easiest?']};
+    if(/water|watering/.test(x) && /garden|gardening|plant/.test(norm(topic))) return {text:`For ${topic||'the plant'}, watering depends on the plant and its growing conditions. A simple rule is to check the soil and follow the needs of that specific plant rather than watering on a fixed schedule.`,choices:['Make it simpler','Give me an example','What plant is easiest?']};
     if(/^(?:what first|where start|start)$/.test(x)) return {text:`Start with one small part of ${topic||'the subject'} that you can understand or try today. You do not need the whole subject at once.`,choices:['Give me an example','Make it simpler','Ask me a question']};
+  }
+  if(category==='learn' && topic && /^(?:what about it|what about that|what about this|tell me more about it|tell me more about that|tell me more about this)$/.test(x)){
+    if(/phone photography|photography/.test(norm(topic)))return {text:'One useful photography detail is that changing the light or your angle can change a picture dramatically. Try moving a little before you take the photo.',choices:['Explain framing simply','Give me an example','Teach me about light']};
+    if(/garden|gardening/.test(norm(topic)))return {text:'One useful gardening detail is that different plants need different amounts of light and water. Checking the plant’s needs is better than using one rule for every plant.',choices:['How often should I water?','What plant should I start with?','Give me an example']};
+    return {text:`Sure. We can keep learning about ${topic} without starting over. Tell me which part you want to understand better, and I’ll keep it focused.`,choices:['Explain it simply','Give me an example','Tell me more']};
+  }
+  if(category==='general' && topic && /^(?:what about it|what about that|what about this|tell me more about it|tell me more about that|tell me more about this)$/.test(x)){
+    if(/black hole/.test(norm(topic)))return {text:'One useful detail is that the event horizon is the boundary around a black hole beyond which light cannot escape to a distant observer.',choices:['Explain it simply','How do we know they exist?','Tell me more']};
+    return {text:`Sure. We can keep talking about ${topic} without starting over. Tell me which part you want to understand better, and I’ll keep it focused.`,choices:['Explain it simply','Give me an example','Tell me more']};
   }
   if(category==='general' && /black hole/.test(norm(topic)) && /why does it matter|why is it important/.test(x))return {text:'Black holes matter to science because they help us test what we know about gravity, matter, and extreme conditions in space. Studying them also helps scientists understand how galaxies and stars behave.',choices:['Explain it simply','Give me an example','How do we know they exist?']};
     if(category==='learn' && /why does|why do|why is|why are/.test(x))return {text:`The reason is tied to the main idea of ${topic||'the subject'}. I’ll keep the explanation focused on the cause rather than adding a lot of extra information.${factSummary()}`,choices:['Give me an example','Explain it simply','Tell me more']};
@@ -272,6 +288,7 @@ function contextualDirectAnswer(s){
 
 function contextualExampleAnswer(){
   const t=norm(topic);
+  if(/make spaghetti|cook spaghetti|spaghetti/.test(t))return {text:'Here’s a simple spaghetti example: boil the pasta until tender, warm your sauce, toss the pasta with the sauce, and add a little pasta water if it needs loosening. For a quick meal, you could add garlic and Parmesan.',choices:['Make it simpler','What should I add?','Give me the steps']};
   if(category==='learn' && /garden|gardening/.test(t))return {text:'Here’s a simple gardening example: start with one easy plant, place it where it gets the light it needs, check the soil before watering, and notice how the plant responds.',choices:['What plant should I start with?','How often should I water?','Make it simpler']};
   if(category==='learn' && /photography|camera/.test(t))return {text:'Here’s a simple photo example: take the same picture from two angles, then compare which one makes the subject easier to see.',choices:['Make it simpler','Give me a photo exercise','Tell me more']};
   if(/kite|flying/.test(t))return {text:'Here’s a concrete kite example: “The wind is steady, I am in an open field, and the kite is already climbing. Should I let out more line?” That gives Luna a real situation to respond to.',choices:['Make it simpler','What should I watch for?','What should I do next?']};
@@ -294,10 +311,17 @@ function contextualExampleAnswer(){
   return {text:'Here’s a simple example of using AI: “Help me plan three easy dinners for this week.” Then add one detail, such as “I have chicken and pasta” or “I want to keep it inexpensive.”',choices:['Try that example','Make it simpler','Help me get started']};
 }
 function contextualSimpleAnswer(){
+  if(/toilet clog|unclog.*toilet/.test(norm(topic)))return {text:'In simple terms: if the toilet is filling up, stop flushing. Use a toilet plunger to make a seal over the drain, push and pull steadily, and stop if the water does not go down.',choices:['What should I do next?','What should I watch for?','Tell me more']};
+  if(category==='learn' && /lincoln|abraham lincoln/.test(norm(topic)))return {text:'In simple terms: Abraham Lincoln was president during the Civil War. He worked to keep the United States together and is remembered for the Emancipation Proclamation and the Gettysburg Address.',choices:['Tell me something surprising','What was the Civil War about?','Tell me about the Gettysburg Address']};
   if(/kite|flying/.test(norm(topic)) && (category==='general' || category==='learn'))return {text:'In simple terms: get the kite into steady wind, let out a little line, and gently guide it upward. Once it is climbing well, let out more line while keeping the area safe.',choices:['Give me an example','What should I watch for?','What should I do next?']};
   if(category==='bill')return {text:'In simple terms: look at what you owe, what changed from a normal month, and whether a new fee or higher usage caused the difference.',choices:['What changed?','How could I lower it?','Make a checklist']};
   if(category==='travel')return {text:'In simple terms: choose a few good options, then narrow them by time, cost, walking, and what you enjoy.',choices:['Show me photos','Build the itinerary','Make it more relaxed']};
   if(category==='food')return {text:`In simple terms: use what you already have, keep the cooking short, and choose only the extra ingredients you really need.${factSummary()}`,choices:['Give me the steps','Make a shopping list','Make it even easier']};
+  if(category==='learn' && /garden|gardening/.test(norm(topic)))return {text:'In simple terms: give the plant the light it needs, use soil that drains well, and check the soil before watering.',choices:['What plant should I start with?','How often should I water?','Give me an example']};
+  if(category==='learn' && /phone photography|photography/.test(norm(topic)))return {text:'In simple terms: good phone photos usually start with light, focus, and framing. Move yourself or the phone a little and see which view looks best.',choices:['Give me an example','Teach me about light','Explain framing simply']};
+  if(category==='learn' && /history|lincoln/.test(norm(topic)))return {text:`In simple terms: ${/lincoln/.test(norm(topic))?'Abraham Lincoln was president during the Civil War and worked to keep the United States together.':'history helps us understand people, events, and how the past shaped what came later.'}`,choices:['Give me an example','Tell me more','Ask me a question']};
+  if(category==='learn' && /science|weather/.test(norm(topic)))return {text:'In simple terms: weather is the changing condition of the air around us, including temperature, wind, clouds, and precipitation.',choices:['Give me an example','How does weather work?','What should I watch for?']};
+  if(category==='learn' && /photosynthesis/.test(norm(topic)))return {text:'In simple terms: plants use light, water, and carbon dioxide to make the food they need to grow, and oxygen is released as part of the process.',choices:['Give me an example','Why does it matter?','Tell me more']};
   if(category==='learn')return {text:`In simple terms: ${topic||'this topic'} has a main idea, a real example, and a small step you can try. You do not need to learn everything at once.`,choices:['Give me an example','Show me step by step','Give me something to try']};
   if(category==='create')return {text:`In simple terms: make a rough first version, then improve the part you care about most.${factSummary()}`,choices:['Start a draft','Give me ideas','Make it shorter']};
   if(category==='problem')return {text:'In simple terms: start with one small action, see what happens, and use that result to decide the next step.',choices:['Give me the first step','Make a checklist','What should I look for?']};
@@ -310,6 +334,7 @@ function contextualSimpleAnswer(){
 
 function contextualQuestionAnswer(s){
   const x=norm(s).replace(/[?!.]+$/,''), t=norm(topic);
+  const pre=contextualDirectAnswer(s); if(pre)return pre;
   if(/^(?:question|ask|ask a question|ask me a question)$/.test(x)){
     if(category==='travel')return {text:'What matters most for this trip: keeping costs down, keeping the pace relaxed, or seeing specific places?',choices:['Keep costs down','Keep it relaxed','See specific places']};
     if(category==='food')return {text:'How much time do you have to make dinner?',choices:['About 20 minutes','About 30 minutes','I have more time']};
@@ -338,14 +363,102 @@ function contextualQuestionAnswer(s){
   return null;
 }
 
+function continuationAnswer(s){
+  const x=norm(s);
+  // A broad rephrase of the current request is still part of the same conversation.
+  // People often repeat themselves in slightly different words, especially when they
+  // are unsure what detail to provide next. Treat that as a request to move forward,
+  // not as a brand-new topic.
+  if(category==='food' && /^(?:i need|i could use|i'd like|i would like|can you|could you|please)?\s*(?:some|a little)?\s*(?:help|help me|ideas?)?\s*(?:with|for|planning|plan)?\s*(?:dinner|a meal|food)(?: help| ideas?)?\??$/i.test(x)){
+    return {text:'Absolutely. Let’s make dinner easy. Tell me what you already have, how much time you want to spend cooking, or how many people you are feeding.',choices:['I have chicken and pasta','About 30 minutes','For 2 people']};
+  }
+  if(category==='food' && /^(?:can you|could you|please|i need|i could use|i want|i'd like|i would like)\s+(?:help|help me)\s+(?:plan|planning|figure out|decide on)\s+(?:dinner|a meal|what to make)(?: tonight)?\??$/i.test(x)){
+    return {text:'Absolutely. Let’s make dinner easy. Tell me what you already have, how much time you want to spend cooking, or how many people you are feeding.',choices:['I have chicken and pasta','About 30 minutes','For 2 people']};
+  }
+  if(category==='travel' && /^(?:i need|i could use|i'd like|i would like|can you|could you|please)?\s*(?:some|a little)?\s*(?:help|help me|ideas?)?\s*(?:with|for|planning|plan)?\s*(?:the )?(?:a )?(?:trip|travel|vacation|outing)(?: help| ideas?)?\??$/i.test(x)){
+    return {text:'Absolutely. Let’s keep planning from where we are. Tell me where you want to go, how much time you have, or what matters most to you.',choices:['Add a destination','Add my budget','Keep it relaxed']};
+  }
+  if(category==='travel' && /^(?:can you|could you|please|i need|i could use|i want|i'd like|i would like)\s+(?:help|help me)\s+(?:plan|planning|figure out|decide on)\s+(?:a )?(?:trip|outing|vacation)(?: for me)?\??$/i.test(x)){
+    return {text:'Absolutely. Let’s keep planning from where we are. Tell me where you want to go, how much time you have, or what matters most to you.',choices:['Add a destination','Add my budget','Keep it relaxed']};
+  }
+  if(category==='bill' && /^(?:i need|i could use|i'd like|i would like|can you|could you|please)?\s*(?:some|a little)?\s*(?:help|help me)?\s*(?:with|understanding|reading)?\s*(?:this )?bill(?: help)?\??$/i.test(x)){
+    return {text:'Of course. Let’s look at the bill one piece at a time. Tell me what looks confusing, what changed, or what you want to lower.',choices:['What changed?','Explain this simply','How could I lower it?']};
+  }
+  if(category==='problem' && /^(?:i need|i could use|i'd like|i would like|can you|could you|please)?\s*(?:some|a little)?\s*(?:help|help me)?\s*(?:with|fix|solve|figure out)?\s*(?:this )?(?:problem|issue)(?: help)?\??$/i.test(x)){
+    return {text:`Sure. We’re already working on ${topic||'the problem'}. Tell me what you see happening or what you have tried, and I’ll help you choose the next step.`,choices:['What should I do first?','What should I look for?','Make me a checklist']};
+  }
+  if(category==='tech' && /^(?:i need|i could use|i'd like|i would like|can you|could you|please)?\s*(?:some|a little)?\s*(?:help|help me)?\s*(?:with|using)?\s*(?:my )?(?:computer|phone|printer|email|app|device|technology)(?: help)?\??$/i.test(x)){
+    return {text:'Sure. Tell me what you are trying to do, what you see on the screen, or what happens when you try. We can take it one step at a time.',choices:['Walk me through it','Explain the buttons','Make it simpler']};
+  }
+  if(category==='create' && /^(?:i need|i could use|i'd like|i would like|can you|could you|please)?\s*(?:some|a little)?\s*(?:help|help me)?\s*(?:with|making|writing|creating)?\s*(?:this )?(?:project|card|letter|story|draft)(?: help)?\??$/i.test(x)){
+    return {text:`Absolutely. Let’s keep working on ${topic||'your project'}. Tell me what you want to make or change, and I’ll help with the next small step.`,choices:['Give me ideas','Start a draft','Make it simpler']};
+  }
+  if(category==='learn' && /^(?:i need|i could use|i'd like|i would like|can you|could you|please)?\s*(?:some|a little)?\s*(?:help|help me)?\s*(?:learn|understand|study)(?: more| this| it)?\??$/i.test(x)){
+    return {text:`Absolutely. We can keep learning about ${topic||'this topic'} one small idea at a time. Would you like a simple explanation, an example, or a question to think about?`,choices:['Explain it simply','Give me an example','Ask me a question']};
+  }
+  return null;
+}
+
+function contextualDetailAnswer(s){
+  const x=norm(s);
+  // Concrete details should beat broad topic keywords. For example,
+  // “I have chicken and pasta for dinner” is a detail, not a new dinner request.
+  if(category==='food' && /\b(?:have|got|already have|already got)\b/.test(x) && /\b(?:chicken|chickn|pasta|rice|steak|vegetables|veggies|spinach)\b/.test(x)){
+    absorb(s);
+    const foods=memory.facts.filter(f=>/chicken|chickn|pasta|rice|steak|vegetables|veggies|spinach/.test(f)).map(f=>f==='chickn'?'chicken':f);
+    return {text:`Great. I’ll build around ${foods.join(', ')} and keep the dinner focused on what you already have. Tell me how much time you have or what else is in the kitchen.`,choices:['About 30 minutes','I’ll list what I have','Make it inexpensive']};
+  }
+  return null;
+}
+
 function followAnswer(s){
-  const cleaned=cleanText(s);
+  const raw=String(s||'').trim();
+  const cleaned=cleanText(raw);
 
   // Greetings and thanks are conversation, not learning turns.
   if(isGreeting(cleaned)) return {text:'Hi again! What would you like help with?',choices:['Ask a question','Keep going','Start something new'],noTurn:true};
   if(isThanks(cleaned)) return {...directAnswer(cleaned),noTurn:true};
 
+  // Natural uncertainty should keep the user moving instead of being stored as a topic.
+  if(isUncertain(cleaned)){
+    if(category==='food')return {text:'That’s okay. Let’s make it easy. I can choose a simple dinner direction for you, or you can tell me just one thing you have in the kitchen.',choices:['You choose','I have chicken','I have pasta']};
+    if(category==='travel')return {text:'That’s okay. We can narrow it down together. I can suggest a simple option, or you can tell me just one thing that matters to you.',choices:['You choose','Keep it relaxed','Keep it inexpensive']};
+    if(category==='bill')return {text:'That’s okay. We can start with the easiest part: the amount due or the line that looks different from usual.',choices:['Start with the amount','What changed?','Make it simpler']};
+    if(category==='learn')return {text:`That’s okay. We can make ${topic||'this topic'} easy. I can choose a simple starting point, give you an example, or explain the big idea first.`,choices:['You choose','Give me an example','Explain it simply']};
+    if(category==='problem')return {text:`That’s okay. We can take ${topic||'the problem'} one small step at a time. I’ll help you decide what to look at first.`,choices:['Choose the first step','What should I look for?','Make it simpler']};
+    return {text:'That’s okay. We can figure it out together. I can suggest a starting point, give you an example, or ask you one simple question.',choices:['You choose','Give me an example','Ask me a question']};
+  }
+
+  // A vague request for help after a topic is still a continuation.
+  if(/^(?:i need help|i could use help|i need some help|i could use some help|help me)$/i.test(cleaned)){
+    if(category==='food')return {text:'Absolutely. Let’s make dinner easy. Tell me one thing you already have, how much time you have, or how many people you are feeding.',choices:['I have chicken','I have pasta','About 30 minutes']};
+    if(category==='travel')return {text:'Absolutely. Let’s keep working on the trip. Tell me the destination, budget, number of days, or what you want to do.',choices:['Add a destination','Add my budget','Keep it relaxed']};
+    if(category==='bill')return {text:'Of course. Let’s take the bill one piece at a time. Tell me the amount, what changed, or what you want to lower.',choices:['What changed?','Add the amount','How could I lower it?']};
+    if(category==='learn')return {text:`Absolutely. We can keep learning about ${topic||'this topic'} one small idea at a time.`,choices:['Explain it simply','Give me an example','Ask me a question']};
+    if(category==='problem')return {text:`Sure. We’re already working on ${topic||'the problem'}. Tell me what you see happening or what you have tried.`,choices:['What should I do first?','What should I look for?','Make it simpler']};
+    if(category==='tech')return {text:'Sure. Tell me what you are trying to do or what you see on the screen, and we can take it one step at a time.',choices:['Walk me through it','Explain the buttons','Make it simpler']};
+    if(category==='create')return {text:`Absolutely. Let’s keep working on ${topic||'your project'}. Tell me what you want to make or change next.`,choices:['Give me ideas','Start a draft','Make it simpler']};
+  }
+
+  // Corrections should be evaluated before cleanText removes words like “actually”.
+  // If the correction clearly names a different subject, replace the old context.
+  if(isCorrection(raw)){
+    const incoming=classify(cleaned);
+    const correctionSubject=cleaned.replace(/^(?:tell me about|let's talk about|lets talk about)\s+/i,'').trim();
+    if((incoming!==category && !topicLooksRelated(cleaned)) || (category==='general' && topic && !topicLooksRelated(cleaned))){
+      resetContextForNewTopic(correctionSubject||cleaned);
+      const fresh=directAnswer(cleaned);
+      if(fresh)return fresh;
+      if(/^tell me about\s+/i.test(cleaned))return genericDefinition(correctionSubject);
+      if(isDefinitionQuestion(cleaned))return genericDefinition(subjectFromQuestion(cleaned));
+    }
+  }
+
   // Specific learning choices must produce the lesson itself, not a meta-response.
+  if(category==='learn' && /^(?:linclon|lincon|abraham linclon)$/i.test(cleaned)){
+    resetContextForNewTopic('Lincoln'); category='learn';
+    return {text:'Abraham Lincoln was the 16th president of the United States. He led the country through the Civil War and worked to preserve the Union. He is also remembered for the Emancipation Proclamation and the Gettysburg Address.',choices:['Tell me something surprising','What was the Civil War about?','Tell me about the Gettysburg Address']};
+  }
   if(/^gardening basics$/i.test(cleaned)){resetContextForNewTopic(cleaned); return {text:'Gardening basics start with three things: give the plant the right amount of light, use soil that drains well, and water when the plant actually needs it. Start with one plant and learn what that plant prefers rather than trying to remember everything at once.',choices:['How often should I water?','What plant should I start with?','Give me a beginner project']};}
   if(/^phone photography$/i.test(cleaned)){resetContextForNewTopic(cleaned); return {text:'A simple place to start with phone photography is light, focus, and how you frame the picture. Try taking the same photo from two angles and notice which one you like better.',choices:['Teach me about light','Give me a photo exercise','Explain framing simply']};}
   if(/^history or interesting people$/i.test(cleaned)){resetContextForNewTopic(cleaned); return {text:'We can learn history by starting with one person, place, event, or time period. I can explain it simply first, then add details as you go.',choices:['Give me a surprising example','Teach me about a historical person','Pick an interesting event']};}
@@ -368,6 +481,8 @@ function followAnswer(s){
   if(isNextRequest(cleaned)){const cn=contextualQuestionAnswer('what should i do next?'); if(cn)return cn;}
   if(isQuestionRequest(cleaned)){const cq=contextualQuestionAnswer('ask me a question'); if(cq)return cq;}
 
+  // Broad rephrases of the current request should continue the conversation instead of repeating
+  // the same opening answer.
   // Specific subjects chosen during a learning conversation should become the new lesson topic.
   // Example: History or interesting people → Lincoln should start teaching about Lincoln,
   // not repeat the generic history prompt.
@@ -379,13 +494,20 @@ function followAnswer(s){
   }
 
   // Specific learning topics chosen after a category prompt should become the active lesson topic.
-  if(category==='learn' && /^(?:photosynthesis|weather|gravity|black hole|inflation|volcano|thermostat|kite)$/i.test(cleaned)){
+  if(category==='learn' && /^(?:photosynthesis|weather|gravity|black hole|inflation|volcano|thermostat|kite|plumbing)$/i.test(cleaned)){
     topic=cleaned;
-    memory={details:[],facts:[],constraints:{}};
-    absorb(cleaned);
+    memory={details:[],facts:[],constraints:{}}; absorb(cleaned);
     if(/^photosynthesis$/i.test(cleaned)) return {text:'Photosynthesis is how plants use light, water, and carbon dioxide to make the food they need to grow. Oxygen is released as part of the process.',choices:['Explain it simply','Give me an everyday example','Why does it matter?']};
     if(/^weather$/i.test(cleaned)) return {text:'Weather describes conditions such as temperature, rain, wind, or snow. We can use a specific place and day to make it practical.',choices:['Give me an example','What should I watch for?','Tell me more']};
+    if(/^plumbing$/i.test(cleaned)) return {text:'Plumbing is the system that brings clean water into a home and carries used water away. Common plumbing jobs include fixing leaks, clearing clogs, and replacing faucets or other fixtures.',choices:['Teach me about toilet clogs','What should I know about leaks?','Explain it simply']};
     return {text:`Let’s learn about ${cleaned} one useful idea at a time.`,choices:['Explain it simply','Give me an example','Tell me more']};
+  }
+
+  // Practical follow-ups should answer the specific thing the person is trying to do,
+  // even when they use an imperfect word. “Unplug my toilet” commonly means “unclog my toilet.”
+  if(/^(?:unplug|unclog|clear|fix)\s+(?:my\s+)?toilet\b/i.test(cleaned)){
+    topic='toilet clog'; category='problem'; absorb(cleaned);
+    return {text:'If you mean unclog the toilet, start by stopping the water if the bowl is rising. Then use a toilet plunger with a flange, make a good seal over the drain, and push and pull steadily several times. If the water does not go down, stop rather than repeatedly flushing, and we can try the next step.',choices:['What should I do first?','Make it simpler','What if the plunger does not work?']};
   }
 
   // Very short or incomplete replies should still be useful when we already know the topic.
@@ -529,6 +651,10 @@ function followAnswer(s){
   if(category==='general' && /\bmedicare\b/.test(norm(topic)) && isDifferenceRequest(cleaned))return {text:'Medicare and Medicaid are different programs. Medicare is mainly for people 65 and older and some younger people with certain disabilities or conditions. Medicaid is a program for eligible people with limited income and certain other groups, with rules that vary by state.',choices:['Explain it simply','What are the Medicare parts?','Give me an example']};
   if(category==='general' && /\bai\b/.test(norm(topic)) && isWhatCanDoRequest(cleaned))return {text:'You can use AI to help with everyday questions, planning, learning, writing, organizing information, comparing options, and working through problems. You can start with a simple request and add details as you go.',choices:['Give me an example','What should I try first?','Make it simpler']};
 
+  // Broad rephrases must be recognized before topic-switch detection.
+  // A person may naturally repeat a request in simpler words; that should advance the conversation.
+  const continuation=continuationAnswer(cleaned); if(continuation)return continuation;
+
   // Contextual questions should stay with the current topic.
   const cq=contextualQuestionAnswer(cleaned); if(cq)return cq;
 
@@ -547,6 +673,15 @@ function followAnswer(s){
     const fresh=directAnswer(cleaned);
     if(fresh)return fresh;
   }
+
+  // If the user picks a concrete learning topic after “Teach me something,”
+  // promote it into the active lesson context before answering it.
+  if(!topic && category==='general' && /^(?:photosynthesis|weather|gravity|black hole|inflation|volcano|thermostat|kite|plumbing|gardening|phone photography|history|history or interesting people|science|science or how things work|lincoln|abraham lincoln)$/i.test(cleaned)){
+    topic=cleaned; category='learn'; memory={details:[],facts:[],constraints:{}}; absorb(cleaned);
+  }
+
+  // Concrete details should be absorbed before broad direct-answer patterns can mistake them for a new topic.
+  const detail=contextualDetailAnswer(cleaned); if(detail)return detail;
 
   // Context-aware questions first, then direct answers.
   const ctx=contextualDirectAnswer(cleaned); if(ctx)return ctx;
@@ -572,6 +707,7 @@ function followAnswer(s){
     return {text:`That helps. I’m using your new detail to shape ${topic||'the trip'} rather than starting over.${factSummary()}`,choices:['Build the itinerary','Add another detail','Show me photos']};
   }
   if(category==='food')return {text:`That helps me shape the meal around what you just said.${factSummary()}`,choices:['Give me a dinner idea','Make it quick','Make a shopping list']};
+  if(category==='learn' && /^(?:plumbing)$/i.test(norm(topic)))return {text:'Plumbing is the system that brings clean water into a home and carries used water away. Common plumbing jobs include fixing leaks, clearing clogs, and replacing faucets or other fixtures.',choices:['Teach me about toilet clogs','What should I know about leaks?','Explain it simply']};
   if(category==='learn')return {text:`Let’s build on ${topic||'this topic'} with one useful idea at a time.${factSummary()}`,choices:['Give me an example','Make it simpler','Ask me a question']};
   if(category==='problem')return {text:`That helps narrow the problem. I’ll use the new detail to choose the next useful step instead of restarting.${factSummary()}`,choices:['What should I do first?','Make a checklist','Make it simpler']};
   if(category==='create')return {text:`Good — I can build from that. I’ll treat what you just said as a change to the project, not a restart.${factSummary()}`,choices:['Start a draft','Give me 3 ideas','Make it simpler']};
