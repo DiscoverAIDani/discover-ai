@@ -64,7 +64,7 @@ function isAck(s){return /^(?:ok|okay|sure|yes|yeah|yep|sounds good|good|great|f
 function isUncertain(s){return /^(?:i\s+)?(?:don't know|do not know|not sure|no idea|you pick|choose for me|surprise me|whatever works)\.?$/i.test(String(s||'').trim())}
 function isCorrection(s){return /^(?:actually|instead|wait|never mind|change of plans|i meant|no,? i mean)\b/i.test(String(s||''))}
 function isOutputRequest(s){return /\b(?:make me|make a|turn (?:that|this) into|create a|build me|give me a|give me an|shopping list|checklist|itinerary|schedule|plan|comparison|table|summary|steps|directions|draft|rewrite|recipe|routine)\b/i.test(String(s||''))}
-function isSimpleRequest(s){const x=String(s||'').trim();return /\b(?:make it simpler|make it very simple|very simple|simpler|plain language|easier to understand|shorter|briefly|in simple terms|explain (?:that|this) simply|can you explain (?:that|this) simply|slow down)\b/i.test(x)||/^(?:simple|simpler|explain simply|make simpler|easy|easier)\??$/i.test(x)}
+function isSimpleRequest(s){const x=String(s||'').trim();return /\b(?:make it simpler|make it very simple|very simple|simpler|plain language|easier to understand|shorter|briefly|in simple terms|explain (?:(?:that|this|it) )?simply|can you explain (?:that|this) simply|slow down)\b/i.test(x)||/^(?:simple|simpler|explain simply|make simpler|easy|easier)\??$/i.test(x)}
 function isExampleRequest(s){const x=String(s||'').trim();return /\b(?:give me|show me) (?:an? )?example\b/i.test(x)||/^(?:example|an example|another example|show example|give example)\??$/i.test(x)}
 function isMoreRequest(s){const x=String(s||'').trim();return /\b(?:tell me more|more detail|go deeper|more information|keep going)\b/i.test(x)||/^(?:more|detail|keep going|go on)\??$/i.test(x)}
 function isWhyRequest(s){return /^why\b/i.test(norm(s)) || /\bwhy\b/i.test(norm(s)) && words(s).length<=6}
@@ -114,7 +114,7 @@ function resetContextForNewTopic(s){const c=cleanText(s).replace(/^(?:thanks|tha
 
 function topicLooksRelated(s){const x=norm(s); const t=norm(topic);
   if(/\b(?:it|that|this|they|them|he|she|those|these)\b/.test(x))return true;
-  if(category==='bill')return /bill|electric|utility|invoice|charge|fee|usage|rate|amount|due|change|statement|kwh|month/.test(x);
+  if(category==='bill')return /bill|electric|utility|invoice|charge|fee|usage|rate|amount|due|change|statement|kwh|month|save|saving|lower|reduce|cheaper|cost/.test(x);
   if(category==='travel')return /trip|travel|vacation|hotel|beach|outing|itinerary|destination|budget|kids|children|family|food|restaurant|eat|walk|walking|relaxed|quiet|day|days/.test(x);
   if(category==='food')return /dinner|meal|recipe|cook|ingredient|grocery|groceries|shopping|minutes?|people|quick|easy|chicken|pasta|rice/.test(x);
   if(category==='learn')return /learn|study|explain|example|practice|step|skill|lesson|golf|garden|gardening|photography|camera|science|history/.test(x) || (t && x.includes(t));
@@ -363,10 +363,30 @@ function followAnswer(s){
   // look like a brand-new subject.
   // Short, natural follow-up phrases should work just like their longer versions.
   if(isChangedRequest(cleaned) && category==='bill') return contextualDirectAnswer('what changed?');
-  if(isSaveRequest(cleaned) && category==='bill') return {text:'To lower a utility bill, first find out whether the increase came from using more, paying a higher rate, or a new fee. Then focus on the part you can actually change.',choices:['What changed?','Make a checklist','Make it simpler']};
+  if((isSaveRequest(cleaned) || /(?:save money|lower (?:the )?bill|reduce (?:the )?bill|cut (?:the )?bill|spend less|pay less)/i.test(cleaned)) && category==='bill') return {text:'To lower a utility bill, first find out whether the increase came from using more, paying a higher rate, or a new fee. Then focus on the part you can actually change.',choices:['What changed?','Make a checklist','Make it simpler']};
   if(isWatchRequest(cleaned)){const cw=contextualQuestionAnswer('what should i watch for?'); if(cw)return cw;}
   if(isNextRequest(cleaned)){const cn=contextualQuestionAnswer('what should i do next?'); if(cn)return cn;}
   if(isQuestionRequest(cleaned)){const cq=contextualQuestionAnswer('ask me a question'); if(cq)return cq;}
+
+  // Specific subjects chosen during a learning conversation should become the new lesson topic.
+  // Example: History or interesting people → Lincoln should start teaching about Lincoln,
+  // not repeat the generic history prompt.
+  if(category==='learn' && /^(?:lincoln|abraham lincoln)$/i.test(cleaned)){
+    topic='Lincoln';
+    memory={details:[],facts:[],constraints:{}};
+    absorb('Lincoln');
+    return {text:'Abraham Lincoln was the 16th president of the United States. He led the country through the Civil War and worked to preserve the Union. He is also remembered for the Emancipation Proclamation and the Gettysburg Address.',choices:['Tell me something surprising','What was the Civil War about?','Tell me about the Gettysburg Address']};
+  }
+
+  // Specific learning topics chosen after a category prompt should become the active lesson topic.
+  if(category==='learn' && /^(?:photosynthesis|weather|gravity|black hole|inflation|volcano|thermostat|kite)$/i.test(cleaned)){
+    topic=cleaned;
+    memory={details:[],facts:[],constraints:{}};
+    absorb(cleaned);
+    if(/^photosynthesis$/i.test(cleaned)) return {text:'Photosynthesis is how plants use light, water, and carbon dioxide to make the food they need to grow. Oxygen is released as part of the process.',choices:['Explain it simply','Give me an everyday example','Why does it matter?']};
+    if(/^weather$/i.test(cleaned)) return {text:'Weather describes conditions such as temperature, rain, wind, or snow. We can use a specific place and day to make it practical.',choices:['Give me an example','What should I watch for?','Tell me more']};
+    return {text:`Let’s learn about ${cleaned} one useful idea at a time.`,choices:['Explain it simply','Give me an example','Tell me more']};
+  }
 
   // Very short or incomplete replies should still be useful when we already know the topic.
   const short=norm(cleaned).split(' ').filter(Boolean);
@@ -381,11 +401,11 @@ function followAnswer(s){
       if(/^(first|start|help|next)$/.test(norm(cleaned))) return {text:`Start with the simplest thing you can safely check about ${topic||'the problem'}. Then tell me what you find, and we’ll choose the next step.`,choices:['What should I look for?','Make it simpler','Tell me more']};
     }
     if(category==='travel'){
-      if(/^(relaxed|easy|quiet|budget|cheap|inexpensive)$/.test(norm(cleaned))) return {text:`Great. I’ll keep the trip ${cleaned} and use that preference when we narrow the ideas.`,choices:['Show me photos','Build the itinerary','Add my budget']};
+      if(/^(relaxed|easy|quiet|budget|cheap|inexpensive)$/.test(norm(cleaned))) { absorb(cleaned); return {text:`Great. I’ll keep the trip ${cleaned} and use that preference when we narrow the ideas.`,choices:['Show me photos','Build the itinerary','Add my budget']}; }
       if(/^\d+ (day|days|night|nights)$/.test(norm(cleaned))) return {text:`Great. I’ll plan around ${cleaned}. We can keep the schedule comfortable and choose only a few worthwhile stops.`,choices:['Add my budget','Show me photos','Build the itinerary']};
     }
     if(category==='food'){
-      if(/^(chicken|pasta|rice|steak|vegetables|veggies)$/.test(norm(cleaned))) return {text:`Great — we can build dinner around ${cleaned}. Tell me one more thing: how much time you have or what else you already have.`,choices:['About 30 minutes','List what I have','Make it inexpensive']};
+      if(/^(chicken|pasta|rice|steak|vegetables|veggies)$/.test(norm(cleaned))) { absorb(cleaned); return {text:`Great — we can build dinner around ${cleaned}. Tell me one more thing: how much time you have or what else you already have.`,choices:['About 30 minutes','List what I have','Make it inexpensive']}; }
       if(/^(20|30|45|60) minutes?$/.test(norm(cleaned))) return {text:`Great. I’ll keep the meal within ${cleaned}. Now we can choose a recipe that fits that time.`,choices:['Use what I have','Give me the steps','Make a shopping list']};
     }
     if(category==='learn' && topic){
