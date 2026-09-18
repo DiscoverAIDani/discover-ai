@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Discover AI Mobile Talk Test</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f5f9ff;color:#0b376f}
+.wrap{max-width:520px;margin:0 auto;padding:24px}
+.card{background:white;border-radius:18px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+h1{font-size:1.6rem;margin-top:0}
+textarea{width:100%;min-height:110px;font-size:18px;padding:12px;border:2px solid #b9cff0;border-radius:12px;box-sizing:border-box}
+button{width:100%;margin-top:12px;padding:14px;font-size:18px;font-weight:700;border:0;border-radius:12px;background:#2878e8;color:#fff}
+#status{margin-top:12px;padding:10px;border-radius:10px;background:#eef6ff;line-height:1.35}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Discover AI — Mobile Talk Test</h1>
+    <p>If you can see this page, the GitHub page loaded correctly.</p>
+    <textarea id="box" placeholder="Your spoken words will go here..."></textarea>
+    <button id="talk">🎤 Talk</button>
+    <div id="status">Tap Talk once.</div>
+  </div>
+</div>
+<script>
+(function(){
+  const btn=document.getElementById('talk');
+  const box=document.getElementById('box');
+  const status=document.getElementById('status');
+  const isiOS=/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  btn.addEventListener('click',()=>{
+    if(isiOS){
+      box.focus();
+      status.innerHTML='<b>iPhone/iPad detected.</b> Your keyboard should open. Tap the microphone on the keyboard, speak, then press Done.';
+      return;
+    }
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){
+      status.textContent='This browser does not support built-in speech recognition.';
+      return;
+    }
+    const r=new SR();
+    r.lang='en-US';
+    r.onstart=()=>{status.textContent='Listening...';};
+    r.onresult=e=>{
+      box.value=e.results[0][0].transcript;
+      status.textContent='Got it.';
+    };
+    r.onerror=e=>{status.textContent='Talk error: '+e.error;};
+    r.onend=()=>{if(status.textContent==='Listening...')status.textContent='Stopped listening.';};
+    r.start();
+  });
+})();
+</script>
+</body>
+</html>
