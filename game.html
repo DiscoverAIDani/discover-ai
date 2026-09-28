@@ -872,8 +872,15 @@ function focusMessageBox(){
 }
 function setupVoice(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  const isAppleMobile=/iPad|iPhone|iPod/.test(navigator.userAgent)||
-    (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const ua=navigator.userAgent||'';
+  const platform=navigator.platform||'';
+  const vendor=navigator.vendor||'';
+  const hasTouch=(navigator.maxTouchPoints||0)>1||('ontouchend' in document);
+  // Be deliberately broad here. Recent iOS/Safari builds can disguise the UA as macOS
+  // (especially with desktop-site mode), while still being a touch-first Apple device.
+  const isAppleMobile=/iPad|iPhone|iPod/i.test(ua)||
+    (platform==='MacIntel'&&(navigator.maxTouchPoints||0)>1)||
+    (/Apple/i.test(vendor)&&hasTouch&&/Macintosh|Mobile/i.test(ua));
   let recognition=null;
   let hideStatusTimer=null;
   let startTimeout=null;
@@ -914,6 +921,33 @@ function setupVoice(){
     }
     return '';
   }
+  // iPhone/iPad Safari currently exposes SpeechRecognition unreliably on some iOS builds:
+  // it can show the microphone as active but never return transcript/end events.
+  // Use the iOS keyboard's native dictation instead of leaving the game stuck on Listening.
+  if(isAppleMobile){
+    // On iPhone/iPad, use Apple's keyboard dictation rather than Web Speech.
+    // This avoids the Safari failure mode where the mic opens but no transcript/end event returns.
+    voice.textContent='🎤 Use phone mic';
+    voice.setAttribute('aria-label','Use phone microphone');
+    voice.addEventListener('click',e=>{
+      e.preventDefault();
+      clearVoiceTimers();
+      voice.classList.remove('listening');
+      voice.disabled=false;
+      voice.textContent='🎤 Use phone mic';
+      showVoiceStatus('Tap the microphone on your iPhone keyboard, speak your message, then tap Send.');
+      // Keep focus inside the tap gesture so iOS can open the keyboard immediately.
+      try{
+        input.focus();
+        const n=input.value.length;
+        input.setSelectionRange(n,n);
+      }catch(_){ }
+      clearTimeout(hideStatusTimer);
+      hideStatusTimer=setTimeout(()=>voiceStatus.classList.remove('show'),12000);
+    });
+    return;
+  }
+
   function finishListeningSoon(){
     if(!recognition||!listening)return;
     flashStatus(heardSomething?'Finishing your voice input…':'Finishing…',3500);
