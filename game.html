@@ -139,10 +139,10 @@ button,.back{touch-action:manipulation}
 <script>
 class DiscoverConversation {
   constructor(){this.maxTurns=5;this.reset()}
-  reset(){this.s={stage:'start',category:'',intent:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[]}}
+  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],memory:{constraints:[],preferences:[],attempts:[],results:[],requirements:[],avoid:[],presentation:[]}}}
   normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").replace(/\bidk\b/g,"i don't know").replace(/\b(?:resturant|restaraunt)\b/g,'restaurant').replace(/\b(?:grocey|grocry)\b/g,'grocery').replace(/\bgrocery lst\b/g,'grocery list').replace(/\bvaccation\b/g,'vacation').replace(/\bwek\b/g,'week').replace(/\s+/g,' ').trim()}
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
-  uncertain(t){const x=this.normalize(t);return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\byou pick\b|\bchoose for me\b|\bsurprise me\b|\bwhatever works\b/i.test(x)}
+  uncertain(t){let x=this.normalize(t).replace(/^(?:uh+|um+|umm+|hmm+|erm+)[,\s-]*/i,'');return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\bno clue\b|\byou pick\b|\byou decide\b|\bchoose for me\b|\bup to you\b|\bsurprise me\b|\bwhatever works\b|^(?:dunno|i dunno|whatever(?: is fine)?)\b/i.test(x)}
   correction(t){return /^(?:actually|instead|wait|never mind|change of plans|i meant|no\s*,?\s*i mean)\b/i.test(String(t||''))}
   isAck(t){return /^(?:ok|okay|sure|yes|yeah|yep|sounds good|good|great|fine|perfect|that works|that makes sense|do that|do it|go ahead|let's do it|lets do it)\.?$/i.test(String(t||''))}
   amount(t){const x=String(t||'');const money=x.match(/\$\s*([0-9]{1,4}(?:,[0-9]{3})?(?:\.\d{1,2})?)/);if(money)return money[1].replace(/,/g,'');const contextual=x.match(/\b(?:budget|spend|cost|under|around|about)\s*\$?\s*([0-9]{1,4}(?:,[0-9]{3})?(?:\.\d{1,2})?)/i);if(contextual)return contextual[1].replace(/,/g,'');return''}
@@ -181,6 +181,130 @@ class DiscoverConversation {
   hasAsked(q){return this.s.asked.includes(this.normalize(q))}
   ask(q){this.s.lastQuestion=q;this.s.asked.push(this.normalize(q));return q}
   noteFact(f){const n=this.normalize(f);if(n && !this.s.facts.includes(n))this.s.facts.push(n)}
+  remember(bucket,value){
+    if(!value)return;
+    if(!this.s.memory)this.s.memory={constraints:[],preferences:[],attempts:[],results:[],requirements:[],avoid:[],presentation:[]};
+    if(!Array.isArray(this.s.memory[bucket]))this.s.memory[bucket]=[];
+    const v=String(value).trim().replace(/[.!?]+$/,'');const n=this.normalize(v);
+    if(v && !this.s.memory[bucket].some(x=>this.normalize(x)===n))this.s.memory[bucket].push(v);
+  }
+  forget(bucket,pattern){
+    if(!this.s.memory||!Array.isArray(this.s.memory[bucket]))return;
+    const re=pattern instanceof RegExp?pattern:new RegExp(String(pattern),'i');
+    this.s.memory[bucket]=this.s.memory[bucket].filter(v=>!re.test(this.normalize(v)));
+  }
+  inferTaskType(text,intent=''){
+    const low=this.normalize(text), i=intent||this.s.intent||'';
+    if(i==='problem'||/\b(?:won't|wont|will not|can't|cant|cannot|doesn't|doesnt|isn't|isnt|not working|broken|stuck|offline|error|keeps? (?:failing|freezing|crashing|disconnecting)|stopped working|won't connect|wont connect)\b/.test(low))return'troubleshoot';
+    if(i==='create'||/\b(?:write|draft|rewrite|compose|make a card|make an invitation|email|message|text to|post for)\b/.test(low))return'create';
+    if(i==='learn'||i==='learnSimple'||i==='learnSteps'||/\b(?:learn|teach|explain|understand|what does|how does)\b/.test(low))return'learn';
+    if(i==='compare'||/\b(?:compare|versus|\bvs\.?\b|difference between|which (?:one )?is better|pros and cons)\b/.test(low))return'compare';
+    if(i==='organize'||/\b(?:organize|organise|sort|declutter|prioritize|prioritise|arrange)\b/.test(low))return'organize';
+    if(i==='trip'||i==='week'||i==='dinner'||i==='groceries'||i==='restaurants'||i==='things'||i==='plan'||/\b(?:plan|schedule|prepare for)\b/.test(low))return'plan';
+    return this.s.taskType||'open';
+  }
+  subjectFromText(text,taskType=''){
+    let t=String(text||'').trim().replace(/[.!?]+$/,'');
+    t=t.replace(/^\s*(?:please\s+)?(?:can you\s+|could you\s+|would you\s+)?/i,'')
+      .replace(/^\s*(?:help me\s+)?(?:plan|organize|organise|sort|declutter|compare|write|draft|rewrite|explain|understand|learn|fix|troubleshoot)\s+/i,'')
+      .replace(/^\s*(?:help me with|i need help with|i want help with|i need ideas for|ideas for|i need to get ready for|get ready for|i need to|i want to)\s+/i,'');
+    if(taskType==='compare'){const m=t.match(/^which\s+(.+?)\s+should i\s+(?:buy|choose|get)$/i);if(m)t=m[1]}
+    t=t.replace(/\s+for me$/i,'').trim();
+    if(!t||t.length>90)return taskType==='compare'?'the options':taskType==='organize'?'this':taskType==='plan'?'this plan':'this';
+    return t;
+  }
+  updateUniversalMemory(text){
+    const raw=String(text||'').trim(), low=this.normalize(raw);if(!raw)return;
+    const detected=this.detectIntent(raw);const type=(this.s.stage!=='start'&&this.s.taskType)?this.s.taskType:this.inferTaskType(raw,detected);if(type!=='open')this.s.taskType=type;
+    // Uncertainty is conversational guidance, not a fact/constraint to remember.
+    if(this.uncertain(raw))return;
+    // Corrections update memory instead of stacking contradictory facts forever.
+    const budgetFree=/\b(?:budget|price|cost)\s+(?:does not|doesn't|doesnt)\s+matter|\bno budget(?: limit)?\b|\bany price\b/.test(low);
+    if(budgetFree){this.forget('constraints',/budget|cost|price/);this.forget('requirements',/budget|cost|price|\$\d+/)}
+    const newDuration=(low.match(/\b(?:make it|instead|now)?\s*(\d+|one|two|three|four|five|six|seven|eight)\s*(minutes?|hours?|days?|weeks?)\b/)||[]);
+    if((this.correction(raw)||/\b(?:instead|now)\b/.test(low))&&newDuration[0])this.forget('constraints',/minutes?|hours?|days?|weeks?/);
+    let positive='';
+    if(this.correction(raw)||/\bafter all\b/.test(low)){
+      positive=(low.match(/^(?:actually\s+)?(?:i|we)\s+(?:do\s+)?(?:want|like)\s+(.+?)(?:\s+after all|\s+now)?$/)||[])[1]||
+        (low.match(/^(?:actually\s+)?(.+?)\s+(?:is|are)\s+(?:fine|okay|ok)(?:\s+after all|\s+now)?$/)||[])[1]||'';
+    }
+    if(positive){const token=this.normalize(positive).replace(/^(?:to|the|anything)\s+/,'').replace(/\s+(?:after all|now)$/,'');if(token){this.forget('avoid',new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'));this.remember('preferences',token)}}
+    const noLonger=(low.match(/\b([^.!?;]{2,40}?)\s+(?:does not|doesn't|doesnt)\s+matter(?:\s+anymore)?/)||[])[1];if(noLonger)this.forget('preferences',new RegExp(this.normalize(noLonger).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'));
+    const money=this.amount(raw);if(money)this.remember('constraints',`budget $${money}`);
+    const duration=(low.match(/\b(?:under|within|about|around|only)?\s*(\d+|one|two|three|four|five|six|seven|eight)\s*(minutes?|hours?|days?|weeks?)\b/)||[]);
+    if(duration[0])this.remember('constraints',duration[0]);
+    for(const m of low.matchAll(/\b(?:i|we)\s+(?:do not|don't|dont)\s+(?:want|like|need)?\s*([^.!?;]+)/g)){let v=m[1].split(/\bbut\b|\band\s+(?:i|we)\b/)[0].trim();if(v)this.remember('avoid',v)}
+    for(const m of low.matchAll(/\b(?:avoid|without|no)\s+([^.!?;,]{2,45})/g)){let v=m[1].trim();if(v)this.remember('avoid',v)}
+    for(const m of low.matchAll(/\b(?:i|we)\s+(?:like|prefer|love|want)\s+([^.!?;]+)/g)){let v=m[1].split(/\bbut\b/)[0].trim();if(v)this.remember('preferences',v)}
+    for(const m of low.matchAll(/\b([^.!?;]{2,55}?)\s+(?:matters?(?:\s+most|\s+more)?|is important|are important|is a priority|are a priority)\b/g)){let v=m[1].trim().replace(/^(?:and|also|but|make|to|actually)\s+/,'');if(v&&!/(?:does not|doesn't|doesnt|not)\s*$/.test(v))this.remember('preferences',v)}
+    for(const m of low.matchAll(/\b(?:he|she|they|my \w+)\s+(?:likes?|loves?|prefers?)\s+([^.!?;]+)/g)){let v=m[1].split(/\bbut\b/)[0].trim();if(v)this.remember('preferences',v)}
+    for(const m of low.matchAll(/\blikes?\s+([^.!?;]+)/g)){let v=m[1].split(/\bbut\b/)[0].trim();if(v)this.remember('preferences',v)}
+    for(const m of low.matchAll(/\b([^.!?;]{2,55}?)\s+(?:is|are)?\s*(?:more|most)\s+important\b/g)){let v=m[1].trim().replace(/^(?:and|also|but|make|to)\s+/,'');if(v)this.remember('preferences',v)}
+    for(const m of low.matchAll(/\b(?:i|we)\s+(?:also\s+)?need\s+something\s+([^.!?;]+)/g)){let v=m[1].trim().replace(/^to\s+/,'');if(v)this.remember('preferences',v)}
+    for(const m of low.matchAll(/\b(?:i|we)\s+only\s+have\s+([^.!?;]+)/g)){let v=m[1].trim();if(v)this.remember('constraints',v)}
+    for(const m of low.matchAll(/\b(?:(?:i|we)\s+(?:already\s+)?(?:tried|checked|restarted|reset|called|used|changed|reinstalled|removed|added|looked at|tested)|already\s+(?:tried|checked|restarted|reset|called|used|changed|reinstalled|removed|added|looked at|tested))\s+([^.!?;]+)/g)){let v=m[0].trim();if(v&&!/haven't|have not|didn't|did not/.test(v))this.remember('attempts',v)}
+    for(const m of low.matchAll(/\b(?:i|we)\s+(?:already\s+)?did\s+([^.!?;]+)/g)){let v=m[0].trim();if(v&&!/didn't|did not/.test(v))this.remember('attempts',v)}
+    if(/\balready tried that\b|\balready did that\b/.test(low))this.remember('attempts','the previous suggested step');
+    if(/\b(?:still|same problem|same issue|did not work|didn't work|does not work|doesn't work|worked|fixed it|works now|no change|got worse|got better)\b/.test(low))this.remember('results',raw);
+    if(/\b(?:must|need to|need the|need my|need this|has to|have to|keep it|make it)\b/.test(low))this.remember('requirements',raw);
+    if(/\b(?:simpler|simple terms|step by step|shorter|more detail|less detail|casual|formal|friendly|professional)\b/.test(low))this.remember('presentation',raw);
+  }
+  memorySummary(){
+    const m=this.s.memory||{};const parts=[];
+    if((m.constraints||[]).length)parts.push(`constraints: ${m.constraints.slice(-2).join(', ')}`);
+    if((m.preferences||[]).length)parts.push(`preferences: ${m.preferences.slice(-2).join(', ')}`);
+    if((m.avoid||[]).length)parts.push(`avoid: ${m.avoid.slice(-2).join(', ')}`);
+    if((m.requirements||[]).length)parts.push(`requirements: ${m.requirements.slice(-2).join(', ')}`);
+    if((m.attempts||[]).length)parts.push(`already tried: ${m.attempts.slice(-2).join(', ')}`);
+    return parts.join('; ');
+  }
+  generalTaskStart(clean,intent){
+    const type=this.inferTaskType(clean,intent);this.s.taskType=type;this.s.intent=intent||type;this.s.category=type==='create'?'create':type==='learn'?'learn':type==='troubleshoot'?'problem':'open';
+    this.s.topic=this.subjectFromText(clean,type);this.s.stage='generalTask';this.updateUniversalMemory(clean);const known=this.memorySummary();
+    if(type==='compare')return{say:`Absolutely. I can compare ${this.s.topic}. I’ll use the criteria you care about rather than declaring a generic winner${known?` (${known})`:''}. Start with the options or tell me what matters most—price, ease, quality, features, or something else.`,choices:['Compare the options','Add what matters to me','Show pros and cons']};
+    if(type==='organize')return{say:`Absolutely. I can help organize ${this.s.topic}. We’ll separate what is fixed or important from what can move, group similar things, and make the next action obvious${known?`. I’m keeping ${known}`:''}.`,choices:['Give me the first step','Help me prioritize','Make a simple plan']};
+    if(type==='plan')return{say:`Absolutely. I can help plan ${this.s.topic}. I’ll keep the details you give me as ongoing constraints instead of asking you to repeat them${known?`. So far I have ${known}`:''}.`,choices:['Build a simple plan','Add a constraint','What do you need from me?']};
+    return{say:`Absolutely. I can help with ${this.s.topic}. I’ll keep track of what you tell me and build on it instead of restarting the conversation.`,choices:['Give me the first step','Add a detail','Show me an example']};
+  }
+  handleGeneralTask(text){
+    const raw=String(text||'').trim(),low=this.normalize(raw),type=this.s.taskType||this.inferTaskType(raw,this.s.intent);const known=this.memorySummary();
+    if(this.uncertain(raw)){
+      if(type==='organize')return{say:`No problem. I’ll choose a simple place to start with ${this.s.topic}: pick one small area or category, spend 10 minutes separating keep/do-now, later, and remove/ignore, then stop and see what changed.`,choices:['Give me the first step','Make a checklist','Keep it very simple']};
+      if(type==='compare')return{say:`That is okay. We can start with three neutral criteria for ${this.s.topic}: cost, ease of use, and quality or reliability. You can react to those instead of deciding the criteria up front.`,choices:['Compare using those','Change a criterion','Keep it simple']};
+      if(type==='plan')return{say:`No problem. I’ll choose a simple default structure for ${this.s.topic}: one must-have, one main activity or task, one optional extra, and a little buffer. You can change anything that does not fit.`,choices:['Build that plan','Make it simpler','Show me an example']};
+      return{say:`That is fine. I can choose a simple first step for ${this.s.topic} and let you react to it instead of making you decide everything first.`,choices:['Choose for me','Show me an example','Keep it simple']};
+    }
+    if(/\b(?:show me|give me)\s+(?:an?\s+)?example\b|^example$/.test(low)){
+      if(type==='organize')return{say:`Example: if you were organizing ${this.s.topic}, start with one small section, make three groups—keep/do now, later, and remove or ignore—and finish that section before opening another.`,choices:['Use that approach','Make a checklist','What next?']};
+      if(type==='compare')return{say:`Example: put Option A and Option B side by side and score only three things—cost, ease of use, and reliability. If cost matters most, give it more weight instead of treating every feature as equally important.`,choices:['Compare them now','Change a criterion','Show trade-offs']};
+      if(type==='plan')return{say:`Example: for ${this.s.topic}, set one must-do item first, add one main activity or task, keep one optional extra, and leave a buffer so the plan can survive a change.`,choices:['Build that plan','Add a detail','Make it simpler']};
+      return{say:`Example: tell me the result you want, one detail that matters, and one thing to avoid. I can make a first attempt from that and you can correct it instead of starting over.`,choices:['Use that pattern','Make it simpler','What next?']};
+    }
+    if(/^(?:what next|what now|then what|next step|what should i do next)\??$/.test(low)){
+      if(type==='organize')return{say:'Next, choose one small category or area and finish that before expanding the task. Put the most important or time-sensitive items first, then group the rest by similarity.',choices:['Make a checklist','Help me prioritize','Keep it simple']};
+      if(type==='compare')return{say:'Next, put both options against the same two or three criteria. That makes the trade-offs visible and keeps one flashy feature from dominating the whole comparison.',choices:['Compare them now','Add a criterion','Show trade-offs']};
+      if(type==='plan')return{say:'Next, turn the constraints we already have into two or three anchors: what must happen, what would be nice, and what can stay flexible.',choices:['Build the plan','Add another detail','Keep it simple']};
+    }
+    if(type==='compare'){
+      if(/\b(?:show|compare).*\b(?:trade-?offs?|pros and cons)|^compare (?:them|the options)(?: now)?$/.test(low))return{say:`Here is the useful comparison structure: put both options in the same rows, use the priorities you already gave me${known?` (${known})`:''}, and mark where each option is stronger, weaker, or about equal. Then choose based on the priorities that matter most to you—not the longest feature list.`,choices:['Add another criterion','Focus on cost','Make it simpler']};
+      if(/\b(?:cheaper|price|cost|budget)\b/.test(low))return{say:`Got it — cost matters. I’ll keep the same comparison and give price more weight rather than starting over${known?`. I’m also keeping ${known}`:''}.`,choices:['Compare by cost','Add another criterion','Show trade-offs']};
+      if(/\b(?:which|better|best|recommend|choose)\b/.test(low))return{say:`Based on the priorities you gave me${known?` (${known})`:''}, I would compare both options criterion by criterion and choose the one that wins on your top priorities. I would not call one “best” without those trade-offs being clear.`,choices:['Show the trade-offs','Add a criterion','Make it simpler']};
+      return{say:`I’ll add that to the same comparison${known?` and keep ${known}`:''}. The next useful move is to compare the options against the same two or three criteria.`,choices:['Compare them now','Add another criterion','Show pros and cons']};
+    }
+    if(type==='organize'){
+      if(/\b(?:checklist|make a list)\b/.test(low))return{say:`Here is a simple organizing checklist${known?` using ${known}`:''}: 1) choose one area or category, 2) separate must-do/keep from later, 3) group similar items, 4) finish the highest-priority group, 5) reset the space before moving on.`,choices:['Help me prioritize','What next?','Keep it simpler']};
+      if(/\b(?:prioritize|priority|what matters most)\b/.test(low))return{say:`Prioritize by consequence and timing: do what has a deadline or blocks something else first, then what creates the biggest improvement, and leave low-impact items for later${known?`. I’m still keeping ${known}`:''}.`,choices:['Make a checklist','What next?','Keep it simple']};
+      if(/\b(?:too much|overwhelmed|where do i start|first)\b/.test(low))return{say:'Start with one small area or category, not the whole thing. Make three groups: do or keep now, later, and remove or ignore. Then finish one group before opening another.',choices:['Give me the first step','Help me prioritize','Keep it very simple']};
+      return{say:`I’ll keep that inside the same organizing task${known?` and remember ${known}`:''}. Next, group similar items or commitments together and choose the one category that will make the biggest difference first.`,choices:['Prioritize it','Make a checklist','What next?']};
+    }
+    if(type==='plan'){
+      if(/\b(?:cheaper|less expensive|save money)\b/.test(low) || (/\bbudget\b/.test(low)&&!/does not matter|doesn't matter|doesnt matter|no budget|any price/.test(low)))this.remember('constraints','keep costs down');
+      if(/\b(?:shorter|faster|less time|quick)\b/.test(low))this.remember('constraints','keep it short');
+      if(/\b(?:build|show|make)\b.*\bplan\b|^build it$/.test(low))return{say:`Here is a simple first-pass plan${known?` using ${known}`:''}: 1) lock the non-negotiables, 2) choose two or three main anchors, 3) put them in a realistic order, 4) leave one flexible block for changes, and 5) check the plan against time, cost, and anything you said to avoid.`,choices:['Make it more specific','Add another detail','Keep it simple']};
+      return{say:`I’ll keep that in the same plan instead of starting over${known?`. I’m carrying forward ${known}`:''}. I’ll treat your newest detail as an update to the plan, then build around what must happen, what you prefer, and what to avoid.`,choices:['Build the plan','Add another detail','Make it simpler']};
+    }
+    return{say:`I’ll keep that as part of the same task${known?` and remember ${known}`:''}. We can use the result of each step to decide what comes next instead of repeating the setup.`,choices:['What next?','Make it simpler','Add another detail']};
+  }
   tripChoices(){
     const c=['Build the itinerary'];
     if(!this.s.location)c.push('Add the destination');
@@ -228,26 +352,34 @@ class DiscoverConversation {
     if(/place to eat|places to eat|restaurant|restaurants|find (?:a )?diner|somewhere to eat|where.*eat|food nearby|find.*food|find (?:some )?(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?|vegetarian|vegan)(?:\s|$)|(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?)\s+(?:in|near|around)\b|where should we go for (?:breakfast|brunch|lunch|dinner)|somewhere for (?:breakfast|brunch|lunch|dinner)|find somewhere for (?:breakfast|brunch|lunch|dinner)/.test(x))return'restaurants';
     if(/find things to do|things to do|activities|what to do|places to visit|this weekend|weekend activities|fun this weekend|fun to do|what is there to do|anything fun to do|something fun to do/.test(x))return'things';
     if(/plan (a )?(trip|vacation)|weekend trip|trip to|vacation to|travel to|destination|day trip|outing/.test(x))return'trip';
+    if(/\b(?:compare|versus|\bvs\.?\b|difference between|which (?:one )?is better|pros and cons|help me choose between)\b/.test(x)||/\bwhich\s+.+?\s+should i\s+(?:buy|choose|get)\b/.test(x))return'compare';
+    if(/\b(?:organize|organise|sort|declutter|prioritize|prioritise|arrange)\b/.test(x))return'organize';
     if(/make (a )?cake|bake a cake|birthday cake/.test(x))return'cake';
-    if(/birthday card|thank you card|write (a )?(card|letter|story|resume|cover letter)|make a card|resume|cover letter|job application/.test(x))return'create';
-    if(/solve a problem|fix (this|it|something)|help me (solve|fix)|problem with|bill is|not working|ants? in my|pests? in my|bug[s]? in my|seal (?:the )?entry point|entry point|close the gap|(?:phone|iphone|computer|laptop|printer|tv|television|remote|app|device)\b.*(?:won't|wont|will not|can't|cant|cannot|isn't|isnt|doesn't|doesnt|stopped|keeps? (?:freezing|crashing)|freez(?:e|es|ing)|crash(?:es|ing)?|turn on|print)/.test(x))return'problem';
+    if(/\b(?:ideas for|help me with)\b.*\b(?:birthday|party|potluck|event|reunion|get-together|garage sale)\b/.test(x)||/\b(?:get ready for|prepare for)\s+(?:a\s+)?(?:move|moving day|party|event)\b/.test(x))return'plan';
+    if(/birthday card|thank you card|write (a )?(card|letter|story|resume|cover letter)|make a card|resume|cover letter|job application|\b(?:write|draft|rewrite|compose|edit|revise)\b.*\b(?:email|message|text|invitation|post|note|letter)\b|\bmake this (?:email|message|text|letter)\b/.test(x))return'create';
+    if(/\b(?:won't|wont|will not|can't|cant|cannot|doesn't|doesnt|isn't|isnt|not working|broken|stuck|offline|error|stopped working|keeps? (?:failing|freezing|crashing|disconnecting|stopping|shutting off|restarting|dropping|leaking|beeping)|won't connect|wont connect|won't start|wont start|won't turn on|wont turn on|won't drain|wont drain|won't charge|wont charge|won't spin|wont spin|dying|wilting|yellowing|overheating|leaking|flickering|dripping|drains? too fast|dies? (?:too )?(?:fast|quickly)|won't hold (?:a )?charge|wont hold (?:a )?charge|not cooling|not heating|no sound|no picture|running constantly|making (?:a )?(?:weird )?noise|running slow|is slow)\b/.test(x))return'problem';
+    if(/\b(?:help me plan|plan my|plan a|plan an|prepare for|make a plan for)\b/.test(x) && !/\b(?:trip|vacation|dinner|meal|grocer(?:y|ies)|week|restaurant|things to do|card|resume|cover letter)\b/.test(x))return'plan';
+    if(/solve a problem|fix (this|it|something)|help me (solve|fix)|problem with|bill is|not working|ants? in my|pests? in my|bug[s]? in my|seal (?:the )?entry point|entry point|close the gap|(?:phone|iphone|computer|laptop|printer|tv|television|remote|app|device)\b.*(?:won't|wont|will not|can't|cant|cannot|isn't|isnt|doesn't|doesnt|stopped|keeps? (?:freezing|crashing)|freez(?:e|es|ing)|crash(?:es|ing)?|turn on|print|offline)/.test(x))return'problem';
+    if(/\b(?:explain|help me understand|what does .+ mean|how does .+ work)\b/.test(x))return'learn';
     if(/teach me.*step by step|step by step|show me how/.test(x))return'learnSteps';
     if(/explain.*simple|explain.*simply|simple terms/.test(x))return'learnSimple';
     if(/\b(?:learn|study|understand|research|teach|practice|quiz|camera|phone|computer|iphone|android|email|text message|printer|tv|television|remote|app|device|golf|garden|gardening|photography|resume|cover letter|job application)\b/.test(x))return'learn';
-    if(/plan (?:dinner|diner)|what.*make.*dinner|dinner tonight|make dinner|what.*for dinner|dinner|chicken|pasta|steak|noodles|salmon|rice|tacos|casserole/.test(x))return'dinner';
+    if(/plan (?:dinner|diner)|what.*make.*dinner|dinner tonight|make dinner|what.*for dinner|\b(?:dinner|chicken|pasta|steak|noodles|salmon|rice|tacos|casserole)\b/.test(x))return'dinner';
     return'';
   }
   detectCategory(t){
     const x=this.normalize(t);
     if(/travel|trip|vacation|hotel|flight|destination|restaurant|eat|food|things to do|activities/.test(x))return'travel';
     if(/learn|study|understand|research|teach|explain|practice|quiz|golf/.test(x))return'learn';
-    if(/create|write|writing|idea|project|card|story|cake|bake|birthday/.test(x))return'create';
+    if(/create|write|writing|draft|rewrite|compose|idea|project|card|story|cake|bake|birthday|invitation|message|email/.test(x))return'create';
+    if(/compare|versus|difference between|pros and cons/.test(x))return'open';
+    if(/organize|organise|sort|declutter|prioritize|prioritise|arrange/.test(x))return'everyday';
     if(/problem|solve|fix|bill|cost|lower|reduce|save money|confusing|not working|\bants?\b|\bpests?\b|\bbugs?\b|\broach(?:es)?\b|\bmice\b|\bspiders?\b/.test(x))return'problem';
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];return this}
-  switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;return this.routeIntent(clean,intent)}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],requirements:[],avoid:[],presentation:[]};return this}
+  switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
     if(/travel|trip|vacation/.test(x)){this.s.category='travel';this.s.stage='topic';return{say:'Great. Tell me what you are trying to do with the trip, and we can build from there.',choices:['Plan the trip','Find things to do','Find places to eat']}}
@@ -282,6 +414,7 @@ class DiscoverConversation {
     if(intent==='learnSteps')return this.learnStart(clean,'steps',true);
     if(intent==='learnSimple')return this.learnStart(clean,'simple',true);
     if(intent==='learn')return this.learnStart(clean,'',true);
+    if(intent==='compare'||intent==='organize'||intent==='plan')return this.generalTaskStart(clean,intent);
     if(this.s.category==='travel')return this.travelStart(clean,true);
     if(this.s.category==='learn')return this.learnStart(clean,'',true);
     if(this.s.category==='create')return this.createStart(clean,true);
@@ -532,8 +665,9 @@ class DiscoverConversation {
           this.s.topic=x;this.noteFact(x);this.s.stage='problemSolution';
           return{say:`Got it — the problem is now ${x}. I’ll drop the earlier device problem and troubleshoot this one instead. Start with the exact symptom or error you see, then we’ll take the smallest useful next step.`,choices:['Show me the first step','I have an error message','Make it simpler']};
         }
-        if(/printer/.test(topicLow)&&/offline/.test(low))return{say:'“Offline” usually means the computer cannot currently reach the printer. First check that the printer is on and connected to the same Wi‑Fi or cable you normally use; then check whether Windows shows that printer as the selected/default printer.',choices:['It is on the same Wi-Fi','It is still offline','Make it simpler']};
-        if(/printer/.test(topicLow)&&/already (?:restarted|rebooted)|restarted it|rebooted it/.test(low))return{say:'Good — since restarting did not fix it, do not repeat that step. Next check the connection: confirm the printer and computer are on the same Wi‑Fi, then open the printer queue and see whether Windows still labels it Offline.',choices:['It says offline','The queue is stuck','Make it simpler']};
+        // Printer follow-ups need stateful troubleshooting (restart -> network -> queue -> reconnect)
+        // rather than a generic "that helps" response. Keep all printer turns in one handler.
+        if(/printer/.test(topicLow))return this.handleProblemSolution(x);
         if(/ant|pest|bug|roach|mice|mouse|spider/.test(topicLow)){
           if(/dog|cat|pet|child|kid|safe/.test(low)) return {say:'Since safety around a pet or child matters, stick with cleaning the trail, removing food and water sources, and sealing entry points first. If a product is used later, follow its label and keep it inaccessible.',choices:['What should I do first?','What if they keep coming back?','Make it simpler']};
           if(/window|door|baseboard|crack|gap|threshold/.test(low)) return {say:'That location is a useful clue. Watch the edge of the window, trim, sill, and nearby baseboard to see where the trail disappears. Clean the trail first; once you are confident about the entry point and activity has settled, seal the gap with an appropriate household sealant.',choices:['How do I seal it?','What if they come back?','Make it pet-safe']};
@@ -732,6 +866,14 @@ class DiscoverConversation {
       const where=this.s.location?` around ${this.s.location}`:'';
       return answer(`Absolutely. Some examples${where}: free things to do this weekend, outdoor activities, museums or local attractions, live events, an easy afternoon, or a low-cost day trip. We can narrow it by cost, distance, pace, or what sounds fun.`, ['Free things to do','Outdoor activities','Events this weekend','Plan an easy day']);
     }
+    if(intent==='create' && /(?:email|message|text|letter)/.test(low) && /(?:make this|rewrite|revise|edit|friendlier|warmer|shorter|less formal|more formal|professional|casual)/.test(low)){
+      this.s.category='create';this.s.intent='create';this.s.topic='this message';this.s.stage='createPlan';
+      return answer('Absolutely. Paste the message you want changed, and I’ll keep the meaning while adjusting the tone or length you asked for. You can then keep refining the same draft instead of starting over.', ['Make it friendlier','Make it shorter','Make it more professional']);
+    }
+    if((intent==='learn'||intent==='learnSimple') && /(?:explain|understand).*(?:letter|notice|document).*(?:got|received)|(?:letter|notice) i got/.test(low)){
+      this.s.category='learn';this.s.intent='learn';this.s.topic='the letter';this.s.stage='learnPractice';
+      return answer('Sure. Paste the part of the letter that is confusing, and I can explain it in plain language, point out the important dates or actions, and separate what the letter says from anything that would need verification.', ['Explain a section','Find the important action','Make it simpler']);
+    }
     if((intent==='learn' || intent==='learnSimple') && /garden|gardening/.test(low)){
       this.s.category='learn';this.s.intent='learn';this.s.topic='gardening';this.s.stage='learnPractice';
       return answer('Gardening, in simple terms, is giving a plant the right combination of light, water, soil, space, and time. Start with a plant that fits the amount of sunlight you have, use soil with good drainage, and water when the plant actually needs it rather than on a rigid schedule. Watch the leaves and soil for clues, and change one thing at a time when you are figuring out what works.', ['Show me a beginner example','What should I plant first?','Explain watering']);
@@ -809,7 +951,7 @@ class DiscoverConversation {
       this.s.category='problem';this.s.intent='problem';this.s.topic=x;this.s.stage='problemSolution';this.noteFact(x);
       if(/printer/.test(low)&&/(?:will not|won't|wont|cannot|can't|cant|not)\s+print|offline/.test(low))return answer('Let’s troubleshoot the printer directly. First confirm it is powered on and connected the way you normally use it, then check whether your computer shows it as Offline or has a stuck print job. Tell me which one you see and we’ll use that clue instead of guessing.', ['It says offline','There is a stuck job','It looks connected']);
       if(/(?:phone|iphone)/.test(low)&&/(?:wi-?fi|wifi|connect)/.test(low))return answer('Let’s troubleshoot the phone connection directly. First confirm Wi‑Fi is on and that the phone can see the network name. If it sees the network but will not join, tell me the exact message; if the network is missing entirely, that points us in a different direction.', ['It sees the network','The network is missing','I get an error']);
-      if(/ant|ants|pest|roach|mice|mouse|spider/.test(low))return this.problemDirectHelp();
+      if(/\b(?:ant|ants|pest|roach|mice|mouse|spider)\b/.test(low))return this.problemDirectHelp();
       return answer('Absolutely. Start with the exact symptom, what you expected instead, and anything you already tried. If there is an error message, include the wording. Then we can work through the likely causes one at a time.', ['Tell me what happened','Show me the first step','Help me troubleshoot']);
     }
     return null;
@@ -818,6 +960,7 @@ class DiscoverConversation {
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
     const detected=this.detectIntent(x);
+    this.updateUniversalMemory(text);
     const intentFamily=(v)=>/^(?:learn|learnSimple|learnSteps)$/.test(v)?'learn':v;
 
     // Corrections inside a weekly plan can move an existing item without changing topics.
@@ -859,10 +1002,21 @@ class DiscoverConversation {
       if(direct)return direct;
     }
 
+    // Generic tasks use one shared continuity engine instead of topic-specific rules.
+    // Explicit topic switches were already handled above, so ordinary follow-ups stay in context.
+    if(this.s.stage==='generalTask')return this.handleGeneralTask(x);
+
     // Short conversational controls are meaningful in the current context.
     const shortCommand=this.handleShortCommand(x);
     if(shortCommand)return shortCommand;
     if(this.isAck(x))return this.handleAck();
+
+    // Once troubleshooting is active, ordinary follow-ups belong to the same
+    // problem-solving flow. This works for printers, Wi-Fi, appliances, apps,
+    // devices, and unfamiliar problems without needing a rule for every topic.
+    if(this.s.stage!=='start' && this.s.intent==='problem'){
+      return this.handleProblemSolution(x);
+    }
 
     // On the opening turn, a recognized intent must win before generic free text.
     if(this.s.stage==='start' && detected){
@@ -934,13 +1088,14 @@ class DiscoverConversation {
       case 'problemFollowup': return this.handleProblemFollowup(x);
       case 'explore': return this.handleExplore(x);
       case 'openGoal': return this.handleOpenGoal(x);
+      case 'generalTask': return this.handleGeneralTask(x);
       case 'openBuild': return this.handleOpenBuild(x);
       default: return this.continueNaturally(x);
     }
   }
   handleTopic(x){
     this.s.topic=x;this.noteFact(x);const low=this.normalize(x);
-    if(/ant|ants|bug|pest|roach|mice|mouse|spider|flea|bill|cost|price|expense|not working|broken/.test(low)){
+    if(/\b(?:ant|ants|bug|pest|roach|mice|mouse|spider|flea|bill|cost|price|expense|not working|broken)\b/.test(low)){
       this.s.category='problem';this.s.intent='problem';this.s.stage='problemGoal';
       return{say:`I can help with ${x}. Tell me what you want to happen, and I’ll work from there.`,choices:['Get rid of it','Fix it','Understand it','Lower the cost']};
     }
@@ -1053,7 +1208,7 @@ class DiscoverConversation {
     if(/simpler|simple/.test(low))return{say:`In simple terms: try one small thing with ${this.s.topic}, see what happens, and tell me the result. Then we adjust from there.`,choices:['What next?','Give me an example']};
     return{say:`Let’s keep ${this.s.topic} practical. Start with one small action, see what happens, and use that result to decide what to do next.`,choices:['Give me an example','What next?']};
   }
-  handleCreateGoal(x){const low=this.normalize(x),topic=this.normalize(this.s.topic);this.s.goal=x;this.s.details.push(x);this.s.stage='createPlan';if(/card/.test(topic)&&/funny|playful|humor|joke/.test(low))return{say:'Funny is a clear direction. I’ll keep it light and personal instead of making it sound like a generic greeting card.',choices:['Draft it','Make it for my sister','Not too sentimental']};if(/card/.test(topic)&&/sister|brother|mom|mother|dad|father|friend|husband|wife|daughter|son/.test(low))return{say:'Perfect. Knowing who the card is for gives us the relationship and tone. Add one personal detail or tell me whether you want it funny, warm, or very short.',choices:['Make it funny','Make it warm','Keep it short']};return{say:`Great. Now I know the direction. I’d start with a rough version rather than trying to get it perfect on the first try.`,choices:['Draft it','Give me ideas','Make it simpler']}}
+  handleCreateGoal(x){const low=this.normalize(x),topic=this.normalize(this.s.topic);if(this.uncertain(x)){this.s.goal='simple first draft';this.s.stage='createPlan';return{say:'No problem. I’ll start with a warm, simple version you can react to. You do not need to choose the tone or wording before we begin.',choices:['Start the draft','Make it shorter','Make it more personal']}}this.s.goal=x;this.s.details.push(x);this.s.stage='createPlan';if(/card/.test(topic)&&/funny|playful|humor|joke/.test(low))return{say:'Funny is a clear direction. I’ll keep it light and personal instead of making it sound like a generic greeting card.',choices:['Draft it','Make it for my sister','Not too sentimental']};if(/card/.test(topic)&&/sister|brother|mom|mother|dad|father|friend|husband|wife|daughter|son/.test(low))return{say:'Perfect. Knowing who the card is for gives us the relationship and tone. Add one personal detail or tell me whether you want it funny, warm, or very short.',choices:['Make it funny','Make it warm','Keep it short']};return{say:`Great. Now I know the direction. I’d start with a rough version rather than trying to get it perfect on the first try.`,choices:['Draft it','Give me ideas','Make it simpler']}}
   handleCreatePlan(x){
     const low=this.normalize(x),topic=this.normalize(this.s.topic);
     if(/card/.test(topic)&&/funny|playful|humor|joke/.test(low)){this.s.details.push(x);return{say:'Funny works. I’d keep the card to one sincere line and one playful line so it feels personal without getting sugary.',choices:['Draft the card','Not too sentimental','Add a personal detail']}}
@@ -1070,18 +1225,85 @@ class DiscoverConversation {
       return{say:`Got it. I’ll keep the cover letter${wc?` under ${wc} words`:''} and${tone}. It should still connect your experience to the job, but without sounding stiff or padded.`,choices:['Draft it','Make it warmer','Tailor it to a job']};
     }
     if(/idea/.test(low))return{say:`Let’s brainstorm three directions for ${this.s.topic}: one simple, one playful, and one more polished. Then you can pick the one that feels right.`,choices:['Pick the easiest','Make one more playful','Draft one']};
-    if(/draft|write/.test(low))return{say:`I would make a first draft now, then revise it once you know what you want to keep. AI is particularly useful when you treat the first answer as a starting point rather than the final product.`,choices:['Make it warmer','Make it shorter','Try another version']};
+    if(/draft|write/.test(low)){if(/email|message|text|neighbor|fence|invitation/.test(topic)){return{say:'Here is a simple first draft: “Hi [Name], I wanted to reach out about this and see if we can find a solution that works for both of us. When you have a chance, could we talk about the details? Thanks — I appreciate it.” You can now tell me what feels too formal, too vague, or not like you.',choices:['Make it friendlier','Make it shorter','Add the specific issue']}}return{say:`I’ll make a rough first draft now rather than stopping at planning. Then you can react to the wording, tone, length, or details and I’ll revise the same draft.`,choices:['Make it warmer','Make it shorter','Try another version']}};
     return{say:`That gives us enough to move from idea to action. The next step is to make a rough version and then improve the part you care about most.`,choices:['Draft it','Give me ideas','Make it simpler']}
   }
   handleCakeDetails(x){const flavor=this.uncertain(x)?'a flavor you choose':x;this.s.details.push(flavor);this.s.stage='cakePlan';return{say:`Great. I’ll build the cake around ${flavor}. A simple plan is to keep the cake and decoration separate so the baking stays manageable.`,choices:['Give me the recipe','Decorating ideas','Shopping list']}}
   handleCakePlan(x){return{say:'For a simple cake project, I would keep the ingredient list short, bake the cake first, let it cool completely, and decorate after that. It is easier and less stressful that way.',choices:['Make it simpler','Give me a shopping list']}}
   handleProblemGoal(x){const low=this.normalize(x);if(this.uncertain(x)){this.s.goal='find a workable solution';this.s.stage='problemSolution';return this.problemDirectHelp()}if(/get rid|remove|gone|away|stop|prevent|eliminate/.test(low)){this.s.goal='get rid of it';this.s.stage='problemSolution';return this.problemDirectHelp()}if(/fix|solve|solution/.test(low)){this.s.goal='fix it';this.s.stage='problemSolution';return this.problemDirectHelp()}if(/lower|reduce|save money|cost less/.test(low)){this.s.goal=x;this.s.stage='problemSolution';return this.problemDirectHelp()}if(/understand|why|explain/.test(low)){this.s.goal='understand what is happening';this.s.stage='problemSolution';return this.problemDirectHelp()}this.s.goal=x;this.s.stage='problemSolution';return this.problemDirectHelp()}
-  problemDirectHelp(){const topic=this.normalize(this.s.topic),goal=this.normalize(this.s.goal);if(/ant|ants|bug|pest|roach|mice|mouse|spider|flea/.test(topic)){this.s.details.push('pest-control');return{say:'If your goal is simply to get the ants gone, I would start with the basics instead of asking you a dozen questions: wipe away the trail, remove nearby food and water, check where they are entering, and seal the entry point once the activity settles. If they keep returning, bait can work better than spraying the visible trail because it can reach the colony.',choices:['Make that safer for pets','What should I do first?','How do I keep them from coming back?']}}if(/bill|cost|price|expense|money/.test(topic)){return{say:'If the goal is to lower the bill, start by comparing it with a normal month and identify what changed—usage, rates, or a new charge. That tells us where to focus instead of making random cuts.',choices:['Show me how','Make that simpler','What should I check first?']}}if(/phone|computer|printer|tv|remote|app|device/.test(topic)){return{say:'Let’s start with what you can observe. Try the action once and note exactly what happens, including any message on the screen. That gives us a concrete clue instead of guessing.',choices:['I can do that','Make it simpler']}}return{say:`Let’s work toward ${this.s.goal||'a solution'} by starting with the simplest useful action, then using what happens next to decide the following step.`,choices:['Give me the first step','Make it simpler']}}
+  problemDirectHelp(){const topic=this.normalize(this.s.topic),goal=this.normalize(this.s.goal);if(/\b(?:ant|ants|bug|pest|roach|mice|mouse|spider|flea)\b/.test(topic)){this.s.details.push('pest-control');return{say:'If your goal is simply to get the ants gone, I would start with the basics instead of asking you a dozen questions: wipe away the trail, remove nearby food and water, check where they are entering, and seal the entry point once the activity settles. If they keep returning, bait can work better than spraying the visible trail because it can reach the colony.',choices:['Make that safer for pets','What should I do first?','How do I keep them from coming back?']}}if(/bill|cost|price|expense|money/.test(topic)){return{say:'If the goal is to lower the bill, start by comparing it with a normal month and identify what changed—usage, rates, or a new charge. That tells us where to focus instead of making random cuts.',choices:['Show me how','Make that simpler','What should I check first?']}}if(/phone|computer|printer|tv|remote|app|device/.test(topic)){return{say:'Let’s start with what you can observe. Try the action once and note exactly what happens, including any message on the screen. That gives us a concrete clue instead of guessing.',choices:['I can do that','Make it simpler']}}return{say:`Let’s work toward ${this.s.goal||'a solution'} by starting with the simplest useful action, then using what happens next to decide the following step.`,choices:['Give me the first step','Make it simpler']}}
   handleProblemSolution(x){
-    const low=this.normalize(x),topic=this.normalize(this.s.topic),isPest=/ant|ants|bug|pest|roach|mice|mouse|spider|flea/.test(topic);
+    const low=this.normalize(x),topic=this.normalize(this.s.topic),isPest=/\b(?:ant|ants|bug|pest|roach|mice|mouse|spider|flea)\b/.test(topic);
     if(this.uncertain(x)) return{say:'That is fine. I can choose the next practical step and keep it simple.',choices:['Give me the first step','Make it simpler']};
-    if(/printer/.test(topic)&&/offline/.test(low))return{say:'“Offline” means the computer is not currently communicating with the printer. First confirm the printer is powered on and connected to the same Wi‑Fi or cable you normally use, then open the printer queue and see whether Windows still shows it Offline.',choices:['It is on the same Wi-Fi','It is still offline','The queue has jobs']};
-    if(/printer/.test(topic)&&/already (?:restarted|rebooted)|restarted it|rebooted it/.test(low))return{say:'Good — since restarting did not solve it, do not repeat that step. Next check the connection and printer queue: confirm the printer and computer are on the same Wi‑Fi, then see whether Windows still labels it Offline or shows a stuck job.',choices:['It says offline','There is a stuck job','It looks connected']};
+    const mem=this.s.memory||{}, attempts=(mem.attempts||[]), results=(mem.results||[]);
+    const notTried=(low.match(/\b(?:i|we)\s+(?:have not|haven't|havent|did not|didn't|didnt)\s+tried\s+([^.!?;]+)/)||[])[1];
+    if(notTried)return{say:`Okay — you have not tried ${notTried} yet. That is a reasonable next check if it is safe and simple to do. Try it once, note exactly what changes, and then we can use that result instead of guessing.`,choices:['I tried it','It did not help','Give me another check']};
+    if(/^(?:what next|what should i check next|what should i try next|then what|next step)\??$/.test(low)){
+      const tried=attempts.length?` Since you already tried ${attempts.slice(-2).join(' and ')}, I would not repeat those.`:'';
+      return{say:`Next, check one different source of the problem rather than changing several things at once.${tried} Look for the clearest clue available—an error message, connection or power status, a setting that changed, or the exact moment the failure occurs.`,choices:['I see an error','The status looks normal','Make it simpler']};
+    }
+    if(/\b(?:works now|working now|fixed it|that worked|it worked)\b/.test(low))return{say:'Great — stop there. That last step changed the result, so there is no reason to keep troubleshooting unless the problem returns.',choices:['What probably caused it?','Try another problem']};
+    if(/\balready (?:tried|did|checked|restarted|reset|called|used|changed|reinstalled|removed|added|tested)\b|\bi (?:already )?(?:tried|checked|restarted|reset|reinstalled)\b/.test(low)){
+      const tried=attempts.length?attempts[attempts.length-1]:'that step';
+      return{say:`Got it — I won’t send you back through ${tried}. Since that did not solve the problem, the next useful step is to check a different cause and look for a concrete clue such as an error message, status light, connection state, or exactly when the failure happens.`,choices:['I see an error','No error message','It still happens']};
+    }
+    if(/\b(?:still|same problem|same issue|no change|did not work|didn't work|doesn't work|does not work)\b/.test(low)&&attempts.length){
+      return{say:`Since the problem is still happening after ${attempts.slice(-2).join(' and ')}, I would not repeat those steps. Next, check a different layer of the problem—connection or power, settings, then the specific component or service involved—and use any error or status you see to narrow it down.`,choices:['I see an error','The connection looks okay','What should I check next?']};
+    }
+    if(/\berror(?: code)?\s*[a-z0-9-]+|\bcode\s*[a-z0-9-]+/.test(low))return{say:'That error code is useful evidence. Keep the exact code and note what you were doing when it appeared. The next step is to use that code with the device or service name rather than trying random fixes.',choices:['What should I check next?','Make it simpler','I can give more details']};
+    if(/\bpassword (?:is )?correct\b/.test(low)&&/wi-?fi|connect/.test(topic+' '+low))return{say:'Good — that makes a bad password less likely. Next check whether the device can see the network consistently, whether the signal is strong enough, and whether forgetting the network and joining it again changes the result.',choices:['It sees the network','The network disappears','I already rejoined it']};
+    if(/printer/.test(topic)){
+      const facts=(this.s.facts||[]).join(' ');
+      if(/already (?:restarted|rebooted)|restarted (?:the )?(?:printer|computer|laptop|both|it)|rebooted (?:the )?(?:printer|computer|laptop|both|it)|(?:restarted|rebooted) both/.test(low)){
+        this.noteFact('printer and computer restarted');
+        return{say:'Good — since restarting did not solve it, do not repeat that step. Next check the connection and printer queue: confirm the printer and computer are on the same Wi‑Fi, then see whether the printer queue still labels it Offline or shows a stuck job.',choices:['They are on the same Wi-Fi','It still says offline','There is a stuck job']};
+      }
+      if(/same wi-?fi|same wifi|both.*wi-?fi|printer.*wi-?fi.*(?:laptop|computer).*wi-?fi|(?:laptop|computer).*wi-?fi.*printer.*wi-?fi|printer.*(?:on )?wi-?fi.*(?:laptop|computer).*(?:too|also|as well)|(?:laptop|computer).*wi-?fi.*printer.*(?:too|also|as well)|looks connected/.test(low)){
+        this.noteFact('printer and computer on same wifi');
+        return{say:'Great — that rules out the most basic network mismatch. Next open the printer queue or printer settings and check three things: whether it is paused, whether “Use Printer Offline” is turned on, and whether there is a stuck print job. If none of those apply, the next step is usually to remove and re-add the printer.',choices:['The queue is empty','There is a stuck job','It says Use Printer Offline']};
+      }
+      if(/stuck job|queue has jobs|print job.*stuck|jobs? (?:are|is) stuck/.test(low)){
+        this.noteFact('printer queue has stuck job');
+        return{say:'That is a useful clue. Cancel the stuck print job, wait a few seconds, then try printing one small test page. If the job will not clear, close the queue and restart the print service or remove and re-add the printer.',choices:['The job cleared','It will not clear','How do I remove and re-add it?']};
+      }
+      if(/job cleared|queue cleared|it cleared|cleared the job/.test(low)){
+        this.noteFact('printer queue cleared');
+        return{say:'Great — now try one small test print. If it prints, the stuck job was the cause. If it still does not print or goes Offline again, the next step is to remove and re-add the printer connection.',choices:['It printed','Still offline','How do I remove and re-add it?']};
+      }
+      if(/queue (?:is )?empty|no (?:stuck )?jobs?(?: in the queue)?|nothing in the queue|no print jobs?/.test(low)){
+        this.noteFact('printer queue empty');
+        return{say:'Good — if the queue is empty and both devices are on the same Wi‑Fi, the next practical step is to check whether the printer is paused or set to “Use Printer Offline.” If it is not, remove the printer from your device and add it again so the connection can refresh.',choices:['Use Printer Offline is on','It is not paused','How do I remove and re-add it?']};
+      }
+      if(/use printer offline/.test(low)){
+        this.noteFact('use printer offline setting found');
+        return{say:'Turn off “Use Printer Offline,” wait a few seconds, and try a small test print. If it still shows Offline afterward, remove and re-add the printer to refresh the connection.',choices:['It works now','Still offline','How do I remove and re-add it?']};
+      }
+      if(/not paused|isn'?t paused|is not paused/.test(low)){
+        this.noteFact('printer not paused');
+        return{say:'Good — if it is not paused, the queue is clear, and both devices are on the same Wi‑Fi, the next useful step is to remove and re-add the printer so the connection is rebuilt.',choices:['How do I remove and re-add it?','I already tried that','Make it simpler']};
+      }
+      if(/it works now|it printed|printed successfully|working now/.test(low)){
+        this.noteFact('printer working');
+        return{say:'Great — that means the last step fixed the connection or queue problem. You can stop troubleshooting here unless the printer goes Offline again.',choices:['What caused it?','Try another problem']};
+      }
+      if(/already tried that|already removed|already re-added|already readded/.test(low)){
+        this.noteFact('printer already re-added');
+        return{say:'Since you already removed and re-added it, the next step is to check whether your device can reach the printer at all—look for the printer’s IP address or network status page, or try printing from another device on the same Wi‑Fi. That helps separate a printer-network problem from a laptop-only problem.',choices:['Another device can print','Another device cannot print','Make it simpler']};
+      }
+      if(/another device can print/.test(low)){
+        return{say:'That points to the laptop rather than the printer itself. Focus on the laptop’s printer setup next: remove the printer connection, add it again, and if needed update or reinstall the printer driver/software.',choices:['How do I do that?','Make it simpler']};
+      }
+      if(/another device (?:cannot|can'?t|cant) print/.test(low)){
+        return{say:'That points more toward the printer or network than the laptop. Check the printer’s own network status, reconnect the printer to Wi‑Fi if needed, and then try a test page directly from the printer if it supports one.',choices:['It is connected to Wi-Fi','It lost Wi-Fi','Make it simpler']};
+      }
+      if(/still says offline|still offline|it says offline|offline/.test(low)){
+        if(/same wifi/.test(facts))return{say:'Since the printer and laptop are already on the same Wi‑Fi, do not repeat that check. Open the printer queue or printer settings next and look for a paused printer, “Use Printer Offline,” or a stuck job. If none of those are present, remove and re-add the printer.',choices:['The queue is empty','There is a stuck job','Use Printer Offline is on']};
+        return{say:'“Offline” means the computer is not currently communicating with the printer. First confirm the printer is powered on and that the printer and laptop are on the same Wi‑Fi or cable connection you normally use. Then we can move to the printer queue.',choices:['They are on the same Wi-Fi','It is still offline','The queue has jobs']};
+      }
+      if(/remove and re-add|remove.*printer|add it again|re-add/.test(low)){
+        return{say:'Open your device’s printer settings, select the printer, remove it, then choose Add Printer or Add Device and select it again. After it reconnects, try one test page before changing anything else.',choices:['It reconnected','It still will not connect','Make that simpler']};
+      }
+    }
     if(/how to|how do i|how can i|what do i do|where do i start/.test(low)){
       if(isPest)return{say:'Start by wiping away the visible trail and removing food or water they may be following. Then watch where the next ants appear; that points you toward the entry point without making you guess.',choices:['How do I keep them from coming back?','Make that simpler']};
       return{say:'Start with the smallest action that gives you useful information. Do that first, then use the result to decide the next step.',choices:['Give me the first step','Make it simpler']}
@@ -1116,12 +1338,19 @@ class DiscoverConversation {
       this.s.stage='openBuild';
       return{say:'No problem. I will give you a few concrete possibilities instead of asking you to figure out the perfect request. We could plan something, make an everyday task easier, learn about a hobby, or work on a project.',choices:['Plan something','Make an everyday task easier','Learn about a hobby','Work on a project']};
     }
-    this.s.goal=x;this.noteFact(x);this.s.stage='openBuild';return{say:`Good. I understand the goal now: ${x}. I can start with a useful first pass and then adjust it based on what you tell me next.`,choices:['Start with a simple answer','Give me an example','Make it more specific']}}
+    const det=this.detectIntent(x);
+    if(det==='compare'||det==='organize'||det==='plan')return this.generalTaskStart(x,det);
+    if(det==='problem')return this.problemStart(x,true);
+    if(det==='create')return this.createStart(x,true);
+    if(det==='learn'||det==='learnSimple'||det==='learnSteps')return this.learnStart(x,det==='learnSteps'?'steps':det==='learnSimple'?'simple':'',true);
+    this.s.goal=x;this.noteFact(x);this.s.taskType=this.inferTaskType(x,det);this.s.stage='generalTask';this.s.topic=this.s.topic||x;
+    return{say:`Good. I understand the goal now: ${x}. I’ll keep track of the details you add so you do not have to repeat yourself.`,choices:['Give me the first step','Add a detail','Make it more specific']}}
+
   handleOpenBuild(x){const low=this.normalize(x);if(this.uncertain(x)){return{say:'That is completely fine. We do not need to force an answer. I can give you a few concrete directions and you can react to whichever feels useful.',choices:['Plan something','Make something','Learn something','Solve a problem']}}if(/simple|simpler/.test(low))return{say:`Sure. I’ll keep the answer focused on the part that matters most, rather than giving you everything at once.`,choices:['Give me one example','Keep going']};if(/example/.test(low))return{say:`Here is the pattern: tell AI what you want, include one detail that matters, then react to the answer. You can say “that is not what I meant” or “make this simpler” and keep going.`,choices:['Make it simpler','Show me another example']};if(/more specific|specific/.test(low))return{say:'A stronger request adds one concrete detail—who it is for, where it is happening, how much time or money you have, or what result you want. You do not need a long prompt.',choices:['Show me an example','Keep going']};return{say:'That is enough to work from. I would give a first answer now, then let your next reaction shape the conversation instead of asking you to define everything up front.',choices:['Give me an example','Make it simpler']}}
   handleAck(){
     const stage=this.s.stage;
     const topic=this.normalize(this.s.topic);
-    if(stage==='problemSolution' && /ant|ants|bug|pest|roach|mice|spider|flea/.test(topic)) return this.problemDirectHelp();
+    if(stage==='problemSolution' && /\b(?:ant|ants|bug|pest|roach|mice|spider|flea)\b/.test(topic)) return this.problemDirectHelp();
     if(stage==='learnPractice') return this.handleLearnPractice('what next');
     if(stage==='dinnerPlan') return{say:'Great. Let’s do the simple version: use the main ingredient you already have, keep the steps short, and make one easy side. If you tell me what is in your kitchen, I can turn that into the actual dinner.',choices:['I’ll list what I have','Give me a recipe','Another idea']};
     if(stage==='thingsDetails'||stage==='thingsPlan') return{say:'Good. Let’s narrow the outing by what sounds fun to you, rather than making you sort through a giant list.',choices:['Outdoors','Free things','Events','Easy day out']};
@@ -1168,10 +1397,8 @@ class DiscoverConversation {
   ensureFresh(r){
     const out={say:r&&r.say?String(r.say):'Let’s keep building from there.',choices:Array.isArray(r&&r.choices)?r.choices.slice():[]};
     const key=this.normalize(out.say);
-    if(key&&this.s.aiResponses.includes(key)){
-      const next=this.handleShortCommand('what next?');
-      if(next&&next.say&&this.normalize(next.say)!==key){out.say=next.say;out.choices=Array.isArray(next.choices)?next.choices.slice():out.choices;}
-    }
+    // A repeated but context-correct answer is safer than replacing it with an
+    // unrelated canned response. Keep semantic accuracy first; QA catches loops.
     out.choices=out.choices.filter((c,i,a)=>a.findIndex(v=>this.normalize(v)===this.normalize(c))===i && !this.s.promptHistory.slice(-8).includes(this.normalize(c))).slice(0,4);
     if(out.say)this.s.aiResponses.push(this.normalize(out.say));
     out.choices.forEach(c=>this.s.promptHistory.push(this.normalize(c)));
