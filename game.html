@@ -218,7 +218,7 @@ class DiscoverConversation {
     // so phrases like “I need to organize …” become the subject rather than
     // “organize organize …”.
     t=t.replace(/^\s*(?:please\s+)?(?:can you\s+|could you\s+|would you\s+)?/i,'')
-      .replace(/^\s*(?:help me with|i need help with|i want help with|i need ideas for|ideas for|i need to get ready for|get ready for|i need to|i want to)\s+/i,'')
+      .replace(/^\s*(?:help me choose between|choose between|decide between|pick between|i need to pick between|i need to choose between|i need to decide between|help me with|i need help with|i want help with|i need ideas for|ideas for|i need to get ready for|get ready for|i need to|i want to)\s+/i,'')
       .replace(/^\s*(?:help me\s+)?(?:plan|organize|organise|sort|declutter|compare|write|draft|rewrite|explain|understand|learn|fix|troubleshoot)\s+/i,'')
       .replace(/^\s*(?:plan|organize|organise|sort|declutter|compare|write|draft|rewrite|explain|understand|learn|fix|troubleshoot)\s+/i,'');
     // Keep time/budget limits in universal memory, not inside the subject label.
@@ -226,7 +226,13 @@ class DiscoverConversation {
       t=t.replace(/\s*,?\s*(?:but|and)\s+(?:i|we)\s+(?:only\s+)?have\s+(?:about\s+|around\s+|under\s+|less than\s+)?(?:\d+|one|two|three|four|five|six|seven|eight)\s*(?:minutes?|hours?|days?|weeks?).*$/i,'').trim();
       if(taskType==='organize')t=t.replace(/\s+(?:in|within)\s+(?:about\s+|around\s+|under\s+|less than\s+)?(?:\d+|one|two|three|four|five|six|seven|eight)\s*(?:minutes?|hours?)$/i,'').trim();
     }
-    if(taskType==='compare'){const m=t.match(/^which\s+(.+?)\s+should i\s+(?:buy|choose|get)$/i);if(m)t=m[1]}
+    if(taskType==='compare'){
+      const m=t.match(/^which\s+(.+?)\s+should i\s+(?:buy|choose|get)$/i);if(m)t=m[1];
+      // Keep the thing being compared, not the user's emotional/setup clause.
+      // Example: “two used cars, but I'm overwhelmed…” -> “two used cars”.
+      t=t.replace(/\s*[,;:-]\s*(?:but|and)\s+(?:i|we)\b.*$/i,'').trim();
+      t=t.replace(/\s+because\s+(?:i|we)\b.*$/i,'').trim();
+    }
     t=t.replace(/\s+for me$/i,'').trim();
     if(!t||t.length>90)return taskType==='compare'?'the options':taskType==='organize'?'this':taskType==='plan'?'this plan':'this';
     return t;
@@ -376,7 +382,7 @@ class DiscoverConversation {
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:do not|don't|dont)\s+(?:want|like|need)?\s*([^.!?;]+)/g)){let v=m[1].split(/\bbut\b|\band\s+(?:i|we)\b/)[0].trim();if(v)this.remember('avoid',v)}
     for(const m of low.matchAll(/\b(?:avoid|without|no)\s+([^.!?;,]{2,45})/g)){let v=m[1].trim();if(v)this.remember('avoid',v)}
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:like|prefer|love|want)\s+([^.!?;]+)/g)){let v=m[1].split(/\bbut\b/)[0].trim();if(v)this.remember('preferences',v)}
-    for(const m of low.matchAll(/\b([^.!?;]{2,55}?)\s+(?:matters?(?:\s+most|\s+more)?|is important|are important|is a priority|are a priority)\b/g)){let v=m[1].trim().replace(/^(?:and|also|but|make|to|actually)\s+/,'');if(v&&!/(?:does not|doesn't|doesnt|not)\s*$/.test(v))this.remember('preferences',v)}
+    for(const m of low.matchAll(/\b([^.!?;]{2,55}?)\s+(?:matters?(?:\s+most|\s+more)?|is important|are important|is a priority|are a priority)\b/g)){let v=m[1].trim().replace(/^(?:and|also|but|make|to|actually)\s+/,'');if(v&&!/(?:does not|doesn't|doesnt|not)\s*$/.test(v)&&!/\b(?:don't know|dont know|not sure|overwhelmed|unsure|no idea)\b/.test(v))this.remember('preferences',v)}
     for(const m of low.matchAll(/\b(?:he|she|they|my \w+)\s+(?:likes?|loves?|prefers?)\s+([^.!?;]+)/g)){let v=m[1].split(/\bbut\b/)[0].trim();if(v)this.remember('preferences',v)}
     for(const m of low.matchAll(/\blikes?\s+([^.!?;]+)/g)){let v=m[1].split(/\bbut\b/)[0].trim();if(v)this.remember('preferences',v)}
     for(const m of low.matchAll(/\b([^.!?;]{2,55}?)\s+(?:is|are)?\s*(?:more|most)\s+important\b/g)){let v=m[1].trim().replace(/^(?:and|also|but|make|to)\s+/,'');if(v)this.remember('preferences',v)}
@@ -404,10 +410,24 @@ class DiscoverConversation {
     if((m.observations||[]).length)parts.push(`noticed ${m.observations.slice(-2).join(', ')}`);
     return parts.join('; ');
   }
+  comparisonGuide(topic){
+    const t=this.normalize(topic||'');
+    if(/\b(?:car|cars|truck|trucks|suv|suvs|vehicle|vehicles)\b/.test(t))return{criteria:'price, mileage, maintenance history, reliability, ownership costs, and how each fits your driving',ask:'Send me the year/make/model (or whatever you know) for each vehicle',choices:['Add the two cars','Help choose the criteria','Show a simple comparison']};
+    if(/\b(?:phone|phones|laptop|laptops|tablet|tablets|computer|computers|tv|televisions?|cameras?|headphones|earbuds)\b/.test(t))return{criteria:'price, reliability, battery or power needs, features you will actually use, and expected lifespan',ask:'Tell me the two models or options you are considering',choices:['Add the two options','Help choose the criteria','Show a simple comparison']};
+    if(/\b(?:internet|insurance|plan|plans|service|services|subscription|subscriptions|provider|providers)\b/.test(t))return{criteria:'total cost, fees, coverage or limits, reliability, flexibility, and customer support',ask:'Tell me the two plans or providers you are comparing',choices:['Add the two options','Help choose the criteria','Show a simple comparison']};
+    if(/\b(?:hotel|hotels|lodging|rental|rentals|vacation|trip|trips|destination|destinations)\b/.test(t))return{criteria:'total cost, location, convenience, comfort, cancellation flexibility, and the experience you care about most',ask:'Tell me the two places or options you are considering',choices:['Add the two options','Help choose the criteria','Show a simple comparison']};
+    if(/\b(?:job|jobs|job offer|job offers|position|positions|role|roles)\b/.test(t))return{criteria:'pay, benefits, schedule, commute or remote flexibility, growth, stability, and how the work fits your priorities',ask:'Tell me the two jobs or offers you are comparing',choices:['Add the two jobs','Help choose the criteria','Show a simple comparison']};
+    if(/\b(?:contractor|contractors|handyman|handymen|company|companies|vendor|vendors)\b/.test(t))return{criteria:'price, scope of work, timeline, experience, licensing or insurance, reviews, and warranty or follow-up support',ask:'Tell me the two contractors or companies you are comparing',choices:['Add the two options','Help choose the criteria','Show a simple comparison']};
+    if(/\b(?:mattress|mattresses|bed|beds)\b/.test(t))return{criteria:'comfort and support, materials, durability, trial or return policy, warranty, and price',ask:'Tell me the two mattresses or models you are considering',choices:['Add the two options','Help choose the criteria','Show a simple comparison']};
+    return{criteria:'cost, quality or condition, ongoing effort or upkeep, useful features, and fit for what you actually need',ask:'Tell me the two options you are comparing',choices:['Add the two options','Help choose the criteria','Show a simple comparison']};
+  }
   generalTaskStart(clean,intent){
     const type=this.inferTaskType(clean,intent);this.s.taskType=type;this.s.intent=intent||type;this.s.category=type==='create'?'create':type==='learn'?'learn':type==='troubleshoot'?'problem':'open';
     this.s.topic=this.subjectFromText(clean,type);this.s.stage='generalTask';this.updateUniversalMemory(clean);const known=this.memorySummary();
-    if(type==='compare')return{say:`Absolutely. I can compare ${this.s.topic}. I’ll use the criteria you care about rather than declaring a generic winner${known?` (${known})`:''}. Start with the options or tell me what matters most—price, ease, quality, features, or something else.`,choices:['Compare the options','Add what matters to me','Show pros and cons']};
+    if(type==='compare'){
+      const g=this.comparisonGuide(this.s.topic);
+      return{say:`Absolutely. Let’s make ${this.s.topic} easier to compare. A useful starting set of criteria is ${g.criteria}. ${g.ask}, and I’ll put them side by side.`,choices:g.choices};
+    }
     if(type==='organize'){
       const mins=(this.normalize(clean).match(/\b(?:only\s+have\s+|have\s+|in\s+)?(\d+)\s*minutes?\b/)||[])[1];
       const hrs=(this.normalize(clean).match(/\b(?:only\s+have\s+|have\s+|in\s+)?(\d+)\s*hours?\b/)||[])[1];
@@ -447,10 +467,11 @@ class DiscoverConversation {
       if(type==='plan')return{say:'Next, turn the constraints we already have into two or three anchors: what must happen, what would be nice, and what can stay flexible.',choices:['Build the plan','Add another detail','Keep it simple']};
     }
     if(type==='compare'){
-      if(/\b(?:show|compare).*\b(?:trade-?offs?|pros and cons)|^compare (?:them|the options)(?: now)?$/.test(low))return{say:`Here is the useful comparison structure: put both options in the same rows, use the priorities you already gave me${known?` (${known})`:''}, and mark where each option is stronger, weaker, or about equal. Then choose based on the priorities that matter most to you—not the longest feature list.`,choices:['Add another criterion','Focus on cost','Make it simpler']};
-      if(/\b(?:cheaper|price|cost|budget)\b/.test(low))return{say:`Got it — cost matters. I’ll keep the same comparison and give price more weight rather than starting over${known?`. I’m also keeping ${known}`:''}.`,choices:['Compare by cost','Add another criterion','Show trade-offs']};
-      if(/\b(?:which|better|best|recommend|choose)\b/.test(low))return{say:`Based on the priorities you gave me${known?` (${known})`:''}, I would compare both options criterion by criterion and choose the one that wins on your top priorities. I would not call one “best” without those trade-offs being clear.`,choices:['Show the trade-offs','Add a criterion','Make it simpler']};
-      return{say:`I’ll add that to the same comparison${known?` and keep ${known}`:''}. The next useful move is to compare the options against the same two or three criteria.`,choices:['Compare them now','Add another criterion','Show pros and cons']};
+      const g=this.comparisonGuide(this.s.topic);
+      if(/\b(?:show|compare).*\b(?:trade-?offs?|pros and cons)|^compare (?:them|the options)(?: now)?$/.test(low))return{say:`Let’s put both options side by side using the same criteria. Start with ${g.criteria}. Then we can mark where each option is stronger, weaker, or roughly equal so the trade-offs are easy to see.`,choices:['Add another criterion','Focus on cost','Make it simpler']};
+      if(/\b(?:cheaper|price|cost|budget)\b/.test(low))return{say:'Got it — cost matters more. I’ll keep the same comparison, give total cost more weight, and still keep an eye on the other trade-offs so a cheaper option does not hide a major downside.',choices:['Compare by cost','Add another criterion','Show trade-offs']};
+      if(/\b(?:which|better|best|recommend|choose)\b/.test(low))return{say:'I can help you narrow it down, but first I want the two options judged by the same priorities. Once those trade-offs are visible, the choice will be much clearer.',choices:['Show the trade-offs','Add a criterion','Make it simpler']};
+      return{say:`I’ll keep that as part of the same comparison. The next useful step is to put both options against the same few criteria—${g.criteria}.`,choices:['Compare them now','Add another criterion','Show pros and cons']};
     }
     if(type==='organize'){
       const mem=this.s.memory||{};
@@ -541,12 +562,12 @@ class DiscoverConversation {
   detectIntent(t){
     const x=this.normalize(t);
     if(/what can i use ai for|what can ai do(?: for me)?|what can ai help me with|how can ai help(?: me)?|i (?:do not|don't)(?: really)? know what ai (?:can help me with|can do|is useful for)|i (?:do not|don't)(?: really)? know what i can use ai for/.test(x))return'explore';
+    if(/\b(?:compare|versus|\bvs\.?\b|difference between|which (?:one )?is better|pros and cons|help me choose between|decid(?:e|ing) between|choose between|pick between)\b/.test(x)||/\bwhich(?:\s+of)?\s+.+?\s+should i\s+(?:buy|choose|get|take|pick)\b/.test(x)||/\bhelp me choose\s+(?:a|an|the|my|new)?\s*.+/.test(x)||/\bi need to (?:pick|choose|decide) between\b/.test(x))return'compare';
     if(/grocery|groceries|shopping list|meal plan(?:\s+for)?\s+(?:\d+|two|three|four|five|six|seven)?\s*dinners?|plan groceries/.test(x))return'groceries';
     if(/organize my week|organise my week|plan my week|week.*organiz|organize.*week/.test(x))return'week';
     if(/place to eat|places to eat|restaurant|restaurants|find (?:a )?diner|somewhere to eat|where.*eat|food nearby|find.*food|find (?:some )?(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?|vegetarian|vegan)(?:\s|$)|(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?)\s+(?:in|near|around)\b|where should we go for (?:breakfast|brunch|lunch|dinner)|somewhere for (?:breakfast|brunch|lunch|dinner)|find somewhere for (?:breakfast|brunch|lunch|dinner)/.test(x))return'restaurants';
     if(/find things to do|things to do|activities|what to do|places to visit|this weekend|weekend activities|fun this weekend|fun to do|what is there to do|anything fun to do|something fun to do/.test(x))return'things';
     if(/plan (a )?(trip|vacation)|weekend trip|trip to|vacation to|travel to|destination|day trip|outing/.test(x))return'trip';
-    if(/\b(?:compare|versus|\bvs\.?\b|difference between|which (?:one )?is better|pros and cons|help me choose between|decid(?:e|ing) between|choose between)\b/.test(x)||/\bwhich\s+.+?\s+should i\s+(?:buy|choose|get)\b/.test(x)||/\bhelp me choose\s+(?:a|an|the|my|new)?\s*.+/.test(x))return'compare';
     if(/\b(?:organize|organise|sort|declutter|prioritize|prioritise|arrange)\b/.test(x))return'organize';
     if(/make (a )?cake|bake a cake|birthday cake/.test(x))return'cake';
     if(/\b(?:ideas for|help me with)\b.*\b(?:birthday|party|potluck|event|reunion|get-together|garage sale|moving day|move|study session|workday|fundraiser|picnic|cleaning day|family visit)\b/.test(x)||/\b(?:get ready for|prepare for)\s+(?:a\s+)?(?:move|moving day|party|event|fundraiser|picnic|study session|workday|family visit)\b/.test(x))return'plan';
