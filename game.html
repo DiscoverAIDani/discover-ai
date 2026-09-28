@@ -139,7 +139,7 @@ button,.back{touch-action:manipulation}
 <script>
 class DiscoverConversation {
   constructor(){this.maxTurns=5;this.reset()}
-  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],memory:{constraints:[],preferences:[],attempts:[],results:[],requirements:[],avoid:[],presentation:[]}}}
+  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
   normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").replace(/\bidk\b/g,"i don't know").replace(/\b(?:resturant|restaraunt)\b/g,'restaurant').replace(/\b(?:grocey|grocry)\b/g,'grocery').replace(/\bgrocery lst\b/g,'grocery list').replace(/\bvaccation\b/g,'vacation').replace(/\bwek\b/g,'week').replace(/\s+/g,' ').trim()}
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
   uncertain(t){let x=this.normalize(t).replace(/^(?:uh+|um+|umm+|hmm+|erm+)[,\s-]*/i,'');return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\bno clue\b|\byou pick\b|\byou decide\b|\bchoose for me\b|\bup to you\b|\bsurprise me\b|\bwhatever works\b|^(?:dunno|i dunno|whatever(?: is fine)?)\b/i.test(x)}
@@ -195,7 +195,7 @@ class DiscoverConversation {
   }
   inferTaskType(text,intent=''){
     const low=this.normalize(text), i=intent||this.s.intent||'';
-    if(i==='problem'||/\b(?:won't|wont|will not|can't|cant|cannot|doesn't|doesnt|isn't|isnt|not working|broken|stuck|offline|error|keeps? (?:failing|freezing|crashing|disconnecting)|stopped working|won't connect|wont connect)\b/.test(low))return'troubleshoot';
+    if(i==='problem'||/\b(?:won't|wont|will not|can't|cant|cannot|doesn't|doesnt|isn't|isnt|not working|broken|stuck|offline|error|keeps? (?:failing|freezing|crashing|disconnecting)|los(?:e|es|ing) (?:wi-?fi|wifi|internet|connection|signal)|leaks?|stopped working|won't connect|wont connect)\b/.test(low))return'troubleshoot';
     if(i==='create'||/\b(?:write|draft|rewrite|compose|make a card|make an invitation|email|message|text to|post for)\b/.test(low))return'create';
     if(i==='learn'||i==='learnSimple'||i==='learnSteps'||/\b(?:learn|teach|explain|understand|what does|how does)\b/.test(low))return'learn';
     if(i==='compare'||/\b(?:compare|versus|\bvs\.?\b|difference between|which (?:one )?is better|pros and cons)\b/.test(low))return'compare';
@@ -246,6 +246,10 @@ class DiscoverConversation {
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:already\s+)?did\s+([^.!?;]+)/g)){let v=m[0].trim();if(v&&!/didn't|did not/.test(v))this.remember('attempts',v)}
     if(/\balready tried that\b|\balready did that\b/.test(low))this.remember('attempts','the previous suggested step');
     if(/\b(?:still|same problem|same issue|did not work|didn't work|does not work|doesn't work|worked|fixed it|works now|no change|got worse|got better)\b/.test(low))this.remember('results',raw);
+    // Conditions and patterns are often the most useful troubleshooting clues.
+    // Keep them separately so a later response can reason from *when* or *where* a failure occurs.
+    if(/\b(?:only|usually|mostly|sometimes|intermittently|at night|in the evening|in the morning|during the day|when |while |after |before |whenever |every time )/.test(low) &&
+       /\b(?:happens?|occurs?|fails?|disconnects?|drops?|freezes?|crashes?|stops?|slows?|leaks?|drains?|dies?|flickers?|makes?|works?|doesn't|doesnt|won't|wont|problem|issue)\b/.test(low))this.remember('observations',raw);
     if(/\b(?:must|need to|need the|need my|need this|has to|have to|keep it|make it)\b/.test(low))this.remember('requirements',raw);
     if(/\b(?:simpler|simple terms|step by step|shorter|more detail|less detail|casual|formal|friendly|professional)\b/.test(low))this.remember('presentation',raw);
   }
@@ -256,6 +260,7 @@ class DiscoverConversation {
     if((m.avoid||[]).length)parts.push(`avoid: ${m.avoid.slice(-2).join(', ')}`);
     if((m.requirements||[]).length)parts.push(`requirements: ${m.requirements.slice(-2).join(', ')}`);
     if((m.attempts||[]).length)parts.push(`already tried: ${m.attempts.slice(-2).join(', ')}`);
+    if((m.observations||[]).length)parts.push(`noticed: ${m.observations.slice(-2).join(', ')}`);
     return parts.join('; ');
   }
   generalTaskStart(clean,intent){
@@ -357,7 +362,7 @@ class DiscoverConversation {
     if(/make (a )?cake|bake a cake|birthday cake/.test(x))return'cake';
     if(/\b(?:ideas for|help me with)\b.*\b(?:birthday|party|potluck|event|reunion|get-together|garage sale)\b/.test(x)||/\b(?:get ready for|prepare for)\s+(?:a\s+)?(?:move|moving day|party|event)\b/.test(x))return'plan';
     if(/birthday card|thank you card|write (a )?(card|letter|story|resume|cover letter)|make a card|resume|cover letter|job application|\b(?:write|draft|rewrite|compose|edit|revise)\b.*\b(?:email|message|text|invitation|post|note|letter)\b|\bmake this (?:email|message|text|letter)\b/.test(x))return'create';
-    if(/\b(?:won't|wont|will not|can't|cant|cannot|doesn't|doesnt|isn't|isnt|not working|broken|stuck|offline|error|stopped working|keeps? (?:failing|freezing|crashing|disconnecting|stopping|shutting off|restarting|dropping|leaking|beeping)|won't connect|wont connect|won't start|wont start|won't turn on|wont turn on|won't drain|wont drain|won't charge|wont charge|won't spin|wont spin|dying|wilting|yellowing|overheating|leaking|flickering|dripping|drains? too fast|dies? (?:too )?(?:fast|quickly)|won't hold (?:a )?charge|wont hold (?:a )?charge|not cooling|not heating|no sound|no picture|running constantly|making (?:a )?(?:weird )?noise|running slow|is slow)\b/.test(x))return'problem';
+    if(/\b(?:won't|wont|will not|can't|cant|cannot|doesn't|doesnt|isn't|isnt|not working|broken|stuck|offline|error|stopped working|keeps? (?:failing|freezing|crashing|disconnecting|stopping|shutting off|restarting|dropping|leaking|beeping)|los(?:e|es|ing) (?:wi-?fi|wifi|internet|connection|signal)|leaks?|won't connect|wont connect|won't start|wont start|won't turn on|wont turn on|won't drain|wont drain|won't charge|wont charge|won't spin|wont spin|dying|wilting|yellowing|overheating|leaking|flickering|dripping|drains? too fast|dies? (?:too )?(?:fast|quickly)|won't hold (?:a )?charge|wont hold (?:a )?charge|not cooling|not heating|no sound|no picture|running constantly|making (?:a )?(?:weird )?noise|running slow|is slow)\b/.test(x))return'problem';
     if(/\b(?:help me plan|plan my|plan a|plan an|prepare for|make a plan for)\b/.test(x) && !/\b(?:trip|vacation|dinner|meal|grocer(?:y|ies)|week|restaurant|things to do|card|resume|cover letter)\b/.test(x))return'plan';
     if(/solve a problem|fix (this|it|something)|help me (solve|fix)|problem with|bill is|not working|ants? in my|pests? in my|bug[s]? in my|seal (?:the )?entry point|entry point|close the gap|(?:phone|iphone|computer|laptop|printer|tv|television|remote|app|device)\b.*(?:won't|wont|will not|can't|cant|cannot|isn't|isnt|doesn't|doesnt|stopped|keeps? (?:freezing|crashing)|freez(?:e|es|ing)|crash(?:es|ing)?|turn on|print|offline)/.test(x))return'problem';
     if(/\b(?:explain|help me understand|what does .+ mean|how does .+ work)\b/.test(x))return'learn';
@@ -378,7 +383,7 @@ class DiscoverConversation {
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],requirements:[],avoid:[],presentation:[]};return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -1247,11 +1252,43 @@ class DiscoverConversation {
       const tried=attempts.length?attempts[attempts.length-1]:'that step';
       return{say:`Got it — I won’t send you back through ${tried}. Since that did not solve the problem, the next useful step is to check a different cause and look for a concrete clue such as an error message, status light, connection state, or exactly when the failure happens.`,choices:['I see an error','No error message','It still happens']};
     }
-    if(/\b(?:still|same problem|same issue|no change|did not work|didn't work|doesn't work|does not work)\b/.test(low)&&attempts.length){
+    if(!/\banother device\b/.test(low) && /\b(?:still|same problem|same issue|no change|did not work|didn't work|doesn't work|does not work)\b/.test(low)&&attempts.length){
       return{say:`Since the problem is still happening after ${attempts.slice(-2).join(' and ')}, I would not repeat those steps. Next, check a different layer of the problem—connection or power, settings, then the specific component or service involved—and use any error or status you see to narrow it down.`,choices:['I see an error','The connection looks okay','What should I check next?']};
     }
     if(/\berror(?: code)?\s*[a-z0-9-]+|\bcode\s*[a-z0-9-]+/.test(low))return{say:'That error code is useful evidence. Keep the exact code and note what you were doing when it appeared. The next step is to use that code with the device or service name rather than trying random fixes.',choices:['What should I check next?','Make it simpler','I can give more details']};
     if(/\bpassword (?:is )?correct\b/.test(low)&&/wi-?fi|connect/.test(topic+' '+low))return{say:'Good — that makes a bad password less likely. Next check whether the device can see the network consistently, whether the signal is strong enough, and whether forgetting the network and joining it again changes the result.',choices:['It sees the network','The network disappears','I already rejoined it']};
+
+    // General troubleshooting clue engine: reason from *patterns* instead of needing
+    // a custom rule for every device or household problem.
+    const problemContext=topic+' '+(this.s.facts||[]).join(' ');
+    const connectivity=/wi-?fi|internet|network|connect|disconnect|signal|bluetooth|stream/.test(problemContext);
+    const power=/battery|charge|charging|power|turn on|shut(?:s|ting)? off|dies?/.test(problemContext);
+    const software=/app|website|browser|freeze|freez|crash|slow|error|login|software/.test(problemContext);
+    const conditionMatch=String(x||'').match(/\b(?:it\s+)?(?:only\s+)?(?:happens?|occurs?|fails?|disconnects?|drops?|freezes?|crashes?|stops?|slows?|leaks?|drains?|dies?|flickers?|works?)\s+(?:only\s+)?(in|at|when|while|during|after|before|whenever)\s+(.+?)[.!?]?$/i) ||
+      String(x||'').match(/\b(?:only|usually|mostly)\s+(in|at|when|while|during|after|before)\s+(.+?)[.!?]?$/i);
+    if(conditionMatch){
+      const prep=this.normalize(conditionMatch[1]), condition=conditionMatch[2].trim().replace(/[.!?]+$/,'');
+      const conditionText=`${prep} ${condition}`;
+      this.remember('observations',String(x||'').trim());
+      if(connectivity){
+        return{say:`That timing pattern is a useful clue. If the connection problem happens only ${conditionText}, it may be tied to network load, interference, signal conditions, or a scheduled setting rather than a constant setup problem. The best next test is to notice whether another device on the same network also slows down or disconnects at that same time.`,choices:['Another device has the same problem','Other devices work normally','What should I check next?']};
+      }
+      if(power){
+        return{say:`That pattern helps narrow it down. If the power or battery problem shows up only ${conditionText}, compare what is different then—what the device is doing, whether it is charging, temperature, brightness or workload, and any power-saving setting. Change one thing at a time so the next result tells us something.`,choices:['It happens under heavy use','It happens while charging','What should I check next?']};
+      }
+      if(software){
+        return{say:`That is a useful clue because the problem is conditional, not constant. If it happens only ${conditionText}, compare what changes then—network connection, device load, a particular app or browser, or a scheduled update or setting. Try to reproduce it once while changing only one of those factors.`,choices:['It happens in one app','It happens everywhere','What should I check next?']};
+      }
+      return{say:`That pattern is useful. If the problem happens only ${conditionText}, focus on what changes in that situation instead of repeating the same basic fixes. Compare one factor at a time—location, load, temperature, power, connection, or what the device is doing—and see which change makes the problem appear or disappear.`,choices:['I noticed another pattern','What should I check next?','Make it simpler']};
+    }
+    if(/\banother device\b.*\b(?:works?|fine|normal|normally|no problem)\b/.test(low)){
+      this.remember('observations',String(x||'').trim());
+      return{say:'That comparison is useful. If another device works normally under the same conditions, the problem is more likely isolated to the original device or its settings than to the whole network or service. Focus the next check on that device rather than repeating system-wide fixes.',choices:['What should I check on this device?','I see an error','Make it simpler']};
+    }
+    if(/\banother device\b.*\b(?:same problem|also|too|fails?|disconnects?|doesn't work|doesnt work|won't work|wont work)\b/.test(low)){
+      this.remember('observations',String(x||'').trim());
+      return{say:'That points in the opposite direction: if another device has the same problem under the same conditions, the shared connection, service, power source, or environment becomes more likely than one device-specific setting. Check the shared piece next instead of changing the original device again.',choices:['What shared thing should I check?','The connection looks normal','Make it simpler']};
+    }
     if(/printer/.test(topic)){
       const facts=(this.s.facts||[]).join(' ');
       if(/already (?:restarted|rebooted)|restarted (?:the )?(?:printer|computer|laptop|both|it)|rebooted (?:the )?(?:printer|computer|laptop|both|it)|(?:restarted|rebooted) both/.test(low)){
