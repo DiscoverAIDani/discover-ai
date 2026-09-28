@@ -213,6 +213,52 @@ class DiscoverConversation {
     if(!t||t.length>90)return taskType==='compare'?'the options':taskType==='organize'?'this':taskType==='plan'?'this plan':'this';
     return t;
   }
+  learningFollowUp(text,topic){
+    const raw=String(text||'').trim(),low=this.normalize(raw),topicLow=this.normalize(topic||this.s.topic||'this topic');
+    const photoTopic=/photograph|photos?|pictures?|camera|phone photo|phone picture/.test(topicLow);
+    const priorKnowledge=/\b(?:i (?:already )?(?:know|understand)|i've got|ive got|got) (?:the )?basics\b|\b(?:the )?basics (?:make sense|are fine|are clear)\b|\bfamiliar with\b|\bnot a beginner\b|\balready know that\b/.test(low);
+    const difficulty=/\b(?:still|but|yet|struggl\w*|having trouble|hard|difficult|confus\w*|can't|cant|cannot|keep|keeps|too slow|freeze\w*|forget\w*|flat|not improving|doesn't look right|doesnt look right|not clicking|stuck on)\b/.test(low);
+    if(!priorKnowledge&&!difficulty)return null;
+    this.remember('observations',raw);
+    let gap='';
+    const contrast=raw.match(/\b(?:but|yet)\b\s*(.+)$/i);
+    if(contrast)gap=contrast[1].replace(/[.!?]+$/,'').trim();
+    if(!gap){const still=raw.match(/\b(?:still|keep|keeps|struggle(?: with)?|having trouble with|can't|cant|cannot)\s+(.+)$/i);if(still)gap=still[1].replace(/[.!?]+$/,'').trim()}
+
+    if(photoTopic&&/\bflat\b|lack(?:s|ing)? depth|no depth|two[- ]dimensional/.test(low)){
+      return{say:'That tells me the basics are not the part to repeat. If your photos still look flat, focus on depth and subject separation: include something in the foreground, leave some distance between the subject and the background, and try side light instead of lighting everything evenly from the front. Take the same scene twice—once straight-on and once with a foreground element or side light—then compare which one feels more three-dimensional.',choices:['Give me a 5-minute exercise','Teach me depth in composition','What should I compare?']};
+    }
+    if(/\b(?:forget\w*|remember\w*|retain\w*|stick in my head|memorize\w*|memorise\w*)\b/.test(low)){
+      return{say:`That tells me rereading more basics probably is not the answer. For ${topic||'this topic'}, switch to retrieval practice: close the explanation, try to recall the idea from memory, check what you missed, and repeat later. Work with one small piece at a time so you can see what is actually sticking.`,choices:['Give me a recall exercise','Quiz me','Make it simpler']};
+    }
+    if(/\b(?:freeze\w*|hesitat\w*|too slow|slow at|takes too long|not fluent|fluency)\b/.test(low)){
+      return{say:`That sounds less like a knowledge gap and more like a fluency gap. Keep ${topic||'the topic'} narrow and practice the same small skill repeatedly with a little time pressure, then notice where you hesitate. Once that part gets automatic, add the next piece.`,choices:['Give me a short drill','Make it easier','What should I repeat?']};
+    }
+    if(/\b(?:confus\w*|don't get|dont get|doesn't make sense|doesnt make sense|not clicking|lost on)\b/.test(low)){
+      return{say:`Good — that tells me not to restart ${topic||'the lesson'} from the beginning. Let’s isolate the part that is not clicking, explain just that piece with one concrete example, and then connect it back to what you already understand.`,choices:['Show me one example','Explain just that part','Check my understanding']};
+    }
+    if(/\b(?:keep|keeps|same)\b.*\b(?:mistake|wrong|messing up|miss)\b|\b(?:mistake|wrong)\b.*\b(?:again|repeatedly)\b/.test(low)){
+      return{say:`Since you already know the basics of ${topic||'this'}, the useful move is to study the repeated mistake instead of adding more theory. Compare one attempt that went wrong with one that went better, look for the first difference, and change only that one thing on the next try.`,choices:['Help me find the pattern','Give me a practice drill','Make it simpler']};
+    }
+    if(/\b(?:keep|keeps)\s+(?:on\s+)?(?:losing|dropping|missing|forgetting|stalling|breaking|overcooking|undercooking|coming out|ending up|getting|looking|sounding|feeling|tasting|turning)\b|\bstill\s+(?:looks?|sounds?|feels?|tastes?|comes? out|ends? up|gets?|turns?)\b/.test(low)){
+      const focus=gap||raw.replace(/[.!?]+$/,'');
+      return{say:`That repeated result is more useful than another beginner overview. For ${topic||'this topic'}, focus on the pattern in “${focus}”: compare one attempt that went better with one that went worse, find the first meaningful difference, and change just that one variable on the next try.`,choices:['Help me find the variable','Give me a focused drill','What should I compare?']};
+    }
+    if(/\b(?:can't|cant|cannot|struggle to|hard to)\b.*\b(?:apply|use|do|practice|put .* into practice)\b/.test(low)){
+      return{say:`That tells me you understand more than you can comfortably apply yet. For ${topic||'this topic'}, skip another broad explanation and do one worked example together, then try a nearly identical example yourself. That bridges the gap between knowing the idea and using it.`,choices:['Show me a worked example','Give me one to try','Make it simpler']};
+    }
+    if(priorKnowledge&&gap){
+      const cleanGap=gap.replace(/^(?:i|we|my|our)\s+/i,'').replace(/\b(?:are|is)\s+still\s+/i,'').trim();
+      return{say:`That helps. We do not need to repeat the basics of ${topic||'this topic'}. Let’s focus on the part you identified—${cleanGap||gap}. We can isolate that one issue, try one targeted change, and use the result to decide what to practice next.`,choices:['Give me a targeted exercise','Show me an example','Help me diagnose it']};
+    }
+    if(priorKnowledge){
+      return{say:`Got it — I’ll skip the beginner overview for ${topic||'this topic'}. Tell me what still feels weak, confusing, slow, or inconsistent, and I’ll focus the next step there instead of repeating what you already know.`,choices:['I have a weak spot','Give me a harder exercise','Quiz me']};
+    }
+    if(gap){
+      return{say:`That is the useful clue. Rather than restarting ${topic||'the lesson'}, let’s focus on ${gap}. We’ll change one thing at a time and use what happens next to guide the lesson.`,choices:['Give me one thing to try','Show me an example','Make it simpler']};
+    }
+    return null;
+  }
   updateUniversalMemory(text){
     const raw=String(text||'').trim(), low=this.normalize(raw);if(!raw)return;
     const detected=this.detectIntent(raw);const type=(this.s.stage!=='start'&&this.s.taskType)?this.s.taskType:this.inferTaskType(raw,detected);if(type!=='open')this.s.taskType=type;
@@ -365,6 +411,7 @@ class DiscoverConversation {
     if(/\b(?:won't|wont|will not|can't|cant|cannot|doesn't|doesnt|isn't|isnt|not working|broken|stuck|offline|error|stopped working|keeps? (?:failing|freezing|crashing|disconnecting|stopping|shutting off|restarting|dropping|leaking|beeping)|los(?:e|es|ing) (?:wi-?fi|wifi|internet|connection|signal)|leaks?|won't connect|wont connect|won't start|wont start|won't turn on|wont turn on|won't drain|wont drain|won't charge|wont charge|won't spin|wont spin|dying|wilting|yellowing|overheating|leaking|flickering|dripping|drains? too fast|dies? (?:too )?(?:fast|quickly)|won't hold (?:a )?charge|wont hold (?:a )?charge|not cooling|not heating|no sound|no picture|running constantly|making (?:a )?(?:weird )?noise|running slow|is slow)\b/.test(x))return'problem';
     if(/\b(?:help me plan|plan my|plan a|plan an|prepare for|make a plan for)\b/.test(x) && !/\b(?:trip|vacation|dinner|meal|grocer(?:y|ies)|week|restaurant|things to do|card|resume|cover letter)\b/.test(x))return'plan';
     if(/solve a problem|fix (this|it|something)|help me (solve|fix)|problem with|bill is|not working|ants? in my|pests? in my|bug[s]? in my|seal (?:the )?entry point|entry point|close the gap|(?:phone|iphone|computer|laptop|printer|tv|television|remote|app|device)\b.*(?:won't|wont|will not|can't|cant|cannot|isn't|isnt|doesn't|doesnt|stopped|keeps? (?:freezing|crashing)|freez(?:e|es|ing)|crash(?:es|ing)?|turn on|print|offline)/.test(x))return'problem';
+    if(/\b(?:help me remember|learn to remember|memorize|memorise)\b/.test(x))return'learn';
     if(/\b(?:explain|help me understand|what does .+ mean|how does .+ work)\b/.test(x))return'learn';
     if(/teach me.*step by step|step by step|show me how/.test(x))return'learnSteps';
     if(/explain.*simple|explain.*simply|simple terms/.test(x))return'learnSimple';
@@ -640,6 +687,8 @@ class DiscoverConversation {
       }
 
       if(currentIntent==='learn' || /golf/.test(topicLow)){
+        const adaptiveLearning=this.learningFollowUp(x,currentTopic);
+        if(adaptiveLearning)return adaptiveLearning;
         if(/explain (?:it|that) (?:simply|in simple terms)|make (?:it|that) simpler|simpler|simple terms/.test(low)){
           return{say:`Sure. I’ll keep ${currentTopic} simple: focus on one basic idea, see one concrete example, and try one small thing before adding more detail.`,choices:['Give me an example','Show me step by step','Give me something to try']};
         }
@@ -884,7 +933,7 @@ class DiscoverConversation {
       return answer('Gardening, in simple terms, is giving a plant the right combination of light, water, soil, space, and time. Start with a plant that fits the amount of sunlight you have, use soil with good drainage, and water when the plant actually needs it rather than on a rigid schedule. Watch the leaves and soil for clues, and change one thing at a time when you are figuring out what works.', ['Show me a beginner example','What should I plant first?','Explain watering']);
     }
     if(intent==='learn' || intent==='learnSimple'){
-      const topic=(low.match(/(?:learn|understand|explain|teach me about|teach me|help me with)\s+(?:about\s+)?(.+?)(?:\s+in simple terms|\s+simply|\s+step by step|[.!?]|$)/)||[])[1] || 'that topic';
+      const topic=(low.match(/(?:learn|understand|explain|teach me about|teach me|help me with|help me remember|remember|memorize|memorise)\s+(?:about\s+)?(.+?)(?:\s+in simple terms|\s+simply|\s+step by step|[.!?]|$)/)||[])[1] || 'that topic';
       this.s.category='learn';this.s.intent='learn';this.s.topic=topic.trim();this.s.stage='learnPractice';
       if(/photography|photos|camera/.test(low)) return answer('A good beginner start with photography is to learn three things in this order: light, composition, and focus. Try taking the same subject from three angles and in three kinds of light, then compare the photos. You will start seeing how small changes in position and light change the result before you need to worry about advanced camera settings.', ['Give me a 10-minute exercise','Teach me composition','Explain camera settings']);
       if(/golf/.test(low)) return answer('A good way to learn golf is to work on one skill at a time instead of trying to fix your whole game. Start with short putting, basic contact, or one simple swing drill, practice it repeatedly, and notice what changes. Then use that result to decide what to work on next.', ['Give me a beginner drill','Start with putting','Explain the swing']);
