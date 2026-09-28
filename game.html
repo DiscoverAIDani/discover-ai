@@ -976,16 +976,31 @@ function setupVoice(){
   // Use the iOS keyboard's native dictation instead of leaving the game stuck on Listening.
   if(isAppleMobile){
     // On iPhone/iPad, use Apple's keyboard dictation rather than Web Speech.
-    // This avoids the Safari failure mode where the mic opens but no transcript/end event returns.
-    voice.textContent='🎤 Use phone mic';
-    voice.setAttribute('aria-label','Use phone microphone');
-    voice.addEventListener('click',e=>{
-      e.preventDefault();
-      clearVoiceTimers();
+    // Safari does not reliably expose a "dictation finished" event, so once
+    // words arrive we turn the SAME button into a clear submit action.
+    const resetPhoneVoiceButton=()=>{
+      voice.dataset.phoneMode='dictate';
       voice.classList.remove('listening');
       voice.disabled=false;
       voice.textContent='🎤 Use phone mic';
-      showVoiceStatus('Tap the microphone on your iPhone keyboard, speak your message, then tap Send.');
+      voice.setAttribute('aria-label','Use phone microphone');
+    };
+    resetPhoneVoiceButton();
+
+    voice.addEventListener('click',e=>{
+      e.preventDefault();
+      clearVoiceTimers();
+
+      // After dictation has filled the box, the same button sends the message.
+      if(voice.dataset.phoneMode==='send' && input.value.trim()){
+        voiceStatus.classList.remove('show');
+        resetPhoneVoiceButton();
+        submit();
+        return;
+      }
+
+      resetPhoneVoiceButton();
+      showVoiceStatus('Tap the microphone on your iPhone keyboard and speak. When your words appear, tap “Send spoken message.”');
       // Keep focus inside the tap gesture so iOS can open the keyboard immediately.
       try{
         input.focus();
@@ -995,6 +1010,20 @@ function setupVoice(){
       clearTimeout(hideStatusTimer);
       hideStatusTimer=setTimeout(()=>voiceStatus.classList.remove('show'),12000);
     });
+
+    input.addEventListener('input',()=>{
+      if(input.value.trim()){
+        voice.dataset.phoneMode='send';
+        voice.textContent='✅ Send spoken message';
+        voice.setAttribute('aria-label','Send spoken message');
+        showVoiceStatus('Your words are ready. Tap “Send spoken message” to continue.');
+      }else{
+        resetPhoneVoiceButton();
+      }
+    });
+
+    // If the user chooses the regular Send button, restore the voice button too.
+    send.addEventListener('click',()=>{ setTimeout(resetPhoneVoiceButton,0); });
     return;
   }
 
