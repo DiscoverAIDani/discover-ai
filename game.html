@@ -139,7 +139,7 @@ button,.back{touch-action:manipulation}
 <script>
 class DiscoverConversation {
   constructor(){this.maxTurns=5;this.reset()}
-  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
+  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',sourceMode:'',sourceKind:'',sourceText:'',memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
   normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").replace(/\bidk\b/g,"i don't know").replace(/\b(?:resturant|restaraunt)\b/g,'restaurant').replace(/\b(?:grocey|grocry)\b/g,'grocery').replace(/\bgrocery lst\b/g,'grocery list').replace(/\bvaccation\b/g,'vacation').replace(/\bwek\b/g,'week').replace(/\bdisconects?\b/g,'disconnects').replace(/\bwi fi\b/g,'wifi').replace(/\s+/g,' ').trim()}
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
   uncertain(t){let x=this.normalize(t).replace(/^(?:uh+|um+|umm+|hmm+|erm+)[,\s-]*/i,'');return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\bno clue\b|\byou pick\b|\byou decide\b|\bchoose for me\b|\bup to you\b|\bsurprise me\b|\bwhatever works\b|^(?:dunno|i dunno|whatever(?: is fine)?)\b/i.test(x)}
@@ -236,6 +236,74 @@ class DiscoverConversation {
     t=t.replace(/\s+for me$/i,'').trim();
     if(!t||t.length>90)return taskType==='compare'?'the options':taskType==='organize'?'this':taskType==='plan'?'this plan':'this';
     return t;
+  }
+  sourceUnderstandingRequest(text){
+    const low=this.normalize(text);
+    if(/\b(?:write|draft|compose|rewrite|edit|revise|create)\b/.test(low) && /\b(?:letter|email|message|notice|document)\b/.test(low))return false;
+    const source=/\b(email|message|letter|notice|document|form|bill|statement|lease|policy|instructions?|paperwork|contract)\b/.exec(low);
+    if(!source)return false;
+    const confusion=/\b(?:confus\w*|don'?t understand|do not understand|doesn'?t make sense|does not make sense|makes? no sense|what (?:it|this|that) means|what does .+ mean|help me understand|make sense of|explain(?: this| the)?|not sure what .+ means)\b/.test(low);
+    const received=/\b(?:got|received|came|arrived|sent|from|says?|reads?)\b/.test(low);
+    return confusion && (received || /\b(?:this|that|my|the)(?:\s+[a-z0-9-]+){0,3}\s+(?:email|message|letter|notice|document|form|bill|statement|lease|policy|contract)\b/.test(low));
+  }
+  sourceUnderstandingStart(text){
+    if(!this.sourceUnderstandingRequest(text))return null;
+    const low=this.normalize(text);
+    const kind=(low.match(/\b(email|message|letter|notice|document|form|bill|statement|lease|policy|instructions?|paperwork|contract)\b/)||[])[1]||'document';
+    this.s.category='learn';this.s.intent='learn';this.s.taskType='learn';this.s.topic=`the ${kind}`;this.s.stage='sourceInterpret';this.s.sourceMode='interpret';this.s.sourceKind=kind;this.s.sourceText='';
+    return{say:`Absolutely. Paste the part of the ${kind} that is confusing. I can put it in plain language, point out dates, amounts, or action items, and tell you what the excerpt does not make clear.`,choices:['Paste the confusing part','Find the action items','Make it simpler']};
+  }
+  handleSourceInterpret(text){
+    const raw=String(text||'').trim(),low=this.normalize(raw),kind=this.s.sourceKind||'document';
+    if(this.correction(raw) && /^(?:help me|plan|write|find|compare|organize|organise|fix|teach|explain)\b/i.test(this.clean(raw)))return null;
+    if(this.uncertain(raw)||/^(?:paste the confusing part|find the action items|explain a section)$/i.test(low)){
+      return{say:`Paste one or two sentences from the ${kind}. You can leave out names, account numbers, or anything private. I’ll explain only what is actually in the text.`,choices:['I’ll paste it','What should I leave out?','Make it simpler']};
+    }
+    if(/^(?:make it simpler|simpler|plain language|explain that simply)$/i.test(low) && this.s.sourceText){
+      return{say:'Simple version: focus on three things—what is changing, what you are being asked to do, and whether there is a date or deadline. I’ll keep the explanation tied to the wording you pasted instead of guessing beyond it.',choices:['What action do I need to take?','What date matters?','Explain one sentence']};
+    }
+    if(/^(?:what should i do|what do i do|what next|what should i do next)$/i.test(low) && this.s.sourceText){
+      return{say:'Use the action and deadline in the text as your next-step checklist. If the wording is still unclear or the consequence matters, keep the original message and confirm the deadline or requirement with the sender before acting.',choices:['What action does it ask for?','What deadline does it give?','Make it simpler']};
+    }
+    this.s.sourceText=raw;this.noteFact(raw);
+    const money=[...raw.matchAll(/\$\s*\d[\d,]*(?:\.\d{1,2})?/g)].map(m=>m[0].replace(/\s+/g,''));
+    const month='(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan\.?|Feb\.?|Mar\.?|Apr\.?|Jun\.?|Jul\.?|Aug\.?|Sep\.?|Sept\.?|Oct\.?|Nov\.?|Dec\.?)';
+    const dates=[...raw.matchAll(new RegExp(`\\b${month}\\s+\\d{1,2}(?:,\\s*\\d{4})?|\\b\\d{1,2}[/-]\\d{1,2}(?:[/-]\\d{2,4})?`,'gi'))].map(m=>m[0]);
+    const times=[...raw.matchAll(/\b\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)\b/gi)].map(m=>m[0]);
+    const topic= /\b(?:rent|lease|tenant|landlord|apartment|property manager|inspection|entry)\b/.test(low)?'housing or lease':
+      /\b(?:bill|charge|payment|balance|due|fee)\b/.test(low)?'billing or payment':
+      /\b(?:insurance|coverage|claim|premium|deductible)\b/.test(low)?'insurance':
+      /\b(?:school|teacher|class|student|tuition)\b/.test(low)?'school':
+      /\b(?:appointment|clinic|doctor|hospital|medical|lab|test result)\b/.test(low)?'an appointment or health-related notice':
+      /\b(?:bank|account|loan|interest|credit)\b/.test(low)?'banking or account information':'';
+    let main='';
+    if(/\brent\b/.test(low)&&/\b(?:increase|increases|increased|change|changes|changing)\b/.test(low)){
+      main=`The main point appears to be a rent change${money[0]?` to ${money[0]}`:''}${dates[0]?` connected to ${dates[0]}`:''}.`;
+    }else if(/\binspection\b|\benter(?:ing|ed)?\b/.test(low)&&/\b(?:apartment|unit|property|home)\b/.test(low)){
+      main=`The main point appears to be a property inspection or entry notice${dates[0]?` for ${dates[0]}`:''}${times.length?` around ${times.join(' / ')}`:''}.`;
+    }else if(/\bappointment\b/.test(low)){
+      main=`The main point appears to be an appointment notice${dates[0]?` for ${dates[0]}`:''}${times[0]?` at ${times[0]}`:''}.`;
+    }else if(topic){
+      main=`This appears to be about ${topic}.`;
+    }else{
+      main='I can pull out the concrete details from what you pasted without assuming anything that is not there.';
+    }
+    let action='';
+    const actionPatterns=[
+      /\bplease\s+([^.!?]+)/i,
+      /\b(?:you|tenant|customer|member|patient)\s+(?:must|are required to|is required to|needs to|need to)\s+([^.!?]+)/i,
+      /\b(?:payment|rent|balance|form|response|signature)\s+(?:is\s+)?due(?:\s+by|\s+on)?\s+([^.!?]+)/i,
+      /\b(?:sign|pay|submit|respond|contact|call|renew|return|send|complete)\s+([^.!?]+)/i
+    ];
+    for(const re of actionPatterns){const m=raw.match(re);if(m){action=m[0].trim();break;}}
+    const bits=[main];
+    if(money.length && !main.includes(money[0]))bits.push(`Amount mentioned: ${money.join(', ')}.`);
+    if(dates.length && !main.includes(dates[0]))bits.push(`Date${dates.length>1?'s':''} mentioned: ${dates.join(', ')}.`);
+    if(times.length && !main.includes(times[0]))bits.push(`Time${times.length>1?'s':''} mentioned: ${times.join(', ')}.`);
+    if(action)bits.push(`The action wording is: “${action.length>150?action.slice(0,147)+'...':action}.”`);
+    else bits.push('I do not see a clear action requirement in the excerpt yet; if there is another sentence with “must,” “please,” “due,” or a deadline, paste that too.');
+    bits.push('I’ll keep the explanation tied to the text you provided rather than guessing about missing context.');
+    return{say:bits.join(' '),choices:['What action do I need to take?','What date matters?','Make it simpler']};
   }
   learningFollowUp(text,topic){
     const raw=String(text||'').trim(),low=this.normalize(raw),topicLow=this.normalize(topic||this.s.topic||'this topic');
@@ -596,7 +664,7 @@ class DiscoverConversation {
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -1074,6 +1142,7 @@ class DiscoverConversation {
   directAnswer(x,intent=''){
     const low=this.normalize(x);
     const answer=(say,choices=[])=>({say,choices});
+    const sourceStart=this.sourceUnderstandingStart(x);if(sourceStart)return sourceStart;
     if(/\b(?:help me )?(?:make sense of|understand|explain)\s+(?:this|the)\s+(?:email|message|letter|notice|document)\b/.test(low)){
       this.s.category='learn';this.s.intent='learn';this.s.topic='the message';this.s.stage='learnPractice';
       return answer('Absolutely. Paste the part that is confusing, and I can explain it in plain language, pull out any dates or actions, and separate what it actually says from anything that would need verification.', ['Paste the confusing part','Find the action items','Make it simpler']);
@@ -1239,6 +1308,12 @@ class DiscoverConversation {
     if(this.s.stage==='start'){
       const direct=this.directAnswer(x,detected);
       if(direct)return direct;
+    }
+
+    // When the user is asking us to explain a source they received, keep the
+    // conversation grounded in the pasted source instead of turning it into a lesson.
+    if(this.s.stage==='sourceInterpret' && this.s.sourceMode==='interpret'){
+      const sourceFollow=this.handleSourceInterpret(x);if(sourceFollow)return sourceFollow;
     }
 
     // Generic tasks use one shared continuity engine instead of topic-specific rules.
