@@ -144,6 +144,27 @@ class DiscoverConversation {
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
   uncertain(t){let x=this.normalize(t).replace(/^(?:uh+|um+|umm+|hmm+|erm+)[,\s-]*/i,'');return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\bno clue\b|\byou pick\b|\byou decide\b|\bchoose for me\b|\bup to you\b|\bsurprise me\b|\bwhatever works\b|^(?:dunno|i dunno|whatever(?: is fine)?)\b/i.test(x)}
   correction(t){return /^(?:actually|instead|wait|never mind|change of plans|i meant|no\s*,?\s*i mean)\b/i.test(String(t||''))}
+  liveInfoResponse(t){
+    const low=this.normalize(t);
+    const currentWord=/\b(?:today|tonight|tomorrow|this (?:morning|afternoon|evening|weekend|week)|next (?:weekend|week)|right now|currently|current|latest|live|yesterday|last night)\b/.test(low);
+    const events=/\b(?:events?|concerts?|festivals?|shows?|things happening|what'?s happening|what is happening)\b/.test(low);
+    const weatherQuery=/\b(?:what(?:'s| is) the weather|weather (?:in|for|near)|forecast (?:in|for|near)|will it (?:rain|snow)|is it going to (?:rain|snow))\b/.test(low);
+    const hours=/\b(?:open now|hours today|open today|closing time|what time .* close|what time .* open)\b/.test(low);
+    const newsQuery=/\b(?:latest|current|today'?s?)\b.{0,30}\b(?:news|headlines?|scores?|standings?)\b|\b(?:news|headlines?|scores?|standings?)\b.{0,20}\b(?:today|tonight|right now|now|latest|current)\b/.test(low);
+    const livePrice=/\b(?:stock price|share price|gas prices?|ticket availability|tickets? available|reservations? available|tables? available)\b/.test(low);
+    const needsLive=(events&&(currentWord||/\bhappening\b/.test(low)))||weatherQuery||hours||newsQuery||livePrice;
+    if(!needsLive)return null;
+    let kind='current information';
+    if(events)kind='event listings';else if(weatherQuery)kind='the current forecast';else if(hours)kind='today\'s hours';else if(newsQuery)kind='live or current information';else if(livePrice)kind='current prices or availability';
+    if(events){
+      this.s.category='travel';this.s.intent='things';this.s.topic='current events';this.s.stage='thingsPlan';
+      const loc=(String(t||'').match(/\b(?:in|near|around)\s+(.+?)(?:\s+(?:this weekend|this week|today|tonight|tomorrow|right now|now))?(?:[.!?]|$)/i)||[])[1];
+      if(loc&&!/^(?:me|here)$/i.test(loc.trim())){this.s.location=loc.trim().replace(/[.!?]+$/,'');this.noteFact(this.s.location)}
+      const where=this.s.location?` for ${this.s.location}`:'';
+      return{say:`This practice simulation is not connected to live listings, so I should not invent which events are actually happening${where} right now. A live AI or search could verify current events, dates, times, and ticket details. I can still help you narrow what to look for—free, outdoor, music, family-friendly, food, or something else.`,choices:['Free events','Outdoor events','Help me phrase the search']};
+    }
+    return{say:`This practice simulation is not connected to live data, so I cannot verify ${kind} right now. A live AI or search could check that for you. I can still help you decide what information to look for or how to phrase the search.`,choices:['Help me phrase the search','What should I verify?','Try a different question']};
+  }
   isAck(t){return /^(?:ok|okay|sure|yes|yeah|yep|sounds good|good|great|fine|perfect|that works|that makes sense|do that|do it|go ahead|let's do it|lets do it)\.?$/i.test(String(t||''))}
   amount(t){const x=String(t||'');const money=x.match(/\$\s*([0-9]{1,4}(?:,[0-9]{3})?(?:\.\d{1,2})?)/);if(money)return money[1].replace(/,/g,'');const contextual=x.match(/\b(?:budget|spend|cost|under|around|about)\s*\$?\s*([0-9]{1,4}(?:,[0-9]{3})?(?:\.\d{1,2})?)/i);if(contextual)return contextual[1].replace(/,/g,'');return''}
   extractDinnerIngredients(t){
@@ -974,7 +995,7 @@ class DiscoverConversation {
         if(/indoor|indoors|inside/.test(low))return{say:'Sure. I’ll keep the same outing but move it indoors—museums, galleries, libraries, markets, casual food stops, or other places where weather and walking are less of a factor.',choices:['Keep it free','Add food','Keep it nearby']};
         if(/not strenuous|nothing strenuous|easy pace|low key|relaxed|limited walking/.test(low))return{say:'Got it. I’ll keep the outing easy-paced with short walks, places to sit, and one main stop instead of anything strenuous or packed.',choices:['Keep it free','Make it indoors','Keep it nearby']};
         if(/outdoor|outside|hiking|walk/.test(low))return{say:'For an outdoor outing, I’d look at an easy walk, park, garden, scenic viewpoint, waterfront, or short hike, depending on how active you want to be.',choices:['Keep it easy','Make it free','Give me an afternoon plan']};
-        if(/event|this weekend|live/.test(low))return{say:'For this weekend, I’d narrow the choices by area and the kind of event you want—music, food, community, arts, or something outdoors—then give you a short list rather than everything happening.',choices:['Free events','Something outdoors','Food events']};
+        if(/event|this weekend|live/.test(low))return this.liveInfoResponse(x)||{say:'For event ideas, I’d narrow the choices by area and the kind of event you want—music, food, community, arts, or something outdoors—then use a live source to verify what is actually happening.',choices:['Free events','Something outdoors','Help me phrase the search']};
         return{say:`Got it. I’m keeping ${x} as part of the outing you’re planning. We can narrow the ideas by time, distance, cost, or what sounds fun.`,choices:['Make it free','Keep it nearby','Give me an afternoon plan']};
       }
 
@@ -1269,6 +1290,7 @@ class DiscoverConversation {
     let x=this.clean(text), low=this.normalize(x);
     const detected=this.detectIntent(x);
     this.updateUniversalMemory(text);
+    const liveLimit=this.liveInfoResponse(x);if(liveLimit)return liveLimit;
     const intentFamily=(v)=>/^(?:learn|learnSimple|learnSteps)$/.test(v)?'learn':v;
 
     // Corrections inside a weekly plan can move an existing item without changing topics.
