@@ -139,7 +139,7 @@ button,.back{touch-action:manipulation}
 <script>
 class DiscoverConversation {
   constructor(){this.maxTurns=5;this.reset()}
-  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
+  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
   normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").replace(/\bidk\b/g,"i don't know").replace(/\b(?:resturant|restaraunt)\b/g,'restaurant').replace(/\b(?:grocey|grocry)\b/g,'grocery').replace(/\bgrocery lst\b/g,'grocery list').replace(/\bvaccation\b/g,'vacation').replace(/\bwek\b/g,'week').replace(/\s+/g,' ').trim()}
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
   uncertain(t){let x=this.normalize(t).replace(/^(?:uh+|um+|umm+|hmm+|erm+)[,\s-]*/i,'');return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\bno clue\b|\byou pick\b|\byou decide\b|\bchoose for me\b|\bup to you\b|\bsurprise me\b|\bwhatever works\b|^(?:dunno|i dunno|whatever(?: is fine)?)\b/i.test(x)}
@@ -258,6 +258,80 @@ class DiscoverConversation {
       return{say:`That is the useful clue. Rather than restarting ${topic||'the lesson'}, let’s focus on ${gap}. We’ll change one thing at a time and use what happens next to guide the lesson.`,choices:['Give me one thing to try','Show me an example','Make it simpler']};
     }
     return null;
+  }
+  communicationDraft(text){
+    const raw=String(text||'').trim(),low=this.normalize(raw);
+    if(!/\b(?:write|draft|compose|help me write|help me draft)\b/.test(low))return null;
+    if(/\b(?:resume|cover letter|job application)\b/.test(low))return null;
+    if(/\b(?:rewrite|revise|edit)\b/.test(low)&&!/\b(?:birthday|thank|apolog|invite|invitation|congrat|landlord|boss|neighbor|friend|sister|brother|mom|dad|post)\b/.test(low))return null;
+    const relation=(low.match(/\b(?:to|for)\s+(?:my\s+)?(sister|brother|mom|mother|dad|father|friend|neighbor|boss|manager|coworker|co-worker|daughter|son|husband|wife|partner|landlord|tenant|client|customer)\b/)||[])[1]||'';
+    const kind=/\b(?:invite|invitation|potluck|party)\b/.test(low)?'invitation':/\bbirthday\b/.test(low)?'birthday':/\bthank(?:s| you)?\b|\bthank-you\b/.test(low)?'thank-you':/\bapolog(?:y|ize|ise)\b|\bsorry\b/.test(low)?'apology':/\bcongrat(?:s|ulations)\b/.test(low)?'congratulations':/\b(?:facebook|social|instagram|nextdoor)\b.*\bpost\b|\bpost\b.*\b(?:facebook|social|instagram|nextdoor)\b/.test(low)?'social post':/\bemail\b/.test(low)?'email':/\b(?:text|message)\b/.test(low)?'message':/\bnote\b/.test(low)?'note':'draft';
+    this.s.category='create';this.s.intent='create';this.s.taskType='create';this.s.stage='createPlan';this.s.createKind=kind;this.s.createRecipient=relation;this.s.topic=kind==='draft'?'your draft':`${kind}${relation?` to your ${relation}`:''}`;this.updateUniversalMemory(raw);
+    const short=/\b(?:short|brief|quick|concise)\b/.test(low), warm=/\b(?:warm|friendly|kind|heartfelt)\b/.test(low), funny=/\b(?:funny|playful|humor|humorous)\b/.test(low), professional=/\b(?:professional|polished|work)\b/.test(low), casual=/\b(?:casual|not too formal|not stiff|less formal)\b/.test(low), restrained=/\b(?:not too mushy|not mushy|not too sentimental|less sentimental|not sappy)\b/.test(low);
+    let draft='';
+    if(kind==='birthday'){
+      if(funny) draft=`Happy birthday! Hope your day has good food, good laughs, and as few responsibilities as possible. I hope this year brings you plenty of reasons to smile.`;
+      else if(short) draft=`Happy birthday! Hope you have a great day and an even better year ahead. ❤️`;
+      else if(warm||restrained) draft=`Happy birthday! I hope you have a really good day and get to do something you enjoy. I’m glad you’re in my life, and I hope this year treats you well.`;
+      else draft=`Happy birthday! I hope you have a wonderful day, get spoiled a little, and have a great year ahead.`;
+    } else if(kind==='thank-you'){
+      const forWhat=(raw.match(/\bfor\s+(.+?)(?:[.!?]|$)/i)||[])[1]||'helping me';
+      draft=`Thank you so much for ${forWhat.replace(/^my\s+/i,'')}. I really appreciate you taking the time to help—it meant a lot.`;
+      if(short)draft=`Thanks so much for ${forWhat.replace(/^my\s+/i,'')}. I really appreciate it!`;
+    } else if(kind==='apology'){
+      const reason=(raw.match(/\bfor\s+(.+?)(?:[.!?]|$)/i)||[])[1]||'what happened';
+      const cleanReason=reason.replace(/\btheir\s+call\b/i,'your call').replace(/\btheir\s+/i,'your ');
+      draft=`I’m sorry about ${cleanReason}. I should have handled that better, and I didn’t want to leave it unacknowledged. I hope we’re okay.`;
+    } else if(kind==='invitation'){
+      const when=(raw.match(/\b(?:on\s+)?((?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:\s+at\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)?)?|\d{1,2}(?::\d{2})?\s*(?:am|pm))/i)||[])[1]||'[day/time]';
+      const event=/potluck/.test(low)?'potluck':/birthday/.test(low)?'birthday get-together':'get-together';
+      draft=`Hi! I’m having a ${event} ${when==='[day/time]'?'on [day] at [time]':`on ${when}`} and would love for you to come. Let me know if you can make it!`;
+    } else if(kind==='congratulations'){
+      draft=`Congratulations! That’s such great news, and I’m really happy for you. You worked hard for this—hope you get a chance to celebrate.`;
+    } else if(kind==='social post'){
+      const free=/\bfree\b/.test(low), beginner=/\bbeginner|no experience|no jargon\b/.test(low);
+      draft=`Curious about what AI can actually help with? Join us for a${free?' free':''}${beginner?' beginner-friendly':''} community workshop where we’ll try practical everyday examples together. No special tech skills needed—just bring your questions and curiosity.`;
+    } else if(kind==='email'){
+      const ask=(raw.match(/\b(?:asking|ask)\s+(?:my\s+\w+\s+)?(?:to|for)\s+(.+?)(?:[.!?]|$)/i)||[])[1];
+      const leave=(low.match(/\b(?:leave|leaving)\s+early\s+(.+?)(?:[.!?]|$)/)||[])[1];
+      const purpose=(raw.match(/\b(?:about|regarding)\s+(.+?)(?:[.!?]|$)/i)||[])[1];
+      const greeting=relation?`Hi ${relation.charAt(0).toUpperCase()+relation.slice(1)},`:'Hi [Name],';
+      if(leave)draft=`${greeting}\n\nI wanted to ask if I could leave early ${leave}. Please let me know if that works or if you need anything from me beforehand.\n\nThanks,\n[Your name]`;
+      else if(ask)draft=`${greeting}\n\nI wanted to ask if we could ${ask.replace(/^leave early/i,'leave early')}. Please let me know if that would work, or if there’s anything you need from me first.\n\nThanks,\n[Your name]`;
+      else if(purpose)draft=`${greeting}\n\nI wanted to reach out about ${purpose}. Please let me know what works best or if you need any additional information from me.\n\nThanks,\n[Your name]`;
+      else {this.s.draftText='';return{say:`Absolutely. What is the main thing you want the email${relation?` to your ${relation}`:''} to say or ask for?`,choices:['Make a request','Share an update','Ask a question']};}
+    } else if(kind==='message'||kind==='note'){
+      const purpose=(raw.match(/\b(?:about|regarding)\s+(.+?)(?:[.!?]|$)/i)||[])[1];
+      if(purpose)draft=`Hi! I wanted to reach out about ${purpose}. When you have a chance, could we talk about it? Thanks—I appreciate it.`;
+      else {this.s.draftText='';return{say:`Absolutely. What is the main thing you want the ${kind}${relation?` to your ${relation}`:''} to say?`,choices:['Share an update','Ask for something','Keep it simple']};}
+    } else {
+      draft='Here’s a simple first draft: “Hi [Name], I wanted to reach out about [main point]. [Add the key detail, request, or feeling here.] Thanks for taking the time to read this.”';
+    }
+    if(professional&&!/email/.test(kind))draft=draft.replace(/Hi!/,'Hello,').replace(/Thanks—I appreciate it\./,'Thank you for your time.');
+    if(casual)draft=draft.replace(/Hello,/,'Hi!').replace(/Thank you for your time\./,'Thanks!');
+    this.s.draftText=draft;
+    return{say:`Here’s a first draft you can use:\n\n“${draft}”`,choices:['Make it shorter','Make it warmer','Make it more casual']};
+  }
+  reviseCommunication(text){
+    if(!this.s.draftText)return null;
+    const low=this.normalize(text),kind=this.s.createKind||'',recipient=this.s.createRecipient||'';
+    if(!/\b(?:shorter|warmer|friendlier|funnier|more playful|more casual|less formal|more professional|less mushy|less sentimental|more personal|change it|make it|instead|for my|for a)\b/.test(low))return null;
+    const newRel=(low.match(/\b(?:for|to)\s+(?:my\s+)?(sister|brother|mom|mother|dad|father|friend|neighbor|boss|manager|coworker|co-worker|daughter|son|husband|wife|partner|landlord|tenant|client|customer)\b/)||[])[1];
+    if(newRel)this.s.createRecipient=newRel;
+    let d=this.s.draftText;
+    if(kind==='birthday'){
+      if(/\bshorter|brief|concise\b/.test(low))d=`Happy birthday! Hope you have a great day and an even better year ahead. ❤️`;
+      else if(/\bfunny|funnier|playful|humor\b/.test(low))d=`Happy birthday! Hope your day has great food, good laughs, and absolutely no unnecessary responsibilities. Have a great one!`;
+      else if(/\bwarm|warmer|friendlier|more personal|less mushy|less sentimental\b/.test(low))d=`Happy birthday! I hope you have a really good day. I’m glad you’re in my life, and I hope this next year brings you plenty to smile about.`;
+      else if(newRel)d=d.replace(/\b(sister|brother|mom|mother|dad|father|friend|neighbor|boss|manager|coworker|daughter|son|husband|wife|partner)\b/i,newRel);
+    } else {
+      if(/\bshorter|brief|concise\b/.test(low))d=d.split(/(?<=[.!?])\s+/).slice(0,2).join(' ');
+      if(/\bmore casual|less formal\b/.test(low))d=d.replace(/^Hello,/,'Hi!').replace(/Thank you for your time\.?/g,'Thanks!');
+      if(/\bmore professional\b/.test(low))d=d.replace(/^Hi!/,'Hello,').replace(/Thanks!?/g,'Thank you.');
+      if(/\bwarm|warmer|friendlier\b/.test(low)&&!/I really appreciate/.test(d))d=d.replace(/Thanks!?$/,'I really appreciate it. Thanks!');
+    }
+    this.s.draftText=d;
+    return{say:`Here’s the revised version:\n\n“${d}”`,choices:['Make it shorter','Try another tone','Add a personal detail']};
   }
   updateUniversalMemory(text){
     const raw=String(text||'').trim(), low=this.normalize(raw);if(!raw)return;
@@ -908,6 +982,7 @@ class DiscoverConversation {
   directAnswer(x,intent=''){
     const low=this.normalize(x);
     const answer=(say,choices=[])=>({say,choices});
+    if(intent==='create'){const drafted=this.communicationDraft(x);if(drafted)return drafted;}
     if(intent==='explore' || /what can (?:i use )?ai (?:do|help with)|how can ai help me/.test(low)){
       this.s.category='open';this.s.intent='explore';this.s.topic='using AI';this.s.stage='explore';
       return answer('AI can help with much more than answering questions. You can use it to plan a trip, organize your week, explain something confusing, make a grocery list, work through a problem, compare options, or help draft something. The useful part is that you can keep talking to it and refine the result as you go.', ['Plan a trip','Organize my week','Explain something','Help me create something']);
@@ -1059,6 +1134,15 @@ class DiscoverConversation {
     // Generic tasks use one shared continuity engine instead of topic-specific rules.
     // Explicit topic switches were already handled above, so ordinary follow-ups stay in context.
     if(this.s.stage==='generalTask')return this.handleGeneralTask(x);
+
+    // Once a communication draft exists, revision requests should modify that draft
+    // before generic free-text handling can swallow the correction.
+    if(this.s.stage!=='start' && this.s.intent==='create' && this.s.draftText){
+      const revised=this.reviseCommunication(x);if(revised)return revised;
+    }
+    if(this.s.stage==='createPlan' && this.s.intent==='create' && !this.s.draftText && /^(?:message|note|email)$/.test(this.s.createKind||'')){
+      return this.handleCreatePlan(x);
+    }
 
     // Short conversational controls are meaningful in the current context.
     const shortCommand=this.handleShortCommand(x);
@@ -1265,6 +1349,15 @@ class DiscoverConversation {
   handleCreateGoal(x){const low=this.normalize(x),topic=this.normalize(this.s.topic);if(this.uncertain(x)){this.s.goal='simple first draft';this.s.stage='createPlan';return{say:'No problem. I’ll start with a warm, simple version you can react to. You do not need to choose the tone or wording before we begin.',choices:['Start the draft','Make it shorter','Make it more personal']}}this.s.goal=x;this.s.details.push(x);this.s.stage='createPlan';if(/card/.test(topic)&&/funny|playful|humor|joke/.test(low))return{say:'Funny is a clear direction. I’ll keep it light and personal instead of making it sound like a generic greeting card.',choices:['Draft it','Make it for my sister','Not too sentimental']};if(/card/.test(topic)&&/sister|brother|mom|mother|dad|father|friend|husband|wife|daughter|son/.test(low))return{say:'Perfect. Knowing who the card is for gives us the relationship and tone. Add one personal detail or tell me whether you want it funny, warm, or very short.',choices:['Make it funny','Make it warm','Keep it short']};return{say:`Great. Now I know the direction. I’d start with a rough version rather than trying to get it perfect on the first try.`,choices:['Draft it','Give me ideas','Make it simpler']}}
   handleCreatePlan(x){
     const low=this.normalize(x),topic=this.normalize(this.s.topic);
+    const revised=this.reviseCommunication(x);if(revised)return revised;
+    if(!this.s.draftText && /^(?:share|tell|say|ask|let|i want|i need|that|about|regarding|please|can you|could you|just)/i.test(String(x||'')) && /^(?:message|note|email)$/.test(this.s.createKind||'')){
+      const rel=this.s.createRecipient?` to your ${this.s.createRecipient}`:'';
+      const body=String(x||'').trim().replace(/[.!?]+$/,'');
+      let d='';
+      if(this.s.createKind==='email')d=`Hi ${this.s.createRecipient?this.s.createRecipient.charAt(0).toUpperCase()+this.s.createRecipient.slice(1):'[Name]'},\n\nI wanted to ${body.replace(/^i want to\s+/i,'').replace(/^please\s+/i,'')}. Please let me know if that works or if you need anything else from me.\n\nThanks,\n[Your name]`;
+      else d=`Hi! I wanted to ${body.replace(/^i want to\s+/i,'').replace(/^tell (?:her|him|them)\s+/i,'let you know ').replace(/^say\s+/i,'say ')}.`;
+      this.s.draftText=d;return{say:`Here’s a first draft${rel}:\n\n“${d}”`,choices:['Make it shorter','Make it warmer','Make it more casual']};
+    }
     if(/card/.test(topic)&&/funny|playful|humor|joke/.test(low)){this.s.details.push(x);return{say:'Funny works. I’d keep the card to one sincere line and one playful line so it feels personal without getting sugary.',choices:['Draft the card','Not too sentimental','Add a personal detail']}}
     if(/card/.test(topic)&&/sentimental|sappy|emotional/.test(low)){this.s.details.push(x);return{say:'Got it. I’ll keep it warm but restrained: one genuine sentence, one lighter line, and a simple birthday wish.',choices:['Draft the card','Add humor','Keep it short']}}
     if(/card/.test(topic)&&/dog|cat|pet|music|travel|garden|golf|coffee|book|movie/.test(low)){this.s.details.push(x);return{say:'That is a useful personal detail. I can work it into one line so the card sounds like it was written for them, not pulled from a template.',choices:['Draft the card','Make it funny','Keep it short']}}
