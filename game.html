@@ -139,7 +139,7 @@ button,.back{touch-action:manipulation}
 <script>
 class DiscoverConversation {
   constructor(){this.maxTurns=5;this.reset()}
-  reset(){this.s={stage:'start',category:'',intent:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',ingredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[]}}
+  reset(){this.s={stage:'start',category:'',intent:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[]}}
   normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").replace(/\bidk\b/g,"i don't know").replace(/\b(?:resturant|restaraunt)\b/g,'restaurant').replace(/\b(?:grocey|grocry)\b/g,'grocery').replace(/\bgrocery lst\b/g,'grocery list').replace(/\bvaccation\b/g,'vacation').replace(/\bwek\b/g,'week').replace(/\s+/g,' ').trim()}
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
   uncertain(t){const x=this.normalize(t);return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\byou pick\b|\bchoose for me\b|\bsurprise me\b|\bwhatever works\b/i.test(x)}
@@ -148,7 +148,7 @@ class DiscoverConversation {
   amount(t){const x=String(t||'');const money=x.match(/\$\s*([0-9]{1,4}(?:,[0-9]{3})?(?:\.\d{1,2})?)/);if(money)return money[1].replace(/,/g,'');const contextual=x.match(/\b(?:budget|spend|cost|under|around|about)\s*\$?\s*([0-9]{1,4}(?:,[0-9]{3})?(?:\.\d{1,2})?)/i);if(contextual)return contextual[1].replace(/,/g,'');return''}
   extractDinnerIngredients(t){
     const low=this.normalize(t);
-    const splitList=(v)=>String(v||'').split(/\s*,\s*|\s+and\s+/).map(x=>x.replace(/^and\s+/,'').replace(/^(?:some|a|an|the)\s+/,'').replace(/\s+(?:too|also)$/,'').trim()).filter(Boolean);
+    const splitList=(v)=>String(v||'').split(/\s*,\s*|\s+and\s+/).map(x=>x.replace(/^and\s+/,'').replace(/^(?:some|a|an|the)\s+/,'').replace(/\s+(?:too|also|either)$/,'').trim()).filter(Boolean);
     const exclude=[];
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:do not|don't|dont)\s+have\s+([^.!?]+)/g)) exclude.push(...splitList(m[1]));
     for(const m of low.matchAll(/\b(?:no|without)\s+([a-z][a-z -]{1,30})(?=[,.!?]|$)/g)) exclude.push(...splitList(m[1]));
@@ -167,6 +167,16 @@ class DiscoverConversation {
     for(const item of inc){const hits=item.match(knownFoods)||[];if(hits.length>=2)expanded.push(...hits);else expanded.push(item)}
     inc=[...new Set(expanded.filter(x=>!ex.some(n=>x===n || x.endsWith(' '+n))))];
     return{include:inc,exclude:ex};
+  }
+  safeDinnerIngredients(){
+    const facts=this.s.facts||[];
+    const banned=new Set((this.s.excludedIngredients||[]).map(x=>this.normalize(x)));
+    if(facts.includes('no dairy')) banned.add('cheese');
+    if(facts.includes('vegetarian')||facts.includes('vegan')) ['chicken','beef','steak','pork','turkey','fish','salmon','ham','sausage'].forEach(x=>banned.add(x));
+    if(facts.includes('vegan')) ['egg','eggs','cheese'].forEach(x=>banned.add(x));
+    const safe=(this.s.ingredients||[]).filter(item=>{const n=this.normalize(item);return n&&!banned.has(n)});
+    this.s.ingredients=[...new Set(safe)];
+    return this.s.ingredients;
   }
   hasAsked(q){return this.s.asked.includes(this.normalize(q))}
   ask(q){this.s.lastQuestion=q;this.s.asked.push(this.normalize(q));return q}
@@ -188,6 +198,26 @@ class DiscoverConversation {
     const facts=(this.s.facts||[]).filter(f=>/coastal|ocean views|easy walking|no long hikes|no seafood/.test(f));
     p.push(...facts.filter((v,i,a)=>a.indexOf(v)===i));
     return p.join(', ');
+  }
+  tripWeatherResponse(low){
+    this.noteFact('weather constraint');
+    const where=this.s.location||'the destination';
+    const day=this.s.currentDay?`Day ${this.s.currentDay}`:'the day';
+    const facts=(this.s.facts||[]).join(' ');
+    const easy=/no long hikes|easy walking|easy walks|not strenuous|relaxed pace/.test(facts);
+    let say=`Got it. I’ll adjust ${day} in ${where} for the weather instead of starting over. `;
+    if(/rain|storm|bad weather|weather/.test(low))say+=`I’d keep the plan close to town: use galleries, shops, a café or other indoor stop as the main activity, then save one short scenic viewpoint or easy coastal stop for a break in the rain.`;
+    else say+=`I’d keep the most weather-sensitive activity flexible, add a comfortable indoor or covered backup, and avoid making the day depend on one outdoor stop.`;
+    if(easy)say+=` That still keeps the walking short and avoids long hikes.`;
+    if(this.s.budget)say+=` To stay near $${this.s.budget}, I’d favor free or low-cost stops and one casual meal.`;
+    return{say,choices:['Make it fully indoors','Keep the same budget','Adjust the rest of the itinerary']};
+  }
+  tripIndoorResponse(){
+    const where=this.s.location||'the destination';
+    const day=this.s.currentDay?`Day ${this.s.currentDay}`:'the day';
+    let say=`Absolutely. I’ll make ${day} in ${where} fully indoor or covered: browse shops or galleries, choose a café or casual lunch stop, and add another indoor attraction or relaxed place to spend time instead of depending on outdoor sightseeing.`;
+    if(this.s.budget)say+=` I’ll keep those choices modest so the overall trip can still stay near $${this.s.budget}.`;
+    return{say,choices:['Add a meal stop','Keep it inexpensive','Adjust another day']};
   }
   topicLabel(){return this.s.topic || 'this'}
   detectIntent(t){
@@ -216,7 +246,7 @@ class DiscoverConversation {
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -354,11 +384,27 @@ class DiscoverConversation {
 
       if(currentIntent==='dinner' || /dinner|meal/.test(topicLow)){
         const food=this.extractDinnerIngredients(x);
-        const parts=food.include;
+        // Save dietary constraints even when the same message also removes an ingredient.
+        if(/lactose|dairy[- ]?free|no dairy|without dairy/.test(low)){this.noteFact('no dairy');this.s.excludedIngredients=[...new Set([...(this.s.excludedIngredients||[]),'cheese'])];}
+        if(/vegetarian/.test(low))this.noteFact('vegetarian');
+        if(/vegan/.test(low))this.noteFact('vegan');
+        if(/gluten[- ]?free/.test(low))this.noteFact('gluten-free');
+        // If the user clearly brings a previously excluded ingredient back, allow it again
+        // unless that same message also excludes it or a saved dietary rule still bans it.
+        if(food.include.length){
+          const currentEx=new Set(food.exclude.map(v=>this.normalize(v)));
+          const broughtBack=new Set(food.include.map(v=>this.normalize(v)).filter(v=>!currentEx.has(v)));
+          this.s.excludedIngredients=(this.s.excludedIngredients||[]).filter(v=>!broughtBack.has(this.normalize(v)));
+          if((this.s.facts||[]).includes('no dairy'))this.s.excludedIngredients=[...new Set([...(this.s.excludedIngredients||[]),'cheese'])];
+        }
         if(food.exclude.length){
+          this.s.excludedIngredients=[...new Set([...(this.s.excludedIngredients||[]),...food.exclude.map(v=>this.normalize(v))])];
           this.s.ingredients=(this.s.ingredients||[]).filter(item=>!food.exclude.some(n=>this.normalize(item)===n));
         }
+        const banned=new Set((this.s.excludedIngredients||[]).map(v=>this.normalize(v)));
+        const parts=food.include.filter(v=>!banned.has(this.normalize(v)));
         if(parts.length){this.s.ingredients=[...new Set([...(this.s.ingredients||[]),...parts])];}
+        this.safeDinnerIngredients();
         if(food.exclude.length && parts.length){
           this.s.stage='dinnerPlan';
           const noText=food.exclude.join(' or ');
@@ -379,8 +425,9 @@ class DiscoverConversation {
         if(/vegetarian|vegan|lactose|dairy[- ]?free|no dairy|without dairy|gluten[- ]?free/.test(low)){
           if(/vegetarian/.test(low))this.noteFact('vegetarian');
           if(/vegan/.test(low))this.noteFact('vegan');
-          if(/lactose|dairy[- ]?free|no dairy|without dairy/.test(low))this.noteFact('no dairy');
+          if(/lactose|dairy[- ]?free|no dairy|without dairy/.test(low)){this.noteFact('no dairy');this.s.excludedIngredients=[...new Set([...(this.s.excludedIngredients||[]),'cheese'])];}
           if(/gluten[- ]?free/.test(low))this.noteFact('gluten-free');
+          this.safeDinnerIngredients();
           const prefs=[];if((this.s.facts||[]).includes('vegetarian'))prefs.push('vegetarian');if((this.s.facts||[]).includes('vegan'))prefs.push('vegan');if((this.s.facts||[]).includes('no dairy'))prefs.push('dairy-free');if((this.s.facts||[]).includes('gluten-free'))prefs.push('gluten-free');
           return {say:`Absolutely. I’ll keep the same dinner conversation and make the meal ${prefs.join(' and ')||'fit those dietary needs'}. I won’t suggest ingredients that conflict with that.`,choices:['Give me a meal idea','Make it quick','Use what I have']};
         }
@@ -545,19 +592,18 @@ class DiscoverConversation {
           const easy=/no long hikes|easy walking|easy walks|not strenuous|relaxed pace/.test(facts);
           const budget=this.s.budget?` while keeping the overall trip near $${this.s.budget}`:'';
           if(totalDays && requestedDay>totalDays)return{say:`You currently have this as a ${totalDays}-day trip, so there is not a Day ${requestedDay} yet. I can extend the trip or keep planning within the ${totalDays} days you already chose.`,choices:[`Make it ${requestedDay} days`,`Plan Day ${totalDays}`,'Keep the same trip length']};
+          this.s.currentDay=requestedDay;
           if(/cheap|cheaper|budget|inexpensive|save/.test(low))return{say:`For Day ${requestedDay} in ${destination}, I’d make the cheaper version mostly free: a scenic viewpoint or short walk, time exploring town, and a casual meal or picnic instead of paid attractions${budget}.`,choices:['Add a cheap meal','Plan the next day','Keep the whole trip cheaper']};
-          if(/eat|food|meal|lunch|dinner|restaurant/.test(low))return{say:`For Day ${requestedDay} in ${destination}, I’d put the meal near the main activity so you are not driving back and forth. Keep lunch casual and flexible${budget}, then use dinner as the one meal worth choosing more deliberately.`,choices:['Make the meal cheaper','Plan the rest of Day 2','Add a cuisine']};
+          if(/eat|food|meal|lunch|dinner|restaurant/.test(low))return{say:`For Day ${requestedDay} in ${destination}, I’d put the meal near the main activity so you are not driving back and forth. Keep lunch casual and flexible${budget}, then use dinner as the one meal worth choosing more deliberately.`,choices:['Make the meal cheaper',`Plan the rest of Day ${requestedDay}`,'Add a cuisine']};
           let plan=`For Day ${requestedDay} in ${destination}, I’d make it a relaxed explore day: start with a scenic coastal stop or short walk, have lunch in town, then choose one afternoon sight or viewpoint and leave some open time`;
           if(easy)plan+=`—no long hike required`;
           plan+=`${budget}.`;
           if(/mendocino/.test(this.normalize(destination)))plan+=` Around Mendocino, that could mean an easy section of the Headlands or a coastal viewpoint, time in the village, and one nearby scenic stop rather than packing the day with long trails.`;
-          return{say:plan,choices:[`Plan Day ${Math.min(requestedDay+1,totalDays||requestedDay+1)}`,'Add a meal stop','Make Day 2 cheaper']};
+          const nextDayChoice=(totalDays&&requestedDay<totalDays)?`Plan Day ${requestedDay+1}`:`Adjust Day ${requestedDay}`;return{say:plan,choices:[nextDayChoice,'Add a meal stop',`Make Day ${requestedDay} cheaper`]};
         }
         const money=this.amount(x);const dayMatch=low.match(/\b(\d+|two|three|four|five|six|seven)\s*(?:day|days|night|nights)\b/);const days=dayMatch?(words[dayMatch[1]]||Number(dayMatch[1])):'';
-        if(/rain|storm|bad weather|weather|hot|heat|cold|windy|wind/.test(low)){
-          this.noteFact('weather constraint');
-          return{say:`Got it. I’ll adjust the same trip for the weather instead of ignoring it. I’d keep outdoor stops flexible, add an indoor or covered backup, and avoid putting the most weather-dependent activity where it could derail the day${this.s.location?` in ${this.s.location}`:''}.`,choices:['Give me a rainy-day backup','Keep the budget the same','Adjust the itinerary']};
-        }
+        if(/rain|storm|bad weather|weather|hot|heat|cold|windy|wind/.test(low))return this.tripWeatherResponse(low);
+        if(/fully indoors|all indoors|indoors only|inside only/.test(low))return this.tripIndoorResponse();
         if(/cane|walker|wheelchair|cannot walk|can't walk|limited walking|mobility|walk very far|needs? places to sit/.test(low)){
           this.noteFact('limited walking');
           return{say:`I’ll build that accessibility need into the same trip. I’d favor short, level walks, scenic stops close to parking, places to sit, and fewer back-to-back stops so the day does not depend on walking far.`,choices:['Build an easy-access itinerary','Add rest stops','Keep the budget the same']};
@@ -565,11 +611,11 @@ class DiscoverConversation {
         if(/coast|coastal/.test(low))this.noteFact('coastal');
         if(/ocean views?|water views?|coastal views?/.test(low))this.noteFact('ocean views');
         if(/no long hikes|don't want long hikes|do not want long hikes|avoid long hikes|easy walk|easy walks|not strenuous|low key|relaxed pace|short walks?/.test(low))this.noteFact('no long hikes');
-        const named=(x.match(/\b(?:Monterey|Mendocino|San Francisco|Yosemite|Sacramento|Napa|Tahoe|Lake Tahoe|Carmel|Santa Cruz)\b/i)||[])[0];const destinationPhrase=(x.match(/\b(?:go|travel|head|switch|change)\s+(?:the\s+trip\s+)?to\s+(.+?)(?:\s+instead)?[.!?]?$/i)||[])[1]||(x.match(/\bdestination(?:\s+is)?\s+(.+?)[.!?]?$/i)||[])[1];const destination=(named||destinationPhrase||'').trim().replace(/\s+instead$/i,'').replace(/[.!?]+$/,'');if(money)this.s.budget=money;if(days)this.s.dates=days+' days';if(destination){this.s.location=destination;this.noteFact(destination);this.s.stage='tripPlan';return{say:`Got it — I’ll use ${destination} as the destination and keep the rest of the trip preferences we already have${this.s.budget?` and stay near $${this.s.budget}`:''}.`,choices:this.tripChoices()};}
+        const named=(x.match(/\b(?:Monterey|Mendocino|San Francisco|Yosemite|Sacramento|Napa|Tahoe|Lake Tahoe|Carmel|Santa Cruz)\b/i)||[])[0];const destinationPhrase=(x.match(/\b(?:go|travel|head|switch|change)\s+(?:the\s+trip\s+)?to\s+(.+?)(?:\s+instead)?[.!?]?$/i)||[])[1]||(x.match(/\bdestination(?:\s+is)?\s+(.+?)[.!?]?$/i)||[])[1];const destination=(named||destinationPhrase||'').trim().replace(/\s+instead$/i,'').replace(/[.!?]+$/,'');if(money)this.s.budget=money;if(days){this.s.dates=days+' days';if(this.s.currentDay>days)this.s.currentDay=0;}if(destination){this.s.location=destination;this.noteFact(destination);this.s.stage='tripPlan';return{say:`Got it — I’ll use ${destination} as the destination and keep the rest of the trip preferences we already have${this.s.budget?` and stay near $${this.s.budget}`:''}.`,choices:this.tripChoices()};}
         if(/(?:do not|don't|dont|no|avoid)\s+(?:want\s+)?seafood/.test(low)){this.noteFact('no seafood');if(/seafood/.test(this.normalize(this.s.interest)))this.s.interest=''}
         else if(/seafood|italian|mexican|thai|chinese|vegetarian|vegan/.test(low))this.s.interest=(low.match(/\b(?:seafood|italian|mexican|thai|chinese|vegetarian|vegan)\b/)||[''])[0];
         if(/walking|walks|easy walks|hiking|hikes/.test(low))this.noteFact('easy walking');
-        if(money||days){this.s.stage='tripPlan';return{say:`Perfect. I’ll use ${days?days+' days':''}${days&&money?' and ':''}${money?'about $'+money:''} as real constraints, so the trip stays realistic instead of becoming a generic list.`,choices:this.tripChoices()};}
+        if(money||days){this.s.stage='tripPlan';const dayText=days?(days===1?'1 day':days+' days'):'';return{say:`Perfect. I’ll use ${dayText}${days&&money?' and ':''}${money?'about $'+money:''} as real constraints, so the trip stays realistic instead of becoming a generic list.`,choices:this.tripChoices()};}
         const known=this.tripKnownSummary();
         const preferenceAdded=/easy walk|easy walks|no long hikes|ocean views?|water views?|coast|coastal|relaxed|low key|small towns?|scenic/.test(low);
         if(preferenceAdded && known)return{say:`Got it. I’ll keep those preferences in the same trip. I already have ${known}, so I won’t ask you for those details again. We can start shaping the itinerary from here.`,choices:this.tripChoices()};
@@ -706,7 +752,7 @@ class DiscoverConversation {
       const money=this.amount(x);if(money)this.s.budget=money;
       const dayMatch=low.match(/\b(\d+|two|three|four|five|six|seven)\s*[- ]?\s*(?:day|days|night|nights)\b/);if(dayMatch){const words={two:2,three:3,four:4,five:5,six:6,seven:7};this.s.dates=(words[dayMatch[1]]||Number(dayMatch[1]))+' days'};
       const dest=(low.match(/\b(?:trip|vacation|travel)\s+to\s+(.+?)(?:\s+(?:with|for|on|under|around|about)\b|[.!?]|$)/i)||[])[1]||(low.match(/\bto\s+(monterey|mendocino|san francisco|yosemite|sacramento)\b/i)||[])[1];
-      if(dest){this.s.location=dest.trim();this.noteFact(this.s.location)}
+      if(dest){const knownPlaces={'monterey':'Monterey','mendocino':'Mendocino','san francisco':'San Francisco','yosemite':'Yosemite','sacramento':'Sacramento'};this.s.location=knownPlaces[this.normalize(dest.trim())]||dest.trim();this.noteFact(this.s.location)}
       if(/easy walks?|short walks?|no long hikes|not strenuous|relaxed pace/.test(low))this.noteFact(/no long hikes|not strenuous/.test(low)?'no long hikes':'easy walking');
       if(/(?:do not|don't|dont|no|avoid)\s+(?:want\s+)?seafood/.test(low))this.noteFact('no seafood');
       else if(/seafood/.test(low)){this.s.interest='seafood';this.noteFact('seafood')}
@@ -915,7 +961,70 @@ class DiscoverConversation {
     if(/something quick|quick/i.test(low)){this.s.details.push('quick');this.s.stage='dinnerPlan';return{say:'Let’s keep it quick: think 20–30 minutes, one pan if possible, and ingredients you already have. Tell me what you have and I’ll build it around that.',choices:['I’ll list what I have','Give me a quick idea','Keep it simple']}}
     const food=this.extractDinnerIngredients(x);this.s.ingredients=food.include.length?food.include:x.split(/\s*,\s*|\s+and\s+/).map(v=>this.normalize(v)).filter(Boolean);this.s.details.push(...this.s.ingredients);this.s.stage='dinnerPlan';return{say:`Great — I’ll build the dinner around ${this.s.ingredients.join(' and ')}. A simple approach is to make those ingredients the center of the meal and keep the extras easy.`,choices:['Give me the recipe','Make it quick','What else could I add?']}
   }
-  handleDinnerPlan(x){const low=this.normalize(x),base=(this.s.ingredients&&this.s.ingredients.length?this.s.ingredients.join(' and '):'the same dinner');if(/spicy/.test(low))return{say:`Absolutely. Keep ${base} and make it spicy with chili flakes, hot sauce, taco seasoning, curry paste, or another heat source you already like. Add a little at a time so you can control the heat.`,choices:['Give me the exact recipe','Make it for two','No dairy']};if(/mild/.test(low))return{say:`Sure. Keep ${base} mild by using garlic, herbs, lemon, or a simple savory seasoning instead of heat.`,choices:['Give me the exact recipe','Make it quick','Change an ingredient']};if(/no dairy|dairy[- ]free|without dairy/.test(low))return{say:`No problem. Keep ${base} dairy-free by skipping cheese or cream and using broth, olive oil, tomato sauce, salsa, or another dairy-free sauce instead.`,choices:['Give me the exact recipe','Make it spicy','Make it quick']};if(/for two|for 2|two people|2 people|servings?\s*2/.test(low))return{say:`For two people, keep ${base} modest: about two portions of the main ingredient and enough rice, pasta, or vegetables for two plates. I’d rather slightly under-plan than leave you with a huge batch unless you want leftovers.`,choices:['Give me exact amounts','Make it spicy','No dairy']};if(/quick|easy|tired|one pan|no time|tonight/.test(low)){return{say:'Then keep it to one pan and about 20 minutes: sauté the main ingredient, add the starch with a little water or broth, fold in any vegetables near the end, and season to taste. One meal, very little cleanup.',choices:['Give me the exact amounts','Make it even simpler','Swap the main ingredient']}}if(/recipe|steps|how to|how do i|exact amounts/.test(low)){return{say:`Here is a simple plan for ${base}: cook the main ingredient first, add the rice, pasta, or other starch, season to taste, and finish with any vegetable or sauce you have. Keep the steps short so dinner is easy to follow.`,choices:['Make it more detailed','Give me a shopping list','Change the main ingredient']}}if(/simpler|simple/.test(low)){return{say:'Absolutely: cook the main ingredient, add one easy side, season it, and serve. You do not need a complicated recipe for a good dinner.',choices:['Another idea','Give me the recipe','That works']}}if(/different meat|swap/.test(low)){this.s.ingredients=['a different protein'];return{say:'Sure. Chicken, ground turkey, sausage, or beans would all work. I would choose based on what you already have rather than buying a lot of extras.',choices:['Chicken','Turkey','Beans']}}return this.continueNaturally(x)}
+  handleDinnerPlan(x){
+    const low=this.normalize(x);
+    const listText=(items)=>items.length<=1?(items[0]||'what you have'):(items.length===2?items.join(' and '):items.slice(0,-1).join(', ')+', and '+items[items.length-1]);
+
+    if(/\bvegan\b/.test(low)){
+      this.noteFact('vegan');this.noteFact('no dairy');
+      this.s.excludedIngredients=[...new Set([...(this.s.excludedIngredients||[]),'egg','eggs','cheese','chicken','beef','steak','pork','turkey','fish','salmon','ham','sausage'])];
+      const safe=this.safeDinnerIngredients();
+      const remain=listText(safe);
+      return{say:safe.length?`Absolutely. I’ll keep the same dinner vegan. I’ve removed the animal-based ingredients and kept ${remain}. If you have beans, tofu, or vegetables, one of those can make the meal more filling without starting over.`:'Absolutely. I’ll keep it vegan. The ingredients we had were mostly animal-based, so I’d rebuild it around something like beans, tofu, vegetables, rice, pasta, or tortillas instead.',choices:['Use beans','Use tofu','Keep it simple']};
+    }
+    if(/\bvegetarian\b/.test(low)){
+      this.noteFact('vegetarian');
+      this.s.excludedIngredients=[...new Set([...(this.s.excludedIngredients||[]),'chicken','beef','steak','pork','turkey','fish','salmon','ham','sausage'])];
+      const safe=this.safeDinnerIngredients();
+      return{say:`Absolutely. I’ll keep the same dinner vegetarian and build it around ${listText(safe)} instead of the meat or fish.`,choices:['Give me the recipe','Make it spicy','Keep it simple']};
+    }
+    if(/no dairy|dairy[- ]free|without dairy|lactose/.test(low)){
+      this.noteFact('no dairy');
+      this.s.excludedIngredients=[...new Set([...(this.s.excludedIngredients||[]),'cheese'])];
+      const safe=this.safeDinnerIngredients();
+      return{say:`No problem. I’ll keep the same dinner dairy-free and build it around ${listText(safe)}. I’ll leave out cheese and cream rather than bringing them back later.`,choices:['Give me the exact recipe','Make it spicy','Make it quick']};
+    }
+
+    const safeIngredients=this.safeDinnerIngredients();
+    const base=listText(safeIngredients);
+    const noDairy=(this.s.facts||[]).includes('no dairy');
+
+    if(/spicy/.test(low)){
+      const simple=/simple|easy/.test(low);
+      const say=simple
+        ?`Absolutely. Keep ${base} simple and spicy: use one heat source you already like—such as hot sauce, chili flakes, or taco seasoning—and add it a little at a time. No extra complicated steps.`
+        :`Absolutely. Keep ${base} and make it spicy with chili flakes, hot sauce, taco seasoning, curry paste, or another heat source you already like. Add a little at a time so you can control the heat.`;
+      const choices=['Give me the exact recipe','Make it for two',noDairy?'Make it milder':'No dairy'];
+      return{say,choices};
+    }
+    if(/mild/.test(low))return{say:`Sure. Keep ${base} mild by using garlic, herbs, lemon, or a simple savory seasoning instead of heat.`,choices:['Give me the exact recipe','Make it quick','Change an ingredient']};
+    if(/for two|for 2|two people|2 people|servings?\s*2/.test(low))return{say:`For two people, I’d use ${base} in two modest portions and avoid adding extras you do not need. If you want leftovers, make about one extra portion rather than doubling everything.`,choices:['Give me exact amounts','Make it spicy',noDairy?'Make it quick':'No dairy']};
+    if(/quick|easy|tired|one pan|no time|tonight/.test(low))return{say:`Then keep ${base} to about 20 minutes and as few pans as possible. Cook the ingredients that need heat first, warm or add the rest near the end, season, and serve.`,choices:['Give me the exact amounts','Make it even simpler','Swap an ingredient']};
+    if(/recipe|steps|how to|how do i|exact amounts/.test(low)){
+      const has=(v)=>safeIngredients.includes(v);
+      let say;
+      if((has('egg')||has('eggs'))&&(has('tortilla')||has('tortillas'))&&has('salsa')){
+        say=`Here’s the simple recipe: scramble the eggs, warm the tortillas, spoon the eggs into them, and top with salsa. ${noDairy?'Keep it dairy-free as planned.':'Add cheese only if you still want it.'} That is enough for a quick dinner without adding a bunch of extra ingredients.`;
+      }else if((has('tortilla')||has('tortillas'))&&has('salsa')&&safeIngredients.length<=2){
+        say='With only tortillas and salsa left, you have the start of a meal but not much of a filling dinner. Warm the tortillas and use the salsa, then add one filling item you already have—beans, rice, eggs, tofu, or vegetables—rather than pretending those two ingredients are a complete recipe.';
+      }else if(has('chicken')&&has('rice')){
+        say='Cook the chicken first, season it, then serve it over the rice. Add any vegetable or sauce you already have, but you do not need anything else for the basic meal.';
+      }else if(has('pasta')){
+        const others=safeIngredients.filter(v=>v!=='pasta');
+        say=`Cook the pasta${others.length?`, then fold in ${listText(others)} near the end`:''} and season to taste. Keep the sauce simple so the ingredients you already have stay the focus.`;
+      }else{
+        say=`Here is the practical version for ${base}: cook only the ingredients that need cooking, combine them, season to taste, and stop there. If the ingredients you listed are not enough for a full meal, I’ll say so rather than inventing extras.`;
+      }
+      return{say,choices:['Make it more detailed','Make it quicker','Change an ingredient']};
+    }
+    if(/simpler|simple/.test(low))return{say:`Absolutely. Keep ${base}, use one seasoning or sauce, and avoid adding unnecessary ingredients. The goal is a meal you can actually make tonight, not a complicated recipe.`,choices:['Another idea','Give me the recipe','That works']};
+    if(/different meat|swap/.test(low)){
+      const vegetarian=(this.s.facts||[]).includes('vegetarian')||(this.s.facts||[]).includes('vegan');
+      if(vegetarian)return{say:'Sure. Since you want this meat-free, beans or tofu are the easiest swaps. I would choose whichever you already have.',choices:['Beans','Tofu','Keep what I have']};
+      return{say:'Sure. Chicken, ground turkey, sausage, or beans could all work. I would choose based on what you already have rather than buying a lot of extras.',choices:['Chicken','Turkey','Beans']};
+    }
+    return this.continueNaturally(x)
+  }
   handleGroceryCount(x){const m=this.amount(x);if(m&&Number(m)<=10&&/dinner|meal|grocer|list/i.test(this.normalize(x))){this.s.mealCount=Number(m)}else if(/2/.test(x))this.s.mealCount=2;else if(/3/.test(x))this.s.mealCount=3;else if(/5/.test(x))this.s.mealCount=5;if(this.s.mealCount){this.s.stage='groceryMeals';return{say:`Perfect — I’ll build this for ${this.s.mealCount} dinners. Do you want me to choose the meals, or are there meals you already want included?`,choices:['You choose the meals','I have meals in mind','Keep it inexpensive']}}if(this.uncertain(x)){this.s.mealCount=3;this.s.stage='groceryMeals';return{say:'No problem. Three dinners is a nice middle ground, so I’ll use that unless you tell me otherwise.',choices:['You choose the meals','Keep it inexpensive']}}return{say:'Tell me how many dinners you want the list to cover. I can choose the meals too.',choices:['2 dinners','3 dinners','5 dinners']}}
   handleGroceryMeals(x){const low=this.normalize(x);if(this.uncertain(x)||/you choose|pick/i.test(low)){this.s.stage='groceryBudget';return{say:`I’ll choose the meals and keep them practical: one chicken dinner, one pasta-based dinner, and one flexible dinner that can use leftovers.`,choices:['Keep it inexpensive','About $50','You choose the budget']}}this.s.details.push(x);this.s.stage='groceryBudget';return{say:'Great. I’ll include those preferences and keep the list organized so it is easy to shop from.',choices:['Keep it inexpensive','About $50','You choose the budget']}}
   handleGroceryBudget(x){const low=this.normalize(x),a=this.amount(x);if(a)this.s.budget=a;else if(/inexpensive|cheap|budget/.test(low))this.s.budget='inexpensive';else if(this.uncertain(x))this.s.budget='moderate';this.s.stage='openBuild';const meals=this.s.mealCount||3;const budgetText=this.s.budget?` with a ${this.s.budget==='inexpensive'?'budget-friendly':this.s.budget+' dollar'} budget`:'';return{say:`Great. I have enough to sketch a ${meals}-dinner grocery plan${budgetText}. I’d keep the list grouped by produce, meat, dairy, pantry, and extras so it is easy to use in the store.`,choices:['Show me the list','Make it cheaper','Swap a dinner']}}
@@ -928,7 +1037,7 @@ class DiscoverConversation {
   handleThingsDetails(x){const low=this.normalize(x);this.s.details.push(x);this.s.stage='thingsPlan';if(/free|no cost|cheap|budget/.test(low))return{say:'Absolutely. For free or low-cost options, I’d start with parks and easy walks, public gardens or viewpoints, free museum days, libraries or community events, and places you can explore without a ticket.',choices:['Something outdoors','Events this weekend','Keep it nearby']};if(/outdoor|outside|hiking|walk/.test(low))return{say:'For something outdoors, I’d look at an easy walk, park or garden, scenic viewpoint, waterfront, or a short hike depending on how active you want to be.',choices:['Keep it easy','Give me an afternoon plan','Make it free']};if(/event|this weekend|live/.test(low))return{say:'For this weekend, I’d narrow the choices by area and the kind of event you want—music, food, community, arts, or something outdoors—then give you a short list rather than everything happening.',choices:['Free events','Something outdoors','Food events']};if(/day trip|day out|outing/.test(low))return{say:'For an easy day trip, I’d pick one main destination, one or two stops along the way, and leave room for lunch or wandering instead of overplanning the day.',choices:['Make it outdoors','Add lunch','Keep it inexpensive']};return{say:`Nice. I’ll use ${x} as the kind of outing you want. From there, we can narrow by time, distance, cost, or how active you want to be.`,choices:['Keep it relaxed','Give me an afternoon plan','Make it free']}}
   handleThingsPlan(x){const low=this.normalize(x);if(/free|no cost|cheap|budget/.test(low))return{say:'Then I would prioritize parks, walks, public spaces, free community events, and places where browsing does not cost anything. That gives you options without locking you into tickets.',choices:['Give me examples','Keep it nearby']};if(/outdoor|outside|walk|hiking/.test(low))return{say:'A good outdoor plan is one main place plus a little room to wander. An easy walk, park, garden, or viewpoint can be the anchor without making the outing feel scheduled.',choices:['Make it free','Add lunch','Keep it simple']};if(/event|weekend|live/.test(low))return{say:'I’d narrow the event search by your area and the kind of atmosphere you want, then choose only a few strong options rather than dumping a calendar on you.',choices:['Free events','Something outdoors','Make it more specific']};if(/afternoon|day trip|day out|outing/.test(low))return{say:'For an afternoon or day trip, I’d choose one main stop, leave time for a meal or coffee, and avoid packing the schedule so tightly that the outing becomes work.',choices:['Make it more specific','Add lunch','Keep it simple']};if(/specific|nearby|distance/.test(low))return{say:`I can narrow the ideas around ${this.s.location||'your area'} by distance, time available, and cost. Tell me one of those details and I’ll use it to filter the options.`,choices:['Keep it nearby','Make it free','Give me an afternoon plan']};return{say:'I have the type of outing. The next useful filter is time, distance, or cost, and you can give me whichever matters most.',choices:['Keep it nearby','Make it free','Give me an afternoon plan']}}
   handleTripDetails(x){const low=this.normalize(x),money=this.amount(x),days=(low.match(/\b(\d+)\s*(?:day|days|night|nights)\b/)||[])[1];this.s.details.push(x);if(money)this.s.budget=money;if(days)this.s.dates=days+' days';if(/sightseeing|relaxing|mix/.test(low)){this.s.stage='tripPlan';return{say:`Got it. I’ll keep the trip ${/relax/.test(low)?'relaxed':/sightseeing/.test(low)?'focused on sightseeing':'a mix of exploring and downtime'}. The next useful detail is the destination, dates, or budget.`,choices:['Add the destination','Add my budget','Build a simple itinerary']}}if(money||days){this.s.stage='tripPlan';return{say:`Perfect. I’ll use ${days?days+' days':''}${days&&money?' and ':''}${money?'about $'+money:''} as real constraints, so the trip stays realistic instead of becoming a generic list.`,choices:['Add the destination','Build the itinerary','Add another preference']}}return{say:'Good. I have the kind of trip. The most useful next detail is the destination, how long you have, or what you want to spend—you can give me whichever you already know.',choices:['Add the destination','Add my budget','Build a simple itinerary']}}
-  handleTripPlan(x){const low=this.normalize(x);const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7};const requestedDayMatch=low.match(/\b(?:on\s+)?day\s*(\d+|one|two|three|four|five|six|seven)\b/);if(requestedDayMatch){const requestedDay=words[requestedDayMatch[1]]||Number(requestedDayMatch[1]);const totalMatch=String(this.s.dates||'').match(/(\d+)/);const totalDays=totalMatch?Number(totalMatch[1]):0;const destination=this.s.location||'the destination';const facts=(this.s.facts||[]).join(' ');const easy=/no long hikes|easy walking|easy walks|not strenuous|relaxed pace/.test(facts);const budget=this.s.budget?` while keeping the overall trip near $${this.s.budget}`:'';if(totalDays&&requestedDay>totalDays)return{say:`You currently have this as a ${totalDays}-day trip, so there is not a Day ${requestedDay} yet. I can extend the trip or keep planning within the ${totalDays} days you already chose.`,choices:[`Make it ${requestedDay} days`,`Plan Day ${totalDays}`,'Keep the same trip length']};if(/cheap|cheaper|budget|inexpensive|save/.test(low))return{say:`For Day ${requestedDay} in ${destination}, I’d make the cheaper version mostly free: a scenic viewpoint or short walk, time exploring town, and a casual meal or picnic instead of paid attractions${budget}.`,choices:['Add a cheap meal','Plan the next day','Keep the whole trip cheaper']};if(/eat|food|meal|lunch|dinner|restaurant/.test(low))return{say:`For Day ${requestedDay} in ${destination}, I’d put the meal near the main activity so you are not driving back and forth. Keep lunch casual and flexible${budget}, then use dinner as the one meal worth choosing more deliberately.`,choices:['Make the meal cheaper','Plan the rest of Day 2','Add a cuisine']};let plan=`For Day ${requestedDay} in ${destination}, I’d make it a relaxed explore day: start with a scenic coastal stop or short walk, have lunch in town, then choose one afternoon sight or viewpoint and leave some open time`;if(easy)plan+=`—no long hike required`;plan+=`${budget}.`;if(/mendocino/.test(this.normalize(destination)))plan+=` Around Mendocino, that could mean an easy section of the Headlands or a coastal viewpoint, time in the village, and one nearby scenic stop rather than packing the day with long trails.`;return{say:plan,choices:[`Plan Day ${Math.min(requestedDay+1,totalDays||requestedDay+1)}`,'Add a meal stop','Make Day 2 cheaper']}}if(/coast|coastal/.test(low))this.noteFact('coastal');if(/no long hikes|don't want long hikes|do not want long hikes|avoid long hikes|easy walk|easy walks|not strenuous|low key|relaxed pace|short walks?/.test(low))this.noteFact('no long hikes');const named=(String(x||'').match(/\b(?:Monterey|Mendocino|San Francisco|Yosemite|Sacramento|Napa|Tahoe|Lake Tahoe|Carmel|Santa Cruz)\b/i)||[])[0];const destinationPhrase=(String(x||'').match(/\b(?:go|travel|head|switch|change)\s+(?:the\s+trip\s+)?to\s+(.+?)(?:\s+instead)?[.!?]?$/i)||[])[1];if(named||destinationPhrase){const destination=(named||destinationPhrase).trim().replace(/\s+instead$/i,'').replace(/[.!?]+$/,'');this.s.location=destination;this.noteFact(destination);return{say:`Got it — I’ll use ${destination} as the destination and keep the other trip preferences we already have.`,choices:this.tripChoices()}}const dayMatch=low.match(/\b(\d+|two|three|four|five|six|seven)\s*(?:day|days|night|nights)\b/);if(dayMatch){const days=words[dayMatch[1]]||Number(dayMatch[1]);this.s.dates=days+' days';return{say:`Got it — I’ll make it a ${days}-day trip and keep the other preferences the same.`,choices:this.tripChoices()}}if(/no long hikes|easy walk|easy walks|not strenuous|low key|relaxed pace/.test(low))return{say:'Got it. I’d keep the trip easy-paced: short walks, scenic stops, small towns, viewpoints, and places where you can explore without committing to a long hike.',choices:['Build the itinerary','Add food','Keep it budget-friendly']};if(/nature|small towns?|scenic|outdoors?/.test(low))return{say:'That gives the trip a clear style. I’d favor scenic drives, parks or viewpoints, walkable small towns, and one or two outdoor stops rather than a packed attraction list.',choices:['Build the itinerary','Keep walks easy','Add food']};if(/budget|cheap|inexpensive/.test(low))return{say:'For a budget-friendly trip, I would spend on the one or two things that matter most and keep lodging, transportation, and meals flexible. That gives you room for surprises.',choices:['Build the itinerary','Make it even simpler']};if(/food stop|meal|restaurant|eat/.test(low))return{say:'I’d add one food stop near the main activity so the day does not require extra driving just to eat. You can keep the meal casual and use the rest of the time for the destination itself.',choices:['Add another activity','Keep it relaxed']};if(/itinerary|plan|build/.test(low))return{say:`I’d build the trip around a few anchors${this.s.dates?' for '+this.s.dates:''}${this.s.budget?' and keep it around $'+this.s.budget:''}: a main activity, a meal, and some open time. That keeps it realistic instead of minute-by-minute.`,choices:['Add more activities','Add a food stop','Keep it relaxed']};return{say:'A simple itinerary should have a few anchors—a main activity, a meal, and some open time—rather than a minute-by-minute schedule.',choices:['Show me an example','Add more activities','Keep it relaxed']}}
+  handleTripPlan(x){const low=this.normalize(x);const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7};const requestedDayMatch=low.match(/\b(?:on\s+)?day\s*(\d+|one|two|three|four|five|six|seven)\b/);if(requestedDayMatch){const requestedDay=words[requestedDayMatch[1]]||Number(requestedDayMatch[1]);const totalMatch=String(this.s.dates||'').match(/(\d+)/);const totalDays=totalMatch?Number(totalMatch[1]):0;const destination=this.s.location||'the destination';const facts=(this.s.facts||[]).join(' ');const easy=/no long hikes|easy walking|easy walks|not strenuous|relaxed pace/.test(facts);const budget=this.s.budget?` while keeping the overall trip near $${this.s.budget}`:'';if(totalDays&&requestedDay>totalDays)return{say:`You currently have this as a ${totalDays}-day trip, so there is not a Day ${requestedDay} yet. I can extend the trip or keep planning within the ${totalDays} days you already chose.`,choices:[`Make it ${requestedDay} days`,`Plan Day ${totalDays}`,'Keep the same trip length']};this.s.currentDay=requestedDay;if(/cheap|cheaper|budget|inexpensive|save/.test(low))return{say:`For Day ${requestedDay} in ${destination}, I’d make the cheaper version mostly free: a scenic viewpoint or short walk, time exploring town, and a casual meal or picnic instead of paid attractions${budget}.`,choices:['Add a cheap meal','Plan the next day','Keep the whole trip cheaper']};if(/eat|food|meal|lunch|dinner|restaurant/.test(low))return{say:`For Day ${requestedDay} in ${destination}, I’d put the meal near the main activity so you are not driving back and forth. Keep lunch casual and flexible${budget}, then use dinner as the one meal worth choosing more deliberately.`,choices:['Make the meal cheaper',`Plan the rest of Day ${requestedDay}`,'Add a cuisine']};let plan=`For Day ${requestedDay} in ${destination}, I’d make it a relaxed explore day: start with a scenic coastal stop or short walk, have lunch in town, then choose one afternoon sight or viewpoint and leave some open time`;if(easy)plan+=`—no long hike required`;plan+=`${budget}.`;if(/mendocino/.test(this.normalize(destination)))plan+=` Around Mendocino, that could mean an easy section of the Headlands or a coastal viewpoint, time in the village, and one nearby scenic stop rather than packing the day with long trails.`;const nextDayChoice=(totalDays&&requestedDay<totalDays)?`Plan Day ${requestedDay+1}`:`Adjust Day ${requestedDay}`;return{say:plan,choices:[nextDayChoice,'Add a meal stop',`Make Day ${requestedDay} cheaper`]}}if(/rain|storm|bad weather|weather|hot|heat|cold|windy|wind/.test(low))return this.tripWeatherResponse(low);if(/fully indoors|all indoors|indoors only|inside only/.test(low))return this.tripIndoorResponse();if(/coast|coastal/.test(low))this.noteFact('coastal');if(/no long hikes|don't want long hikes|do not want long hikes|avoid long hikes|easy walk|easy walks|not strenuous|low key|relaxed pace|short walks?/.test(low))this.noteFact('no long hikes');const named=(String(x||'').match(/\b(?:Monterey|Mendocino|San Francisco|Yosemite|Sacramento|Napa|Tahoe|Lake Tahoe|Carmel|Santa Cruz)\b/i)||[])[0];const destinationPhrase=(String(x||'').match(/\b(?:go|travel|head|switch|change)\s+(?:the\s+trip\s+)?to\s+(.+?)(?:\s+instead)?[.!?]?$/i)||[])[1];if(named||destinationPhrase){const destination=(named||destinationPhrase).trim().replace(/\s+instead$/i,'').replace(/[.!?]+$/,'');this.s.location=destination;this.noteFact(destination);return{say:`Got it — I’ll use ${destination} as the destination and keep the other trip preferences we already have.`,choices:this.tripChoices()}}const dayMatch=low.match(/\b(\d+|two|three|four|five|six|seven)\s*(?:day|days|night|nights)\b/);if(dayMatch){const days=words[dayMatch[1]]||Number(dayMatch[1]);this.s.dates=days+' days';if(this.s.currentDay>days)this.s.currentDay=0;return{say:`Got it — I’ll make it a ${days}-day trip and keep the other preferences the same.`,choices:this.tripChoices()}}if(/no long hikes|easy walk|easy walks|not strenuous|low key|relaxed pace/.test(low))return{say:'Got it. I’d keep the trip easy-paced: short walks, scenic stops, small towns, viewpoints, and places where you can explore without committing to a long hike.',choices:['Build the itinerary','Add food','Keep it budget-friendly']};if(/nature|small towns?|scenic|outdoors?/.test(low))return{say:'That gives the trip a clear style. I’d favor scenic drives, parks or viewpoints, walkable small towns, and one or two outdoor stops rather than a packed attraction list.',choices:['Build the itinerary','Keep walks easy','Add food']};if(/budget|cheap|inexpensive/.test(low))return{say:'For a budget-friendly trip, I would spend on the one or two things that matter most and keep lodging, transportation, and meals flexible. That gives you room for surprises.',choices:['Build the itinerary','Make it even simpler']};if(/food stop|meal|restaurant|eat/.test(low))return{say:'I’d add one food stop near the main activity so the day does not require extra driving just to eat. You can keep the meal casual and use the rest of the time for the destination itself.',choices:['Add another activity','Keep it relaxed']};if(/itinerary|plan|build/.test(low))return{say:`I’d build the trip around a few anchors${this.s.dates?' for '+this.s.dates:''}${this.s.budget?' and keep it around $'+this.s.budget:''}: a main activity, a meal, and some open time. That keeps it realistic instead of minute-by-minute.`,choices:['Add more activities','Add a food stop','Keep it relaxed']};return{say:'A simple itinerary should have a few anchors—a main activity, a meal, and some open time—rather than a minute-by-minute schedule.',choices:['Show me an example','Add more activities','Keep it relaxed']}}
   handleLearnGoal(x){const low=this.normalize(x);if(/example/.test(low)){this.s.stage='learnExample';if(/golf/.test(this.normalize(this.s.topic))){return{say:'Sure. For golf, instead of asking “How do I get better?”, you could ask: “I keep hitting my drives inconsistently. Give me one thing to practice at the range today.” That gives AI a specific problem and a manageable next step.',choices:['Make that simpler','Give me another example']}}return{say:`For ${this.s.topic}, a good real-world request would describe what you are trying to do, what is getting in the way, and what kind of help you want. That gives AI something concrete to work with.`,choices:['Make that simpler','Give me another example']}}if(/simple|explain/.test(low)||this.s.details[0]==='simple'){this.s.stage='learnPractice';return{say:`Here is the simple version: start with the basic idea, see one example, then try it yourself. You do not need to understand everything at once.`,choices:['Give me an example','Let me practice']}}this.s.stage='learnPractice';return{say:`Great. Let’s make ${this.s.topic} practical. I’ll keep the explanation focused and give you a small thing you can try rather than a wall of information.`,choices:['Give me an example','Let me practice']}}
   handleLearnExample(x){const low=this.normalize(x);if(/photography/.test(this.normalize(this.s.topic))&&/phone|practice|first/.test(low))return{say:'For phone photography, start with light. Take the same subject near a window, in shade, and in direct sun. Compare the three photos and notice what changes before worrying about advanced settings.',choices:['Give me a composition exercise','Try another phone exercise','Make it simpler']};if(/simpler|simple/.test(low))return{say:'In plain language: tell AI what you want to improve, describe the problem, and ask for one manageable thing to try next.',choices:['Use that idea','Give me another example']};return{say:'Here is another useful pattern: “This is what I am doing now. This is what is not working. What is one change I should try first?” That invites AI to help without needing a perfect prompt.',choices:['Make that simpler','Use that idea']}}
   handleLearnPractice(x){const low=this.normalize(x),topic=this.normalize(this.s.topic);
@@ -1087,7 +1196,7 @@ function showResponse(r){if(!r)return;add('AI',r.say||'');renderChoices(r.choice
 function feedbackShow(last){if(!last){feedback.style.display='none';return}feedback.style.display='block';feedback.innerHTML='<strong>'+(last.points>=18?'Nice!':'Good progress!')+'</strong> <span class="pts">+'+last.points+' points</span><br>'+esc(last.why)}
 function finish(){const sc=engine.s.score;let rk='AI Explorer',txt='You practiced talking with AI in your own words.';if(sc>=90){rk='Discover AI Champion';txt='You gave AI strong direction, useful details, and natural corrections.'}else if(sc>=75){rk='AI Guide';txt='You showed that you can guide AI without needing perfect prompts.'}else if(sc>=60){rk='Context Navigator';txt='You are learning how to give AI the details it needs and keep the conversation moving.'}finalScore.textContent=sc+'/100';rank.textContent=rk;resultText.textContent=txt;summary.innerHTML=engine.s.history.map((h,i)=>'<div><strong>Follow-up '+(i+1)+':</strong> +'+h.points+' — '+esc(h.why)+'</div>').join('');game.style.display='none';results.style.display='block'}
 function resetUI(){engine.reset();chat.innerHTML='';choices.innerHTML='';feedback.style.display='none';voiceStatus.textContent='';voiceStatus.classList.remove('show');results.style.display='none';game.style.display='block';turnEl.textContent='Choose a starting point';fill.style.width='0%';scoreEl.textContent='0';renderRewards();add('AI',"That is a great place to start!\n\nWhat would you like help with?");progress.textContent='Choose a starting point, or type your own idea.';renderChoices(['🌱 Everyday life','✈️ Travel','📚 Learn something','🎨 Create something','🔧 Help me solve a problem','💡 I\'m not sure'])}
-function submit(){if(engine.s.done)return;const t=input.value.trim();if(!t)return;renderChoices([]);input.value='';add('You',t);try{const out=engine.process(t);if(!out)throw new Error('No response returned');showResponse(out.response);if(out.last)feedbackShow(out.last);updateBar();if(engine.s.done){send.disabled=true;input.disabled=true;setTimeout(finish,250)}}catch(err){console.error('Discover AI game error:',err);add('AI','I hit a small game error. Your message was received — please try another response.');}}
+function submit(){if(engine.s.done)return;const t=input.value.trim();if(!t)return;voiceStatus.textContent='';voiceStatus.classList.remove('show');if(voice&&voice.dataset.phoneMode){voice.dataset.phoneMode='dictate';voice.classList.remove('listening');voice.disabled=false;voice.textContent='🎤 Use phone mic';voice.setAttribute('aria-label','Use phone microphone');}renderChoices([]);input.value='';add('You',t);try{const out=engine.process(t);if(!out)throw new Error('No response returned');showResponse(out.response);if(out.last)feedbackShow(out.last);updateBar();if(engine.s.done){send.disabled=true;input.disabled=true;setTimeout(finish,250)}}catch(err){console.error('Discover AI game error:',err);add('AI','I hit a small game error. Your message was received — please try another response.');}}
 let recognition=null;
 function showVoiceStatus(message){
   voiceStatus.textContent=message;
@@ -1155,7 +1264,9 @@ function setupVoice(){
     // On iPhone/iPad, use Apple's keyboard dictation rather than Web Speech.
     // Safari does not reliably expose a "dictation finished" event, so once
     // words arrive we turn the SAME button into a clear submit action.
+    let phoneVoiceActive=false;
     const resetPhoneVoiceButton=()=>{
+      phoneVoiceActive=false;
       voice.dataset.phoneMode='dictate';
       voice.classList.remove('listening');
       voice.disabled=false;
@@ -1177,6 +1288,7 @@ function setupVoice(){
       }
 
       resetPhoneVoiceButton();
+      phoneVoiceActive=true;
       showVoiceStatus('Tap the microphone on your iPhone keyboard and speak. When your words appear, tap “Send spoken message.”');
       // Keep focus inside the tap gesture so iOS can open the keyboard immediately.
       try{
@@ -1189,6 +1301,7 @@ function setupVoice(){
     });
 
     input.addEventListener('input',()=>{
+      if(!phoneVoiceActive)return;
       if(input.value.trim()){
         voice.dataset.phoneMode='send';
         voice.textContent='✅ Send spoken message';
@@ -1200,7 +1313,13 @@ function setupVoice(){
     });
 
     // If the user chooses the regular Send button, restore the voice button too.
-    send.addEventListener('click',()=>{ setTimeout(resetPhoneVoiceButton,0); });
+    send.addEventListener('click',()=>{
+      phoneVoiceActive=false;
+      voiceStatus.textContent='';
+      voiceStatus.classList.remove('show');
+      setTimeout(()=>{resetPhoneVoiceButton();voiceStatus.textContent='';voiceStatus.classList.remove('show');},0);
+      setTimeout(()=>{voiceStatus.textContent='';voiceStatus.classList.remove('show');},250);
+    });
     return;
   }
 
