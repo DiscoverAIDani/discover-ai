@@ -872,18 +872,29 @@ function focusMessageBox(){
 }
 function setupVoice(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const isAppleMobile=/iPad|iPhone|iPod/.test(navigator.userAgent)||
+    (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   let recognition=null;
   let hideStatusTimer=null;
   let startTimeout=null;
+  let hardStopTimer=null;
+  let endGuardTimer=null;
   let listening=false;
+  let heardSomething=false;
+  let sessionTranscript='';
 
   function flashStatus(message,ms=6500){
     showVoiceStatus(message);
     clearTimeout(hideStatusTimer);
     hideStatusTimer=setTimeout(()=>voiceStatus.classList.remove('show'),ms);
   }
-  function resetVoiceButton(){
+  function clearVoiceTimers(){
     clearTimeout(startTimeout);
+    clearTimeout(hardStopTimer);
+    clearTimeout(endGuardTimer);
+  }
+  function resetVoiceButton(){
+    clearVoiceTimers();
     listening=false;
     voice.classList.remove('listening');
     voice.textContent='🎤 Talk instead';
@@ -891,7 +902,7 @@ function setupVoice(){
   }
   function keyboardFallback(message){
     resetVoiceButton();
-    flashStatus(message||'Direct voice recognition is not available in this browser. Use your device keyboard microphone, speak, then tap Send.',8000);
+    flashStatus(message||'Direct voice recognition is not available in this browser. Use your device keyboard microphone, speak, then tap Send.',9000);
     focusMessageBox();
   }
   function environmentMessage(){
@@ -902,6 +913,25 @@ function setupVoice(){
       return 'Voice recognition needs a secure HTTPS page. Open the published HTTPS version of Discover AI.';
     }
     return '';
+  }
+  function finishListeningSoon(){
+    if(!recognition||!listening)return;
+    flashStatus(heardSomething?'Finishing your voice input…':'Finishing…',3500);
+    try{recognition.stop();}catch(_){ }
+    clearTimeout(endGuardTimer);
+    endGuardTimer=setTimeout(()=>{
+      if(!listening)return;
+      try{recognition.abort();}catch(_){ }
+      const haveText=Boolean(input.value.trim()||sessionTranscript.trim());
+      resetVoiceButton();
+      if(haveText){
+        flashStatus('Got it — your spoken words are in the box. Review them, then tap Send.',6500);
+      }else if(isAppleMobile){
+        keyboardFallback('Safari stopped listening without returning the words. Tap the message box and use the iPhone keyboard microphone instead.');
+      }else{
+        flashStatus('I did not receive any words. Tap Talk instead and try again.',6500);
+      }
+    },1800);
   }
 
   if(!SR){
@@ -916,7 +946,8 @@ function setupVoice(){
   try{
     recognition=new SR();
     recognition.lang='en-US';
-    recognition.interimResults=false;
+    // iOS Safari is more reliable when interim text is accepted immediately.
+    recognition.interimResults=isAppleMobile;
     recognition.continuous=false;
     recognition.maxAlternatives=1;
   }catch(err){
@@ -934,10 +965,14 @@ function setupVoice(){
   recognition.onstart=()=>{
     clearTimeout(startTimeout);
     listening=true;
+    heardSomething=false;
+    sessionTranscript='';
     voice.disabled=false;
     voice.classList.add('listening');
     voice.textContent='🎤 Listening…';
     flashStatus('Listening… Speak now. Your words will appear in the message box.',12000);
+    // Watchdog: Safari can sometimes remain in a listening state without firing end/result.
+    hardStopTimer=setTimeout(()=>finishListeningSoon(),9000);
   };
   recognition.onaudiostart=()=>{
     listening=true;
@@ -947,13 +982,35 @@ function setupVoice(){
   recognition.onspeechstart=()=>{
     flashStatus('I can hear you — keep speaking.',12000);
   };
+  recognition.onspeechend=()=>{
+    // Explicitly stop so Safari is forced to finalize the transcript.
+    setTimeout(()=>finishListeningSoon(),120);
+  };
   recognition.onresult=e=>{
-    const spoken=e.results&&e.results[0]&&e.results[0][0]?e.results[0][0].transcript:'';
-    if(spoken){
-      input.value=spoken;
-      flashStatus('Got it — your spoken words are in the box. Review them, then tap Send.',6500);
-      focusMessageBox();
+    let finalText='';
+    let interimText='';
+    const from=typeof e.resultIndex==='number'?e.resultIndex:0;
+    for(let i=from;i<e.results.length;i++){
+      const alt=e.results[i]&&e.results[i][0];
+      if(!alt||!alt.transcript)continue;
+      if(e.results[i].isFinal) finalText+=alt.transcript+' ';
+      else interimText+=alt.transcript+' ';
     }
+    const spoken=(finalText||interimText).trim();
+    if(spoken){
+      heardSomething=true;
+      sessionTranscript=spoken;
+      input.value=spoken;
+      if(finalText.trim()){
+        flashStatus('Got it — your spoken words are in the box. Review them, then tap Send.',6500);
+        setTimeout(()=>finishListeningSoon(),80);
+      }else{
+        flashStatus('I can hear you — keep speaking.',12000);
+      }
+    }
+  };
+  recognition.onnomatch=()=>{
+    flashStatus('I heard audio but could not turn it into words. Try speaking again or use the keyboard microphone.',6500);
   };
   recognition.onerror=e=>{
     const code=e&&e.error?e.error:'';
@@ -966,16 +1023,26 @@ function setupVoice(){
       flashStatus('The browser speech-recognition service could not connect. Check your internet connection and try again.',8000);
     }else if(code==='no-speech'){
       flashStatus('I did not hear any speech. Tap Talk instead and try again.',6000);
+    }else if(code==='aborted'&&heardSomething){
+      flashStatus('Got it — your spoken words are in the box. Review them, then tap Send.',6500);
     }else{
-      flashStatus('Voice recognition could not start in this browser. You can still type or use your device keyboard microphone.',8000);
+      flashStatus('Voice recognition could not finish in this browser. You can still type or use your device keyboard microphone.',8000);
     }
   };
   recognition.onend=()=>{
+    const haveText=Boolean(input.value.trim()||sessionTranscript.trim());
     resetVoiceButton();
+    if(haveText){
+      flashStatus('Got it — your spoken words are in the box. Review them, then tap Send.',6500);
+    }else if(isAppleMobile&&heardSomething===false){
+      flashStatus('No words came back from Safari. You can tap Talk instead to retry, or use the iPhone keyboard microphone.',8000);
+    }
   };
 
   async function requestMicAccess(){
-    // A permission preflight makes desktop/mobile failures visible instead of silently doing nothing.
+    // On iPhone/iPad, let SpeechRecognition request the microphone itself. A separate
+    // getUserMedia preflight can interfere with Safari's speech session on some iOS builds.
+    if(isAppleMobile) return true;
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) return true;
     try{
       const stream=await navigator.mediaDevices.getUserMedia({audio:true});
@@ -997,8 +1064,7 @@ function setupVoice(){
   voice.addEventListener('click',async e=>{
     e.preventDefault();
     if(listening){
-      try{recognition.stop();}catch(_){ }
-      resetVoiceButton();
+      finishListeningSoon();
       return;
     }
 
@@ -1008,9 +1074,11 @@ function setupVoice(){
       return;
     }
 
+    heardSomething=false;
+    sessionTranscript='';
     voice.disabled=true;
     voice.textContent='🎤 Starting…';
-    flashStatus('Checking microphone access…',8000);
+    flashStatus(isAppleMobile?'Starting microphone…':'Checking microphone access…',8000);
 
     const allowed=await requestMicAccess();
     if(!allowed){
@@ -1027,7 +1095,7 @@ function setupVoice(){
         if(!listening){
           try{recognition.abort();}catch(_){ }
           resetVoiceButton();
-          flashStatus('The browser did not start speech recognition. Try Chrome or Safari on the published HTTPS game, or use your device keyboard microphone.',9000);
+          flashStatus('The browser did not start speech recognition. Try again, or use your device keyboard microphone.',9000);
         }
       },5000);
     }catch(err){
