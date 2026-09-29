@@ -346,15 +346,73 @@ class DiscoverConversation {
     const received=/\b(?:got|received|came|arrived|sent|from|says?|reads?)\b/.test(low);
     return confusion && (received || /\b(?:this|that|my|the)(?:\s+[a-z0-9-]+){0,3}\s+(?:email|message|letter|notice|document|form|bill|statement|lease|policy|contract)\b/.test(low));
   }
+  sourceDetailRequest(text){
+    const low=this.normalize(text);
+    return /\b(?:pull out|extract|list|find|identify|show me|give me)\b[\s\S]{0,55}\b(?:important|key|main|useful)?\s*(?:details?|information|info|dates?|times?|deadlines?|action items?|requirements?|things to bring)\b/.test(low)
+      || /\b(?:what|which)\s+(?:are|is)\s+(?:the\s+)?(?:important|key|main)\s+(?:details?|information|action items?)\b/.test(low);
+  }
   sourceUnderstandingStart(text){
     const inline=this.inlineExplanationSource(text);
-    const isRequest=this.sourceUnderstandingRequest(text) || (!!inline && /\b(?:explain|plain english|plain language|simple terms|simpler|what does|what .* means?|tell me what|make sense of|summari[sz]e)\b/i.test(String(text||'')));
+    const detailRequest=this.sourceDetailRequest(text);
+    const isRequest=detailRequest || this.sourceUnderstandingRequest(text) || (!!inline && /\b(?:explain|plain english|plain language|simple terms|simpler|what does|what .* means?|tell me what|make sense of|summari[sz]e)\b/i.test(String(text||'')));
     if(!isRequest)return null;
     const low=this.normalize(text);
     const kind=(low.match(/\b(email|message|letter|notice|document|form|bill|statement|lease|policy|instructions?|paperwork|contract)\b/)||[])[1]||'text';
-    this.s.category='learn';this.s.intent='learn';this.s.taskType='learn';this.s.topic=`the ${kind}`;this.s.stage='sourceInterpret';this.s.sourceMode='interpret';this.s.sourceKind=kind;this.s.sourceText='';
-    if(inline)return this.handleSourceInterpret(inline);
+    this.s.category='learn';this.s.intent='learn';this.s.taskType='learn';this.s.topic=`the ${kind}`;this.s.stage='sourceInterpret';this.s.sourceMode=detailRequest?'details':'interpret';this.s.sourceKind=kind;this.s.sourceText='';
+    if(inline)return detailRequest?this.handleSourceDetails(inline):this.handleSourceInterpret(inline);
+    if(detailRequest)return{say:`Absolutely. Paste the ${kind==='text'?'text':kind} you want me to pull details from. I’ll extract only what is actually there—such as dates, times, amounts, deadlines, things to bring, or required actions.`,choices:['I’ll paste it','Find the action items','Make it a checklist']};
     return{say:`Absolutely. Paste the part of the ${kind} that is confusing. I can put it in plain language, point out dates, amounts, or action items, and tell you what the excerpt does not make clear.`,choices:['Paste the confusing part','Find the action items','Make it simpler']};
+  }
+  handleSourceDetails(text){
+    const raw=String(text||'').trim(),low=this.normalize(raw),kind=this.s.sourceKind||'text';
+    const saved=Array.isArray(this.s.sourceDetails)?this.s.sourceDetails:[];
+    if(/^(?:make it a checklist|checklist)[.!?]*$/i.test(low) && saved.length){
+      return{say:saved.map(d=>`☐ ${d.label}: ${d.value}`).join('\n'),choices:['What action do I need to take?','Make it simpler','Keep going']};
+    }
+    if(/^(?:what action do i need to take|what do i need to do|find the action items|action items?)[.!?]*$/i.test(low) && saved.length){
+      const actions=saved.filter(d=>/^(?:Arrival|Bring|Action|Required|Deadline \/ action)$/i.test(d.label));
+      return{say:actions.length?`Here are the action items stated in the text:
+
+${actions.map(d=>`• ${d.value}`).join('\n')}`:'I do not see a clear action requirement in the text you provided.',choices:['Make it a checklist','Make it simpler','Show all details']};
+    }
+    if(/^(?:make it simpler|simpler|simple version)[.!?]*$/i.test(low) && saved.length){
+      return{say:`Simple version: ${saved.slice(0,5).map(d=>`${d.label.toLowerCase()}: ${d.value}`).join('; ')}.`,choices:['What action do I need to take?','Make it a checklist','Show all details']};
+    }
+    if(/^(?:show all details|show the details|keep going)[.!?]*$/i.test(low) && saved.length){
+      return{say:`Here are the important details again:
+
+${saved.map(d=>`• ${d.label}: ${d.value}`).join('\n')}`,choices:['Make it a checklist','What action do I need to take?','Make it simpler']};
+    }
+    if(!raw||this.uncertain(raw)||/^(?:i['’]?ll paste it|find the action items|make it a checklist)[.!?]*$/i.test(low)){
+      return{say:`Paste the ${kind==='text'?'text':kind}. I’ll pull out the concrete details without adding anything that is not stated.`,choices:['I’ll paste it','Find the action items','Make it a checklist']};
+    }
+    this.s.sourceText=raw;this.noteFact(raw);
+    const details=[];
+    const add=(label,value)=>{value=String(value||'').trim().replace(/[.!?]+$/,'');if(value&&!details.some(d=>d.value.toLowerCase()===value.toLowerCase()))details.push({label,value});};
+    const dates=[...raw.matchAll(/\b(?:(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s*,?\s*)?(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan\.?|Feb\.?|Mar\.?|Apr\.?|Jun\.?|Jul\.?|Aug\.?|Sep\.?|Sept\.?|Oct\.?|Nov\.?|Dec\.?)\s+\d{1,2}(?:,\s*\d{4})?|\b\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b/gi)].map(m=>m[0].trim());
+    const times=[...raw.matchAll(/\b\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)\b/gi)].map(m=>m[0].trim());
+    const money=[...raw.matchAll(/\$\s*\d[\d,]*(?:\.\d{1,2})?/g)].map(m=>m[0].replace(/\s+/g,''));
+    dates.forEach((d,i)=>add(i?'Date':'Date',d));
+    times.forEach((t,i)=>add(i?'Time':'Time',t));
+    money.forEach((m,i)=>add(i?'Amount':'Amount',m));
+    const early=raw.match(/\b(?:please\s+)?arrive\s+(\d+|one|two|three|four|five|ten|fifteen|twenty|thirty|forty[- ]?five|sixty)\s+minutes?\s+early\b/i);if(early)add('Arrival',`Arrive ${early[1]} minutes early`);
+    const bring=raw.match(/\bbring\s+([^.!?]+)/i);if(bring)add('Bring',bring[1].trim().replace(/\s+and\s+/gi,', '));
+    const due=raw.match(/\b(?:due|submit|return|respond|pay|payment is due)\b[^.!?]{0,80}/i);if(due)add('Deadline / action',due[0].trim());
+    const please=[...raw.matchAll(/\bplease\s+([^.!?]+)/gi)].map(m=>m[1].trim());
+    please.forEach(v=>{if(!/^(?:arrive|bring)\b/i.test(v))add('Action',v)});
+    const must=[...raw.matchAll(/\b(?:you\s+)?(?:must|need to|are required to)\s+([^.!?]+)/gi)].map(m=>m[1].trim());
+    must.forEach(v=>add('Required',v));
+    if(!details.length){
+      const sentences=raw.split(/(?<=[.!?])\s+/).map(x=>x.trim()).filter(Boolean).slice(0,4);
+      sentences.forEach(s=>add('Detail',s));
+    }
+    this.s.sourceDetails=details.slice();
+    const lines=details.map(d=>`• ${d.label}: ${d.value}`);
+    return{say:`Here are the important details I can pull from the text:
+
+${lines.join('\n')}
+
+I’m only using what the text actually says.`,choices:['Make it a checklist','What action do I need to take?','Make it simpler']};
   }
   handleSourceInterpret(text){
     const raw=String(text||'').trim(),low=this.normalize(raw),kind=this.s.sourceKind||'document';
@@ -1522,6 +1580,9 @@ class DiscoverConversation {
 
     // When the user is asking us to explain a source they received, keep the
     // conversation grounded in the pasted source instead of turning it into a lesson.
+    if(this.s.stage==='sourceInterpret' && this.s.sourceMode==='details'){
+      const detailFollow=this.handleSourceDetails(x);if(detailFollow)return detailFollow;
+    }
     if(this.s.stage==='sourceInterpret' && this.s.sourceMode==='interpret'){
       const sourceFollow=this.handleSourceInterpret(x);if(sourceFollow)return sourceFollow;
     }
