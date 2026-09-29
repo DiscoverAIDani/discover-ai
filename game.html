@@ -139,7 +139,7 @@ button,.back{touch-action:manipulation}
 <script>
 class DiscoverConversation {
   constructor(){this.maxTurns=5;this.reset()}
-  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',sourceMode:'',sourceKind:'',sourceText:'',memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
+  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',sourceMode:'',sourceKind:'',sourceText:'',transformSource:'',transformFormat:'',transformItems:[],memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
   normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").replace(/\bidk\b/g,"i don't know").replace(/\b(?:resturant|restaraunt)\b/g,'restaurant').replace(/\b(?:grocey|grocry)\b/g,'grocery').replace(/\bgrocery lst\b/g,'grocery list').replace(/\bvaccation\b/g,'vacation').replace(/\bwek\b/g,'week').replace(/\bdisconects?\b/g,'disconnects').replace(/\bwi fi\b/g,'wifi').replace(/\s+/g,' ').trim()}
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
   uncertain(t){let x=this.normalize(t).replace(/^(?:uh+|um+|umm+|hmm+|erm+)[,\s-]*/i,'');return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\bno clue\b|\byou pick\b|\byou decide\b|\bchoose for me\b|\bup to you\b|\bsurprise me\b|\bwhatever works\b|^(?:dunno|i dunno|whatever(?: is fine)?)\b/i.test(x)}
@@ -224,6 +224,7 @@ class DiscoverConversation {
     if(i==='learn'||i==='learnSimple'||i==='learnSteps')return'learn';
     if(i==='compare')return'compare';
     if(i==='brainstorm')return'brainstorm';
+    if(i==='transform')return'transform';
     if(i==='organize')return'organize';
     if(i==='trip'||i==='week'||i==='dinner'||i==='groceries'||i==='restaurants'||i==='things'||i==='plan')return'plan';
     if(this.looksLikeProblem(low))return'troubleshoot';
@@ -232,9 +233,73 @@ class DiscoverConversation {
     if(/\b(?:learn|teach|explain|understand|what does|how does)\b/.test(low))return'learn';
     if(/\b(?:compare|versus|\bvs\.?\b|difference between|which (?:one )?is better|pros and cons)\b/.test(low))return'compare';
     if(/\b(?:brainstorm|suggest|recommend|ideas? for|give me ideas|help me find|help me choose a hobby|i (?:want|need|would like|d like) (?:a |an )?(?:new )?hobby|something to do for fun|new hobby)\b/.test(low))return'brainstorm';
+    if(/\b(?:turn|convert|format|reformat|put|change)\b[^.!?]{0,120}\b(?:into|as)\s+(?:a\s+)?(?:checklist|to-?do list|list|bullet(?:ed)? list|bullets?|numbered list|steps?|outline|table)\b/.test(low)||/\bmake\b[^.!?]{0,100}\b(?:a\s+)?(?:checklist|to-?do list|bullet(?:ed)? list|numbered list|outline|table)\b/.test(low))return'transform';
     if(/\b(?:organize|organise|sort|declutter|prioritize|prioritise|arrange)\b/.test(low))return'organize';
     if(/\b(?:plan|schedule|prepare for)\b/.test(low))return'plan';
     return this.s.taskType||'open';
+  }
+  transformFormatFromText(text){
+    const low=this.normalize(text);
+    if(/\bchecklist\b|\bto-?do list\b/.test(low))return'checklist';
+    if(/\bnumbered list\b|\bnumber(?:ed)? steps?\b/.test(low))return'numbered';
+    if(/\bbullet(?:ed)? list\b|\bbullets?\b/.test(low))return'bullets';
+    if(/\btable\b/.test(low))return'table';
+    if(/\boutline\b/.test(low))return'outline';
+    if(/\bsteps?\b/.test(low))return'numbered';
+    if(/\blist\b/.test(low))return'bullets';
+    return this.s.transformFormat||'checklist';
+  }
+  extractTransformSource(text){
+    const raw=String(text||'').trim();
+    let src='';
+    const labeled=raw.match(/\b(?:notes?|items?|tasks?|list|text|info|information)\s*:\s*([\s\S]+)/i);
+    if(labeled)src=labeled[1];
+    if(!src){
+      const before=raw.match(/\b(?:turn|convert|format|reformat|put|change|make)\s+([\s\S]+?)\s+(?:into|as|to|in)\s+(?:a\s+)?(?:(?:simple|short|clean|basic)\s+)?(?:checklist|to-?do list|list|bullet(?:ed)? list|bullets?|numbered list|steps?|outline|table)\b/i);
+      if(before)src=before[1];
+    }
+    if(!src){const from=raw.match(/\bmake\s+(?:a\s+)?(?:(?:simple|short|clean|basic)\s+)?(?:checklist|to-?do list|bullet(?:ed)? list|numbered list|outline|table)\s+from\s+([\s\S]+)/i);if(from)src=from[1];}
+    if(src && /^(?:them|these|those|this|it|my notes|the notes|these notes|those notes|this note|my items|the items|these items|those items|this list|the list|my list|my tasks|the tasks|these tasks|those tasks)$/i.test(src.trim()) && /:\s*/.test(raw))src=raw.slice(raw.indexOf(':')+1);
+    if(!src && /:\s*/.test(raw))src=raw.slice(raw.indexOf(':')+1);
+    src=String(src||'')
+      .replace(/\s*(?:can|could|would)\s+you\s+(?:please\s+)?(?:turn|convert|format|reformat|put|change|make|organize|organise)[\s\S]*$/i,'')
+      .replace(/\s+(?:please\s+)?(?:turn|convert|format|reformat|put|change|make|organize|organise)\s+(?:them|these|those|this|it)\s+(?:(?:into|as|in|to)\s+)?(?:a\s+)?(?:(?:simple|short|clean|basic)\s+)?(?:checklist|to-?do list|list|bullet(?:ed)? list|bullets?|numbered list|steps?|outline|table)[.!?]*$/i,'')
+      .replace(/[?]+$/,'').trim();
+    if(/^(?:them|these|this|it|my notes|the notes)$/i.test(src))return'';
+    return src;
+  }
+  splitTransformItems(source){
+    const src=String(source||'').trim();
+    if(!src)return[];
+    let parts=src.split(/\n+|\s*;\s*|\s*,\s*/).map(x=>x.trim()).filter(Boolean);
+    if(parts.length===1 && /\s+\band\b\s+/i.test(src) && src.length<180)parts=src.split(/\s+\band\b\s+/i).map(x=>x.trim()).filter(Boolean);
+    return parts.map(x=>x.replace(/^(?:and|then)\s+/i,'').replace(/^[\-•*\d.)\s]+/,'').trim()).filter(Boolean);
+  }
+  prettyTaskItem(item){
+    const t=String(item||'').trim().replace(/[.!?]+$/,'');
+    if(!t)return'';
+    return t.charAt(0).toUpperCase()+t.slice(1);
+  }
+  renderTransform(format,items,source=''){
+    const clean=(items||[]).map(x=>this.prettyTaskItem(x)).filter(Boolean);
+    if(!clean.length)return source?`Here is a cleaner version:\n${source}`:'Paste the notes or items you want me to format.';
+    if(format==='numbered'||format==='outline')return clean.map((x,i)=>`${i+1}. ${x}`).join('\n');
+    if(format==='bullets')return clean.map(x=>`• ${x}`).join('\n');
+    if(format==='table')return clean.map((x,i)=>`${i+1} | ${x}`).join('\n');
+    return clean.map(x=>`☐ ${x}`).join('\n');
+  }
+  transformStart(text){
+    this.s.category='everyday';this.s.intent='transform';this.s.taskType='transform';this.s.stage='generalTask';
+    this.s.transformFormat=this.transformFormatFromText(text);
+    const source=this.extractTransformSource(text);
+    if(source){
+      this.s.transformSource=source;this.s.transformItems=this.splitTransformItems(source);this.s.topic='the information you provided';
+      const rendered=this.renderTransform(this.s.transformFormat,this.s.transformItems,source);
+      const label=this.s.transformFormat==='numbered'?'numbered list':this.s.transformFormat==='bullets'?'bullet list':this.s.transformFormat;
+      return{say:`Absolutely. Here it is as a ${label}:\n\n${rendered}`,choices:['Prioritize it','Change the format','Add another item']};
+    }
+    this.s.topic='the information you want to organize';
+    return{say:'Absolutely. Paste the notes or items you want transformed, and I’ll format what you provide without making you restate the task.',choices:['Make a checklist','Use bullets','Use a numbered list']};
   }
   subjectFromText(text,taskType=''){
     let t=String(text||'').trim().replace(/[.!?]+$/,'');
@@ -516,6 +581,7 @@ class DiscoverConversation {
   generalTaskStart(clean,intent){
     const type=this.inferTaskType(clean,intent);this.s.taskType=type;this.s.intent=intent||type;this.s.category=type==='create'?'create':type==='learn'?'learn':type==='troubleshoot'?'problem':type==='brainstorm'?'everyday':'open';
     this.s.topic=this.subjectFromText(clean,type);this.s.stage='generalTask';this.updateUniversalMemory(clean);const known=this.memorySummary();
+    if(type==='transform')return this.transformStart(clean);
     if(type==='compare'){
       const g=this.comparisonGuide(this.s.topic);
       return{say:`Absolutely. Let’s make ${this.s.topic} easier to compare. A useful starting set of criteria is ${g.criteria}. ${g.ask}, and I’ll put them side by side.`,choices:g.choices};
@@ -560,6 +626,29 @@ class DiscoverConversation {
   }
   handleGeneralTask(text){
     const raw=String(text||'').trim(),low=this.normalize(raw),type=this.s.taskType||this.inferTaskType(raw,this.s.intent);const known=this.memorySummary();
+    if(type==='transform'){
+      if(/^(?:change the format|different format)$/i.test(low))return{say:'Sure. Pick the format you want and I’ll keep the same information.',choices:['Make it a checklist','Use bullets','Use a numbered list']};
+      if(/\b(?:checklist|to-?do list)\b/.test(low)){this.s.transformFormat='checklist';return{say:this.renderTransform('checklist',this.s.transformItems,this.s.transformSource),choices:['Prioritize it','Use bullets','Add another item']};}
+      if(/\b(?:bullets?|bullet list)\b/.test(low)){this.s.transformFormat='bullets';return{say:this.renderTransform('bullets',this.s.transformItems,this.s.transformSource),choices:['Make it a checklist','Prioritize it','Add another item']};}
+      if(/\b(?:numbered list|number the list|numbered steps?)\b/.test(low)){this.s.transformFormat='numbered';return{say:this.renderTransform('numbered',this.s.transformItems,this.s.transformSource),choices:['Make it a checklist','Prioritize it','Add another item']};}
+      if(/\b(?:remove|delete|drop|take off)\b/.test(low)){
+        const q=low.replace(/^.*?\b(?:remove|delete|drop|take off)\b\s*/,'').replace(/^(?:the\s+)?(?:item\s+)?/,'').trim();
+        if(q)this.s.transformItems=this.s.transformItems.filter(v=>!this.normalize(v).includes(q)&&!q.includes(this.normalize(v)));
+        return{say:this.renderTransform(this.s.transformFormat,this.s.transformItems,this.s.transformSource),choices:['Add another item','Change the format','What should I do first?']};
+      }
+      if(/\b(?:add|include)\b/.test(low)){
+        const m=raw.match(/\b(?:add|include)\s+(.+)$/i);if(m&&m[1])this.s.transformItems.push(m[1].replace(/[.!?]+$/,'').trim());
+        this.s.transformItems=[...new Set(this.s.transformItems.filter(Boolean))];
+        return{say:this.renderTransform(this.s.transformFormat,this.s.transformItems,this.s.transformSource),choices:['Add another item','Prioritize it','Change the format']};
+      }
+      if(/\b(?:prioritize|priority|urgent|what should i do first|what first)\b/.test(low)){
+        const scored=this.s.transformItems.map((v,i)=>{const n=this.normalize(v);let score=0;if(/\b(?:today|tonight|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday|due|deadline|appointment|prescription|medicine|pay|rent|bill)\b/.test(n))score+=3;if(/\b(?:call|pick up|submit|send|pay)\b/.test(n))score+=1;return{v,i,score}}).sort((a,b)=>b.score-a.score||a.i-b.i).map(o=>o.v);
+        this.s.transformItems=scored;return{say:`Here is the same information with the more time-sensitive items first:\n\n${this.renderTransform(this.s.transformFormat,scored,this.s.transformSource)}`,choices:['Keep this order','Change the format','Add another item']};
+      }
+      const source=this.extractTransformSource(raw);
+      if(source){this.s.transformSource=source;this.s.transformItems=this.splitTransformItems(source);return{say:this.renderTransform(this.s.transformFormat,this.s.transformItems,source),choices:['Prioritize it','Change the format','Add another item']};}
+      return{say:'I’ll keep working with the same information instead of starting over. Tell me whether you want to add or remove an item, change the format, or put the most urgent items first.',choices:['Prioritize it','Change the format','Add another item']};
+    }
     if(this.uncertain(raw)){
       if(type==='organize')return{say:`No problem. I’ll choose a simple place to start with ${this.s.topic}: pick one small area or category, spend 10 minutes separating keep/do-now, later, and remove/ignore, then stop and see what changed.`,choices:['Give me the first step','Make a checklist','Keep it very simple']};
       if(type==='compare')return{say:`That is okay. We can start with three neutral criteria for ${this.s.topic}: cost, ease of use, and quality or reliability. You can react to those instead of deciding the criteria up front.`,choices:['Compare using those','Change a criterion','Keep it simple']};
@@ -702,12 +791,13 @@ class DiscoverConversation {
     if(/place to eat|places to eat|restaurant|restaurants|find (?:a )?diner|somewhere to eat|where.*eat|food nearby|find.*food|find (?:some )?(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?|vegetarian|vegan)(?:\s|$)|(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?)(?:\s+food)?\s+(?:in|near|around)\b|where should we go for (?:breakfast|brunch|lunch|dinner)|somewhere for (?:breakfast|brunch|lunch|dinner)|find somewhere(?:\s+[^.!?]{1,35})?\s+for (?:breakfast|brunch|lunch|dinner)/.test(x))return'restaurants';
     if(/find things to do|things to do|activities|what to do|places to visit|places should i visit|what places should i visit|what can (?:i|we) do|this weekend|weekend activities|fun this weekend|fun to do|what is there to do|anything fun to do|something fun to do|afternoon out|easy afternoon out/.test(x))return'things';
     if(/\bplan\b[^.!?]{0,50}\b(?:trip|vacation)\b|weekend trip|trip to|vacation to|travel to|destination|day trip|outing|\bi (?:want|need|would like|d like) (?:a )?trip\b/.test(x))return'trip';
+    if(/\b(?:turn|convert|format|reformat|put|change)\b[^.!?]{0,160}\b(?:into|as|to|in)\s+(?:a\s+)?(?:(?:simple|short|clean|basic)\s+)?(?:checklist|to-?do list|list|bullet(?:ed)? list|bullets?|numbered list|steps?|outline|table)\b/.test(x)||/\bmake\s+(?:them|these|those|this|it|(?:(?:these|those|this|the|my)\s+)?(?:notes?|items?|tasks?|information))\s+(?:(?:into|as|in|to)\s+)?(?:a\s+)?(?:(?:simple|short|clean|basic)\s+)?(?:checklist|to-?do list|bullet(?:ed)? list|numbered list|outline|table)\b/.test(x)||/\bmake\s+(?:a\s+)?(?:(?:simple|short|clean|basic)\s+)?(?:checklist|to-?do list|bullet(?:ed)? list|numbered list|outline|table)\s+from\b/.test(x)||/\b(?:organize|organise)\s+(?:these|those|the|my|this)?\s*(?:notes?|items?|tasks?|information)?\s+(?:into|as|in|to)\s+(?:a\s+)?(?:(?:simple|short|clean|basic)\s+)?(?:checklist|to-?do list|bullet(?:ed)? list|numbered list|outline|table)\b/.test(x))return'transform';
     if(/\b(?:organize|organise|sort|declutter|prioritize|prioritise|arrange)\b/.test(x))return'organize';
     if(/make (a )?cake|bake a cake|birthday cake/.test(x))return'cake';
     if(/\b(?:birthday|thank you|thank-you|apology|congratulations?|wedding|sympathy|holiday)\s+(?:card|message|text|note)\b|\b(?:write|draft|compose|rewrite|edit|revise|ideas? for)\b.*\b(?:card|email|message|text|invitation|post|note|letter)\b/.test(x))return'create';
     if(/\b(?:ideas? for|suggest|recommend|help me with|what should i make for)\b.*\b(?:dinner|meal|supper)\b|\b(?:dinner|meal)\s+ideas?\b/.test(x))return'dinner';
     if(/\b(?:ideas for|help me with)\b.*\b(?:birthday party|party|potluck|event|reunion|get-together|garage sale|moving day|move|study session|workday|fundraiser|picnic|cleaning day|family visit)\b/.test(x)||/\b(?:get ready for|prepare for)\s+(?:a\s+)?(?:move|moving day|birthday party|party|event|fundraiser|picnic|study session|workday|family visit)\b/.test(x))return'plan';
-    if(/\b(?:make|create|build|help me make)\s+(?:a\s+)?checklist\b/.test(x))return'plan';
+    if(/\b(?:make|create|build|write|draft|help me make)\s+(?:a\s+)?checklist\b/.test(x))return'plan';
     if(/birthday card|thank you card|write (a )?(card|letter|story|resume|cover letter)|make a card|resume|cover letter|job application|\b(?:write|draft|rewrite|compose|edit|revise)\b.*\b(?:email|message|text|invitation|post|note|letter)\b|\bmake this (?:email|message|text|letter)\b/.test(x))return'create';
     if(/^(?:teach me|explain|help me understand|i want to learn|i want to understand|i'd like to learn|i would like to learn|can you explain|could you explain)\b/.test(x))return /step by step|show me how/.test(x)?'learnSteps':(/simple terms|simply/.test(x)?'learnSimple':'learn');
     if(/\b(?:brainstorm|suggest|recommend|give me ideas|ideas? for|help me find)\b/.test(x) || /\b(?:i (?:want|need|would like|d like)|looking for)\s+(?:a |an )?(?:new )?hobby\b/.test(x) || /\bsomething to do for fun\b/.test(x))return'brainstorm';
@@ -737,7 +827,7 @@ class DiscoverConversation {
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -773,6 +863,7 @@ class DiscoverConversation {
     if(intent==='learnSteps')return this.learnStart(clean,'steps',true);
     if(intent==='learnSimple')return this.learnStart(clean,'simple',true);
     if(intent==='learn')return this.learnStart(clean,'',true);
+    if(intent==='transform')return this.transformStart(clean);
     if(intent==='compare'||intent==='brainstorm'||intent==='organize'||intent==='plan')return this.generalTaskStart(clean,intent);
     if(this.s.category==='travel')return this.travelStart(clean,true);
     if(this.s.category==='learn')return this.learnStart(clean,'',true);
@@ -1384,7 +1475,7 @@ class DiscoverConversation {
       const switchedDirect=this.directAnswer(x,detected);
       return switchedDirect||this.routeIntent(x,detected);
     }
-    if(this.s.stage!=='start' && detected && intentFamily(detected)!==intentFamily(this.s.intent) && /^(?:help me|i need help|i want to|actually|instead|wait|can you|could you|please|i'm looking to|explain|teach me|show me how|find|plan|write|create)/i.test(String(text||''))){
+    if(this.s.stage!=='start' && detected && intentFamily(detected)!==intentFamily(this.s.intent) && /^(?:help me|i need help|i want to|actually|instead|wait|can you|could you|please|i'm looking to|explain|teach me|show me how|find|plan|write|create|turn|convert|format|reformat)/i.test(String(text||''))){
       this.clearContext();this.s.category=this.detectCategory(x);this.s.intent=detected;
       const switchedDirect=this.directAnswer(x,detected);
       return switchedDirect||this.routeIntent(x,detected);
@@ -1831,6 +1922,7 @@ class DiscoverConversation {
       return{say:'No problem. I will give you a few concrete possibilities instead of asking you to figure out the perfect request. We could plan something, make an everyday task easier, learn about a hobby, or work on a project.',choices:['Plan something','Make an everyday task easier','Learn about a hobby','Work on a project']};
     }
     const det=this.detectIntent(x);
+    if(det==='transform')return this.transformStart(x);
     if(det==='compare'||det==='brainstorm'||det==='organize'||det==='plan')return this.generalTaskStart(x,det);
     if(det==='problem')return this.problemStart(x,true);
     if(det==='create')return this.createStart(x,true);
@@ -2235,7 +2327,7 @@ function setupVoice(){
 setupVoice();
 
 send.addEventListener('click',submit);input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submit()}});startNew.onclick=()=>{send.disabled=false;input.disabled=false;voice.disabled=false;resetUI()};
-hint.onclick=()=>{const old=document.getElementById('examples');if(old){old.remove();hint.setAttribute('aria-expanded','false');return} hint.setAttribute('aria-expanded','true');const wrap=document.createElement('div');wrap.id='examples';wrap.className='example-grid';const key=engine.s.category||'open';const lists={open:[['💡','Explore AI','What can I use AI for in everyday life?'],['📅','Plan something','Help me plan my week.'],['🛒','Shopping','Help me make a grocery list for three dinners.'],['📖','Learn','Explain gardening in simple terms.']],everyday:[['🍳','Dinner','What can I make for dinner with what I have?'],['🛒','Groceries','Help me make a grocery list for three dinners.'],['📅','Organize','Help me organize my week.'],['🔧','Problem','Help me figure out how to lower a bill.']],travel:[['🗺️','Things to do','Help me find things to do in Sacramento.'],['🍽️','Eat','Help me find a good place to eat near me.'],['📍','Nearby','What are some interesting places near my hotel?'],['📅','Day plan','Help me plan a day with lunch and sightseeing.']],learn:[['📖','Simple','Explain gardening in simple terms.'],['🔎','Example','Give me an example of how that works.'],['👣','Step by step','Teach me how to do it step by step.'],['🧠','Practice','Quiz me on what I just learned.']],create:[['💭','Ideas','Give me some ideas for a birthday card.'],['⭐','Choose','Which idea would be easiest?'],['📝','Plan','Help me make a plan for it.'],['✨','Improve','How could I make this better?']],problem:[['🔧','Lower a bill','Help me figure out how to lower a bill.'],['💰','Save money','How can I save money on this?'],['📝','Plan','Help me make a plan to solve this.'],['❓','Understand','Help me understand what is happening.']]};const items=lists[key]||lists.open;items.forEach(it=>{const d=document.createElement('div');d.className='example-card';d.innerHTML='<div class="icon">'+it[0]+'</div><b>'+it[1]+'</b><p>'+it[2]+'</p><button class="use-example">Use this example</button>';d.querySelector('button').onclick=()=>{input.value=it[2];input.focus()};wrap.appendChild(d)});chat.appendChild(wrap);chat.scrollTop=chat.scrollHeight};
+hint.onclick=()=>{const old=document.getElementById('examples');if(old){old.remove();hint.setAttribute('aria-expanded','false');return} hint.setAttribute('aria-expanded','true');const wrap=document.createElement('div');wrap.id='examples';wrap.className='example-grid';const key=engine.s.category||'open';const lists={open:[['💡','Explore AI','What can I use AI for in everyday life?'],['📅','Plan something','Help me plan my week.'],['🛒','Shopping','Help me make a grocery list for three dinners.'],['📖','Learn','Explain gardening in simple terms.']],everyday:[['🍳','Dinner','What can I make for dinner with what I have?'],['🛒','Groceries','Help me make a grocery list for three dinners.'],['📅','Organize','Help me organize my week.'],['🔧','Problem','Help me figure out how to lower a bill.']],travel:[['🗺️','Things to do','Help me find things to do in Sacramento.'],['🍽️','Eat','Help me find a good place to eat near me.'],['📍','Nearby','What are some interesting places near my hotel?'],['📅','Day plan','Help me plan a day with lunch and sightseeing.']],learn:[['📖','Simple','Explain gardening in simple terms.'],['🔎','Example','Give me an example of how that works.'],['👣','Step by step','Teach me how to do it step by step.'],['🧠','Practice','Quiz me on what I just learned.']],create:[['💭','Ideas','Give me some ideas for a birthday card.'],['⭐','Choose','Which idea would be easiest?'],['📝','Plan','Help me make a plan for it.'],['✨','Improve','How could I make this better?']],problem:[['🔧','Lower a bill','Help me figure out how to lower a bill.'],['💰','Save money','How can I save money on this?'],['📝','Plan','Help me make a plan to solve this.'],['❓','Understand','Help me understand what is happening.']]};const items=lists[key]||lists.open;items.forEach(it=>{const d=document.createElement('div');d.className='example-card';d.innerHTML='<div class="icon">'+it[0]+'</div><b>'+it[1]+'</b><p>'+it[2]+'</p><button class="use-example" type="button">Use this example</button>';d.querySelector('button').onclick=()=>{input.value=it[2];input.focus()};wrap.appendChild(d)});chat.appendChild(wrap);chat.scrollTop=chat.scrollHeight};
 window.__discoverGame={engine,resetUI};resetUI();
 </script>
 </body>
