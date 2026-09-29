@@ -326,6 +326,17 @@ class DiscoverConversation {
     if(!t||t.length>90)return taskType==='compare'?'the options':taskType==='organize'?'this':taskType==='plan'?'this plan':'this';
     return t;
   }
+  inlineExplanationSource(text){
+    const raw=String(text||'').trim();
+    if(!raw)return'';
+    // A user may include the material in the same message instead of waiting for a
+    // second paste. Prefer explicit quoted text, then text after an explanation colon.
+    const quoted=[...raw.matchAll(/["“]([^"”]{8,})["”]/g)].map(m=>m[1].trim()).filter(Boolean);
+    if(quoted.length)return quoted[quoted.length-1];
+    const m=raw.match(/\b(?:explain|translate|put|rewrite|summari[sz]e|tell me what)\b[\s\S]{0,80}?(?:plain english|plain language|simple terms|means?)?[\s\S]{0,40}?[:：]\s*([\s\S]{8,})$/i);
+    if(m)return m[1].replace(/^[\s'"“”]+|[\s'"“”]+$/g,'').trim();
+    return'';
+  }
   sourceUnderstandingRequest(text){
     const low=this.normalize(text);
     if(/\b(?:write|draft|compose|rewrite|edit|revise|create)\b/.test(low) && /\b(?:letter|email|message|notice|document)\b/.test(low))return false;
@@ -336,10 +347,13 @@ class DiscoverConversation {
     return confusion && (received || /\b(?:this|that|my|the)(?:\s+[a-z0-9-]+){0,3}\s+(?:email|message|letter|notice|document|form|bill|statement|lease|policy|contract)\b/.test(low));
   }
   sourceUnderstandingStart(text){
-    if(!this.sourceUnderstandingRequest(text))return null;
+    const inline=this.inlineExplanationSource(text);
+    const isRequest=this.sourceUnderstandingRequest(text) || (!!inline && /\b(?:explain|plain english|plain language|simple terms|simpler|what does|what .* means?|tell me what|make sense of|summari[sz]e)\b/i.test(String(text||'')));
+    if(!isRequest)return null;
     const low=this.normalize(text);
-    const kind=(low.match(/\b(email|message|letter|notice|document|form|bill|statement|lease|policy|instructions?|paperwork|contract)\b/)||[])[1]||'document';
+    const kind=(low.match(/\b(email|message|letter|notice|document|form|bill|statement|lease|policy|instructions?|paperwork|contract)\b/)||[])[1]||'text';
     this.s.category='learn';this.s.intent='learn';this.s.taskType='learn';this.s.topic=`the ${kind}`;this.s.stage='sourceInterpret';this.s.sourceMode='interpret';this.s.sourceKind=kind;this.s.sourceText='';
+    if(inline)return this.handleSourceInterpret(inline);
     return{say:`Absolutely. Paste the part of the ${kind} that is confusing. I can put it in plain language, point out dates, amounts, or action items, and tell you what the excerpt does not make clear.`,choices:['Paste the confusing part','Find the action items','Make it simpler']};
   }
   handleSourceInterpret(text){
@@ -359,6 +373,24 @@ class DiscoverConversation {
     const month='(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan\.?|Feb\.?|Mar\.?|Apr\.?|Jun\.?|Jul\.?|Aug\.?|Sep\.?|Sept\.?|Oct\.?|Nov\.?|Dec\.?)';
     const dates=[...raw.matchAll(new RegExp(`\\b${month}\\s+\\d{1,2}(?:,\\s*\\d{4})?|\\b\\d{1,2}[/-]\\d{1,2}(?:[/-]\\d{2,4})?`,'gi'))].map(m=>m[0]);
     const times=[...raw.matchAll(/\b\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)\b/gi)].map(m=>m[0]);
+    // Convert common obligation/consequence wording into plain language when the
+    // meaning is explicit in the supplied text. Keep the explanation strictly tied
+    // to the excerpt and say what it does not specify rather than inventing details.
+    const dueWindow=raw.match(/\b(?:payment|rent|balance|amount|form|response)\s+(?:is\s+)?due\s+within\s+(\d+)\s+(business|calendar)?\s*days?\s+of\s+([^.!?]+)/i);
+    const consequence=raw.match(/\bfailure\s+to\s+([^.!?]+?)\s+may\s+result\s+in\s+([^.!?]+)/i);
+    if(dueWindow){
+      const n=dueWindow[1],kindDays=(dueWindow[2]||'').toLowerCase();
+      const dayLabel=kindDays?`${kindDays} days`:'days';
+      let say=`Plain English: the ${dueWindow[0].match(/^(payment|rent|balance|amount|form|response)/i)?.[1]?.toLowerCase()||'item'} is due within ${n} ${dayLabel} of ${dueWindow[3].trim()}.`;
+      if(consequence){
+        const consequenceText=consequence[2].trim();
+        if(/fees?/i.test(consequenceText))say+=` If you do not ${consequence[1].trim()}, you may be charged ${consequenceText}.`;
+        else say+=` If you do not ${consequence[1].trim()}, ${consequenceText} may happen.`;
+        if(/additional fees?/i.test(consequenceText)&&!/\$\s*\d/.test(consequenceText))say+=' The excerpt does not say how much those additional fees would be.';
+      }
+      this.s.sourceText=raw;this.noteFact(raw);
+      return{say,choices:['What is the deadline?','What happens if I am late?','Make it even simpler']};
+    }
     const topic= /\b(?:rent|lease|tenant|landlord|apartment|property manager|inspection|entry)\b/.test(low)?'housing or lease':
       /\b(?:bill|charge|payment|balance|due|fee)\b/.test(low)?'billing or payment':
       /\b(?:insurance|coverage|claim|premium|deductible)\b/.test(low)?'insurance':
