@@ -223,6 +223,7 @@ class DiscoverConversation {
     if(i==='create')return'create';
     if(i==='learn'||i==='learnSimple'||i==='learnSteps')return'learn';
     if(i==='compare')return'compare';
+    if(i==='brainstorm')return'brainstorm';
     if(i==='organize')return'organize';
     if(i==='trip'||i==='week'||i==='dinner'||i==='groceries'||i==='restaurants'||i==='things'||i==='plan')return'plan';
     if(this.looksLikeProblem(low))return'troubleshoot';
@@ -230,6 +231,7 @@ class DiscoverConversation {
     if(/\b(?:write|draft|rewrite|compose|make a card|make an invitation|text to|post for)\b/.test(low))return'create';
     if(/\b(?:learn|teach|explain|understand|what does|how does)\b/.test(low))return'learn';
     if(/\b(?:compare|versus|\bvs\.?\b|difference between|which (?:one )?is better|pros and cons)\b/.test(low))return'compare';
+    if(/\b(?:brainstorm|suggest|recommend|ideas? for|give me ideas|help me find|help me choose a hobby|i (?:want|need|would like|d like) (?:a |an )?(?:new )?hobby|something to do for fun|new hobby)\b/.test(low))return'brainstorm';
     if(/\b(?:organize|organise|sort|declutter|prioritize|prioritise|arrange)\b/.test(low))return'organize';
     if(/\b(?:plan|schedule|prepare for)\b/.test(low))return'plan';
     return this.s.taskType||'open';
@@ -240,9 +242,9 @@ class DiscoverConversation {
     // so phrases like “I need to organize …” become the subject rather than
     // “organize organize …”.
     t=t.replace(/^\s*(?:please\s+)?(?:can you\s+|could you\s+|would you\s+)?/i,'')
-      .replace(/^\s*(?:help me choose between|choose between|decide between|pick between|i need to pick between|i need to choose between|i need to decide between|help me with|i need help with|i want help with|i need ideas for|ideas for|i need to get ready for|get ready for|i need to|i want to)\s+/i,'')
-      .replace(/^\s*(?:help me\s+)?(?:plan|organize|organise|sort|declutter|compare|write|draft|rewrite|explain|understand|learn|fix|troubleshoot)\s+/i,'')
-      .replace(/^\s*(?:plan|organize|organise|sort|declutter|compare|write|draft|rewrite|explain|understand|learn|fix|troubleshoot)\s+/i,'');
+      .replace(/^\s*(?:help me choose between|choose between|decide between|pick between|i need to pick between|i need to choose between|i need to decide between|help me with|i need help with|i want help with|give me ideas for|i need ideas for|ideas for|suggest|recommend|i need to get ready for|get ready for|i need to|i want to)\s+/i,'')
+      .replace(/^\s*(?:help me\s+)?(?:plan|organize|organise|sort|declutter|compare|brainstorm|suggest|recommend|write|draft|rewrite|explain|understand|learn|fix|troubleshoot)\s+/i,'')
+      .replace(/^\s*(?:plan|organize|organise|sort|declutter|compare|brainstorm|suggest|recommend|write|draft|rewrite|explain|understand|learn|fix|troubleshoot)\s+/i,'');
     // Keep time/budget limits in universal memory, not inside the subject label.
     if(taskType==='organize'||taskType==='plan'){
       t=t.replace(/\s*,?\s*(?:but|and)\s+(?:i|we)\s+(?:only\s+)?have\s+(?:about\s+|around\s+|under\s+|less than\s+)?(?:\d+|one|two|three|four|five|six|seven|eight)\s*(?:minutes?|hours?|days?|weeks?).*$/i,'').trim();
@@ -512,11 +514,30 @@ class DiscoverConversation {
     return{criteria:'cost, quality or condition, ongoing effort or upkeep, useful features, and fit for what you actually need',ask:'Tell me the two options you are comparing',choices:['Add the two options','Help choose the criteria','Show a simple comparison']};
   }
   generalTaskStart(clean,intent){
-    const type=this.inferTaskType(clean,intent);this.s.taskType=type;this.s.intent=intent||type;this.s.category=type==='create'?'create':type==='learn'?'learn':type==='troubleshoot'?'problem':'open';
+    const type=this.inferTaskType(clean,intent);this.s.taskType=type;this.s.intent=intent||type;this.s.category=type==='create'?'create':type==='learn'?'learn':type==='troubleshoot'?'problem':type==='brainstorm'?'everyday':'open';
     this.s.topic=this.subjectFromText(clean,type);this.s.stage='generalTask';this.updateUniversalMemory(clean);const known=this.memorySummary();
     if(type==='compare'){
       const g=this.comparisonGuide(this.s.topic);
       return{say:`Absolutely. Let’s make ${this.s.topic} easier to compare. A useful starting set of criteria is ${g.criteria}. ${g.ask}, and I’ll put them side by side.`,choices:g.choices};
+    }
+    if(type==='brainstorm'){
+      const low=this.normalize(clean);const hobby=/\bhobb(?:y|ies)\b/.test(low);
+      const atHome=/\bat home\b|\bindoors?\b/.test(low);
+      const lowCost=/\b(?:isn't|isnt|not|nothing) expensive\b|\b(?:cheap|inexpensive|low[- ]cost|budget)\b/.test(low);
+      const lowPhysical=/\b(?:not|isn't|isnt) (?:too )?(?:physical|physically demanding|strenuous|active)\b|\blow[- ]impact\b|\bnot too physically demanding\b/.test(low);
+      if(atHome)this.remember('constraints','at home');if(lowCost)this.remember('constraints','inexpensive');if(lowPhysical)this.remember('constraints','low physical demand');
+      if(hobby){
+        const ideas=[];
+        if(atHome||lowPhysical||lowCost){ideas.push('drawing or simple watercolor','puzzles or strategy games','learning a language or music appreciation','journaling or creative writing','small crafts such as collage or paper projects');}
+        else ideas.push('drawing','gardening','photography','cooking projects','learning an instrument');
+        return{say:`Absolutely. Based on what you said, I’d start with hobbies that are easy to try without a big commitment. A few possibilities are ${ideas.join(', ')}. You do not need to pick the perfect one—tell me which two sound least boring and I can narrow them down.`,choices:['Give me more creative ideas','No screens','Help me pick one']};
+      }
+      const genericIdeas=[];
+      if(atHome)genericIdeas.push('a puzzle or logic project','creative writing or journaling','a small art or paper-craft project');
+      if(lowCost)genericIdeas.push('a library-based reading or learning project','drawing with supplies you already have');
+      if(lowPhysical)genericIdeas.push('music discovery or a listening project','family-history or photo organizing','a low-key strategy game');
+      if(!genericIdeas.length)genericIdeas.push('a small creative project','a learning challenge','a relaxing at-home activity','a simple social activity');
+      return{say:`Absolutely. Using the limits you gave me, a few directions are ${[...new Set(genericIdeas)].slice(0,5).join(', ')}. Tell me which one sounds closest—or what you definitely do not want—and I’ll narrow from there.`,choices:['Give me more ideas','Help me pick one','Add another preference']};
     }
     if(type==='organize'){
       const mins=(this.normalize(clean).match(/\b(?:only\s+have\s+|have\s+|in\s+)?(\d+)\s*minutes?\b/)||[])[1];
@@ -542,6 +563,7 @@ class DiscoverConversation {
     if(this.uncertain(raw)){
       if(type==='organize')return{say:`No problem. I’ll choose a simple place to start with ${this.s.topic}: pick one small area or category, spend 10 minutes separating keep/do-now, later, and remove/ignore, then stop and see what changed.`,choices:['Give me the first step','Make a checklist','Keep it very simple']};
       if(type==='compare')return{say:`That is okay. We can start with three neutral criteria for ${this.s.topic}: cost, ease of use, and quality or reliability. You can react to those instead of deciding the criteria up front.`,choices:['Compare using those','Change a criterion','Keep it simple']};
+      if(type==='brainstorm')return{say:`No problem. I’ll give you a small set of different ideas instead of making you define the perfect one first. React to what sounds interesting, boring, too expensive, too much effort, or just not you.`,choices:['Give me a few ideas','Keep it inexpensive','Choose for me']};
       if(type==='plan')return{say:`No problem. I’ll choose a simple default structure for ${this.s.topic}: one must-have, one main activity or task, one optional extra, and a little buffer. You can change anything that does not fit.`,choices:['Build that plan','Make it simpler','Show me an example']};
       return{say:`That is fine. I can choose a simple first step for ${this.s.topic} and let you react to it instead of making you decide everything first.`,choices:['Choose for me','Show me an example','Keep it simple']};
     }
@@ -555,6 +577,24 @@ class DiscoverConversation {
       if(type==='organize')return{say:'Next, choose one small category or area and finish that before expanding the task. Put the most important or time-sensitive items first, then group the rest by similarity.',choices:['Make a checklist','Help me prioritize','Keep it simple']};
       if(type==='compare')return{say:'Next, put both options against the same two or three criteria. That makes the trade-offs visible and keeps one flashy feature from dominating the whole comparison.',choices:['Compare them now','Add a criterion','Show trade-offs']};
       if(type==='plan')return{say:'Next, turn the constraints we already have into two or three anchors: what must happen, what would be nice, and what can stay flexible.',choices:['Build the plan','Add another detail','Keep it simple']};
+    }
+    if(type==='brainstorm'){
+      const mem=this.s.memory||{};const all=[...(mem.constraints||[]),...(mem.preferences||[]),...(mem.avoid||[])].map(v=>this.normalize(v)).join(' ');
+      const hobby=/\bhobb(?:y|ies)\b/.test(this.normalize(this.s.topic||'')) || /\bhobb(?:y|ies)\b/.test(low);
+      const atHome=/at home|indoors?/.test(all+' '+low), lowCost=/inexpensive|cheap|low[- ]cost|budget|not expensive/.test(all+' '+low), lowPhysical=/low physical demand|not .*physical|not .*strenuous|low[- ]impact/.test(all+' '+low);
+      if(/\b(?:no screens?|screen[- ]free)\b/.test(low))this.remember('avoid','screens');
+      if(/\b(?:creative|craft|art|make something)\b/.test(low))this.remember('preferences','creative');
+      if(/\b(?:social|with people|meet people)\b/.test(low))this.remember('preferences','social');
+      if(/\b(?:solo|by myself|alone|quiet)\b/.test(low))this.remember('preferences','solo/quiet');
+      if(/\b(?:pick one|choose one|which one|recommend one)\b/.test(low))return{say:`If I had to pick one low-friction option from the constraints you gave me, I’d start with a small creative hobby you can try at home for little money—something like drawing, collage, journaling, or a simple paper craft. Try it once for 20–30 minutes before buying much. If it feels flat, we can pivot without treating that as failure.`,choices:['Give me a starter version','Pick a different one','Give me three alternatives']};
+      if(/\b(?:more|another|few ideas|give me ideas|creative ideas)\b/.test(low)){
+        let ideas=['drawing or watercolor','journaling or short creative writing','puzzles or logic games','collage or paper crafts','language learning','music listening projects'];
+        if(/no screens?|screen[- ]free/.test(all+' '+low))ideas=ideas.filter(x=>!/(language learning|music listening)/.test(x));
+        if(/creative/.test(all+' '+low))ideas=['collage','simple watercolor','hand lettering','zine-making','paper crafts','creative journaling'];
+        return{say:`Here are a few different directions that still fit the limits you gave me: ${ideas.join(', ')}. I’d pick two that sound mildly interesting and compare startup cost, effort, and whether you can begin with things you already have.`,choices:['Help me pick one','Make them even cheaper','No screens']};
+      }
+      if(/\b(?:cheaper|inexpensive|cheap|low[- ]cost|budget)\b/.test(low))return{say:'Then I’d favor hobbies you can start with ordinary household supplies or free materials: drawing with a pencil, journaling, puzzles, paper crafts, reading projects, or learning through library resources. Try before buying equipment.',choices:['Give me five options','No screens','Help me pick one']};
+      return{say:`I’ll keep the same idea search and use the new preference to narrow it. ${hobby?'For a hobby, ':''}the goal is a few realistic options that fit your actual energy, cost, and setting—not a giant list.`,choices:['Give me a few ideas','Help me pick one','Add another preference']};
     }
     if(type==='compare'){
       const g=this.comparisonGuide(this.s.topic);
@@ -659,20 +699,23 @@ class DiscoverConversation {
     if(/\b(?:compare|versus|\bvs\.?\b|difference between|which (?:one )?is better|pros and cons|help me choose between|decid(?:e|ing) between|choose between|pick between)\b/.test(x)||/\bwhich(?:\s+of)?\s+.+?\s+should i\s+(?:buy|choose|get|take|pick)\b/.test(x)||/\bhelp me choose\s+(?:a|an|the|my|new)?\s*.+/.test(x)||/\bi need to (?:pick|choose|decide) between\b/.test(x))return'compare';
     if(/grocery|groceries|shopping list|meal plan(?:\s+for)?\s+(?:\d+|two|three|four|five|six|seven)?\s*dinners?|plan groceries/.test(x))return'groceries';
     if(/organize my week|organise my week|plan my week|week.*organiz|organize.*week/.test(x))return'week';
-    if(/place to eat|places to eat|restaurant|restaurants|find (?:a )?diner|somewhere to eat|where.*eat|food nearby|find.*food|find (?:some )?(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?|vegetarian|vegan)(?:\s|$)|(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?)\s+(?:in|near|around)\b|where should we go for (?:breakfast|brunch|lunch|dinner)|somewhere for (?:breakfast|brunch|lunch|dinner)|find somewhere for (?:breakfast|brunch|lunch|dinner)/.test(x))return'restaurants';
-    if(/find things to do|things to do|activities|what to do|places to visit|this weekend|weekend activities|fun this weekend|fun to do|what is there to do|anything fun to do|something fun to do/.test(x))return'things';
-    if(/plan (a )?(trip|vacation)|weekend trip|trip to|vacation to|travel to|destination|day trip|outing/.test(x))return'trip';
+    if(/place to eat|places to eat|restaurant|restaurants|find (?:a )?diner|somewhere to eat|where.*eat|food nearby|find.*food|find (?:some )?(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?|vegetarian|vegan)(?:\s|$)|(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?)(?:\s+food)?\s+(?:in|near|around)\b|where should we go for (?:breakfast|brunch|lunch|dinner)|somewhere for (?:breakfast|brunch|lunch|dinner)|find somewhere(?:\s+[^.!?]{1,35})?\s+for (?:breakfast|brunch|lunch|dinner)/.test(x))return'restaurants';
+    if(/find things to do|things to do|activities|what to do|places to visit|places should i visit|what places should i visit|what can (?:i|we) do|this weekend|weekend activities|fun this weekend|fun to do|what is there to do|anything fun to do|something fun to do|afternoon out|easy afternoon out/.test(x))return'things';
+    if(/\bplan\b[^.!?]{0,50}\b(?:trip|vacation)\b|weekend trip|trip to|vacation to|travel to|destination|day trip|outing|\bi (?:want|need|would like|d like) (?:a )?trip\b/.test(x))return'trip';
     if(/\b(?:organize|organise|sort|declutter|prioritize|prioritise|arrange)\b/.test(x))return'organize';
     if(/make (a )?cake|bake a cake|birthday cake/.test(x))return'cake';
-    if(/\b(?:ideas for|help me with)\b.*\b(?:birthday|party|potluck|event|reunion|get-together|garage sale|moving day|move|study session|workday|fundraiser|picnic|cleaning day|family visit)\b/.test(x)||/\b(?:get ready for|prepare for)\s+(?:a\s+)?(?:move|moving day|party|event|fundraiser|picnic|study session|workday|family visit)\b/.test(x))return'plan';
+    if(/\b(?:birthday|thank you|thank-you|apology|congratulations?|wedding|sympathy|holiday)\s+(?:card|message|text|note)\b|\b(?:write|draft|compose|rewrite|edit|revise|ideas? for)\b.*\b(?:card|email|message|text|invitation|post|note|letter)\b/.test(x))return'create';
+    if(/\b(?:ideas? for|suggest|recommend|help me with|what should i make for)\b.*\b(?:dinner|meal|supper)\b|\b(?:dinner|meal)\s+ideas?\b/.test(x))return'dinner';
+    if(/\b(?:ideas for|help me with)\b.*\b(?:birthday party|party|potluck|event|reunion|get-together|garage sale|moving day|move|study session|workday|fundraiser|picnic|cleaning day|family visit)\b/.test(x)||/\b(?:get ready for|prepare for)\s+(?:a\s+)?(?:move|moving day|birthday party|party|event|fundraiser|picnic|study session|workday|family visit)\b/.test(x))return'plan';
     if(/\b(?:make|create|build|help me make)\s+(?:a\s+)?checklist\b/.test(x))return'plan';
     if(/birthday card|thank you card|write (a )?(card|letter|story|resume|cover letter)|make a card|resume|cover letter|job application|\b(?:write|draft|rewrite|compose|edit|revise)\b.*\b(?:email|message|text|invitation|post|note|letter)\b|\bmake this (?:email|message|text|letter)\b/.test(x))return'create';
     if(/^(?:teach me|explain|help me understand|i want to learn|i want to understand|i'd like to learn|i would like to learn|can you explain|could you explain)\b/.test(x))return /step by step|show me how/.test(x)?'learnSteps':(/simple terms|simply/.test(x)?'learnSimple':'learn');
+    if(/\b(?:brainstorm|suggest|recommend|give me ideas|ideas? for|help me find)\b/.test(x) || /\b(?:i (?:want|need|would like|d like)|looking for)\s+(?:a |an )?(?:new )?hobby\b/.test(x) || /\bsomething to do for fun\b/.test(x))return'brainstorm';
     if(this.looksLikeProblem(x))return'problem';
     if(/\b(?:phone|iphone|android|laptop|computer|tablet|website|browser|app|bluetooth|roku|tv|television|router|wi-?fi|printer|dishwasher|washer|washing machine|dryer|coffee maker|refrigerator|fridge|microwave|device)\b.*\b(?:crash(?:es|ing)?|disconnect(?:s|ing)?|stop(?:s|ping)?|overheat(?:s|ing)?|freeze(?:s|ing)?|leak(?:s|ing)?|drop(?:s|ping)?|fail(?:s|ing)?|shut(?:s|ting)? off|restart(?:s|ing)?|run(?:s|ning)? slow)\b/.test(x))return'problem';
     if(/\b(?:won't|wont|will not|can't|cant|cannot|doesn't|doesnt|isn't|isnt|not working|broken|stuck|offline|error|stopped working|keeps? (?:failing|freezing|crashing|disconnecting|stopping|shutting off|restarting|dropping|leaking|beeping)|los(?:e|es|ing) (?:wi-?fi|wifi|internet|connection|signal)|leaks?|won't connect|wont connect|won't start|wont start|won't turn on|wont turn on|won't drain|wont drain|won't charge|wont charge|won't spin|wont spin|dying|wilting|yellowing|(?:turning|going) (?:yellow|brown)|overheating|leaking|flickering|dripping|drains? too fast|dies? (?:too )?(?:fast|quickly)|won't hold (?:a )?charge|wont hold (?:a )?charge|not cooling|not heating|no sound|no picture|running constantly|making (?:a )?(?:weird )?noise|running slow|is slow)\b/.test(x))return'problem';
     if(/\b(?:droop(?:s|ing)?|wilt(?:s|ing)?|brown spots?|yellow leaves?|los(?:e|es|ing) leaves?|falling leaves?|bang(?:s|ing)?|rattl(?:e|es|ing)|click(?:s|ing)?|squeak(?:s|ing)?|grind(?:s|ing)?|buzz(?:es|ing)?|hum(?:s|ming)|shak(?:e|es|ing)|vibrat(?:e|es|ing)|stick(?:s|ing)?|clogg(?:ed|ing)|drains? slowly|gets? loud|too loud|too hot|tastes? (?:bitter|sour|burnt)|comes? out dense|coming out dense|barely rises?|stain(?:s|ed)?|slip(?:s|ping)?|jam(?:s|med|ming)?|crack(?:s|ed|ing)?|loose|rust(?:s|ed|ing)?|mold(?:y|ing)?|mould(?:y|ing)?|smells? (?:burnt|burning|strange|bad)|won't stay|wont stay)\b/.test(x))return'problem';
-    if(/\b(?:help me plan|plan my|plan a|plan an|prepare for|make a plan for)\b/.test(x) && !/\b(?:trip|vacation|dinner|meal|grocer(?:y|ies)|week|restaurant|things to do|card|resume|cover letter)\b/.test(x))return'plan';
+    if(/\b(?:help me plan|plan my|plan a|plan an|prepare for|make a plan for|i need a plan for|i want a plan for)\b/.test(x) && !/\b(?:trip|vacation|dinner|meal|grocer(?:y|ies)|week|restaurant|things to do|card|resume|cover letter)\b/.test(x))return'plan';
     if(/solve a problem|fix (this|it|something)|help me (solve|fix)|problem with|bill is|not working|ants? in my|pests? in my|bug[s]? in my|seal (?:the )?entry point|entry point|close the gap|(?:phone|iphone|computer|laptop|printer|tv|television|remote|app|device)\b.*(?:won't|wont|will not|can't|cant|cannot|isn't|isnt|doesn't|doesnt|stopped|keeps? (?:freezing|crashing)|freez(?:e|es|ing)|crash(?:es|ing)?|turn on|print|offline)/.test(x))return'problem';
     if(/\b(?:help me remember|learn to remember|memorize|memorise)\b/.test(x))return'learn';
     if(/\b(?:explain|help me understand|what does .+ mean|how does .+ work)\b/.test(x))return'learn';
@@ -688,6 +731,7 @@ class DiscoverConversation {
     if(/learn|study|understand|research|teach|explain|practice|quiz|golf/.test(x))return'learn';
     if(/create|write|writing|draft|rewrite|compose|idea|project|card|story|cake|bake|birthday|invitation|message|email/.test(x))return'create';
     if(/compare|versus|difference between|pros and cons/.test(x))return'open';
+    if(/brainstorm|suggest|recommend|ideas?|hobb(?:y|ies)/.test(x))return'everyday';
     if(/organize|organise|sort|declutter|prioritize|prioritise|arrange/.test(x))return'everyday';
     if(/problem|solve|fix|bill|cost|lower|reduce|save money|confusing|not working|\bants?\b|\bpests?\b|\bbugs?\b|\broach(?:es)?\b|\bmice\b|\bspiders?\b/.test(x))return'problem';
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
@@ -729,7 +773,7 @@ class DiscoverConversation {
     if(intent==='learnSteps')return this.learnStart(clean,'steps',true);
     if(intent==='learnSimple')return this.learnStart(clean,'simple',true);
     if(intent==='learn')return this.learnStart(clean,'',true);
-    if(intent==='compare'||intent==='organize'||intent==='plan')return this.generalTaskStart(clean,intent);
+    if(intent==='compare'||intent==='brainstorm'||intent==='organize'||intent==='plan')return this.generalTaskStart(clean,intent);
     if(this.s.category==='travel')return this.travelStart(clean,true);
     if(this.s.category==='learn')return this.learnStart(clean,'',true);
     if(this.s.category==='create')return this.createStart(clean,true);
@@ -748,7 +792,7 @@ class DiscoverConversation {
   thingsStart(clean,sw){this.s.category='travel';this.s.intent='things';this.s.topic='things to do';this.s.stage='thingsDetails';if(clean&&clean!==true){const low=this.normalize(clean);const m=low.match(/\b(?:in|near|around|at)\s+(.+?)(?:\s+(?:this weekend|today|tonight))?$/i);const named=(low.match(/\b(?:sacramento|mendocino|san francisco|yosemite|downtown)\b/i)||[])[0];const loc=named||((m&&m[1])?m[1].replace(/[.!?]+$/,'').trim():'');if(loc){this.s.location=loc;this.noteFact(loc);return{say:`Great. I’ll use ${loc} as the area. For example, we could look for outdoor activities, museums or sights, free events, easy walks, or places to explore. What sounds most like you?`,choices:['Something outdoors','Museums or sights','Free things to do','Food and exploring']}}this.noteFact(clean);return{say:'Absolutely. There are lots of ways to look for things to do. For example, you could ask me to find free things to do this weekend, outdoor activities near you, museums or local attractions, live events, easy day trips, or things to do on a small budget. You can be as specific—or as casual—as you want.',choices:['Give me free ideas','Something outdoors','Events this weekend','Show me a day trip']}}return{say:'Absolutely. Here are some examples of what you could ask: “What are some free things to do this weekend?”, “What outdoor activities are nearby?”, “What museums or local attractions should I see?”, or “Plan me an easy day of things to do.” You do not need to phrase it perfectly.',choices:['Give me free ideas','Something outdoors','Events this weekend','Show me a day trip']}}
   tripStart(clean,sw){this.s.category='travel';this.s.intent='trip';this.s.topic=clean&&clean!==true?clean:'a trip';this.s.stage='tripDetails';if(clean&&clean!==true)this.noteFact(clean);return{say:`Great. ${this.s.topic==='a trip'?'Tell me where you are thinking about going and what kind of trip you want.':'I can help shape that trip around what you want to do and how much time and money you have.'}`,choices:['Relaxing','Sightseeing','A mix of both']}}
   learnStart(clean,mode,sw){this.s.category='learn';this.s.intent='learn';this.s.topic=clean&&clean!==true?clean.replace(/^\s*(?:help me with|help with|teach me about|tell me about|i want to learn|i'd like to learn|i would like to learn|i want to understand|help me understand)\s+/i,'').replace(/[.!?]+$/,'').trim():(this.s.topic||'the subject');this.s.stage='learnGoal';this.s.details.push(mode||'');if(clean&&clean!==true)this.noteFact(clean);if(/golf/i.test(this.normalize(this.s.topic)))return{say:'Got it. Improving at golf can mean a lot of different things, so we can make it concrete—swing, putting, consistency, or course strategy.',choices:['Give me an example','Focus on my swing','Focus on putting']};return{say:`Got it. I can help with ${this.s.topic}. We can start with a real example, make it step by step, or let you try something and learn from the result.`,choices:['Give me an example','Make it step by step','Let me practice']}}
-  createStart(clean,sw){this.s.category='create';this.s.intent='create';let topic=clean&&clean!==true?String(clean).replace(/^\s*(?:help me with|help me|i need help with|i need|i want|i'd like|i would like)\s+/i,'').replace(/^\s*(?:write|draft|make|create)\s+/i,'').replace(/[.!?]+$/,'').trim():'something';if(/resume/i.test(topic)){this.s.topic='your resume';this.s.stage='createGoal';if(clean&&clean!==true)this.noteFact(clean);return{say:'Absolutely. I can help with your resume. We can start one from scratch, improve an existing resume, or tailor it to a specific job.',choices:['Start from scratch','Improve my resume','Tailor it to a job']}}this.s.topic=topic;this.s.stage='createGoal';if(clean&&clean!==true)this.noteFact(clean);return{say:`Great. Let’s make ${this.s.topic} useful rather than perfect. What are you trying to create or accomplish with it?`,choices:['Something simple','Something fun','Something polished']}}
+  createStart(clean,sw){this.s.category='create';this.s.intent='create';const original=clean&&clean!==true?String(clean):'';let topic=clean&&clean!==true?String(clean).replace(/^\s*(?:help me with|help me|i need help with|i need|i want|i'd like|i would like|give me ideas for|i need ideas for|ideas for)\s+/i,'').replace(/^\s*(?:write|draft|make|create)\s+/i,'').replace(/[.!?]+$/,'').trim():'something';if(/resume/i.test(topic)){this.s.topic='your resume';this.s.stage='createGoal';if(clean&&clean!==true)this.noteFact(clean);return{say:'Absolutely. I can help with your resume. We can start one from scratch, improve an existing resume, or tailor it to a specific job.',choices:['Start from scratch','Improve my resume','Tailor it to a job']}}this.s.topic=topic;this.s.stage='createGoal';if(clean&&clean!==true)this.noteFact(clean);if(/\b(?:give me ideas|ideas? for|brainstorm)\b/i.test(original)){return{say:`Absolutely. For ${this.s.topic}, here are three directions to react to: one simple and straightforward, one warmer or more personal, and one more playful or memorable. Pick the direction that feels closest and I can turn it into a real first version.`,choices:['Keep it simple','Make it more personal','Make it playful']}}return{say:`Great. Let’s make ${this.s.topic} useful rather than perfect. What are you trying to create or accomplish with it?`,choices:['Something simple','Something fun','Something polished']}}
   cakeStart(clean,sw){this.s.category='create';this.s.intent='cake';this.s.topic='a cake';this.s.stage='cakeDetails';return{say:'Fun. I can help you pick a flavor, recipe, and decoration plan. What kind of cake sounds good?',choices:['Chocolate','Vanilla','You choose']}}
   problemStart(clean,sw){this.s.category='problem';this.s.intent='problem';this.s.stage='problemGoal';if(clean&&clean!==true){this.s.topic=clean;this.noteFact(clean)}return clean&&clean!==true?{say:`I understand the problem is ${clean}. What outcome do you want most?`,choices:['Understand it','Fix it','Get rid of it','Lower or reduce it']}:{say:'Tell me what is going wrong in your own words. I’ll help you sort it out.'}}
 
@@ -1787,7 +1831,7 @@ class DiscoverConversation {
       return{say:'No problem. I will give you a few concrete possibilities instead of asking you to figure out the perfect request. We could plan something, make an everyday task easier, learn about a hobby, or work on a project.',choices:['Plan something','Make an everyday task easier','Learn about a hobby','Work on a project']};
     }
     const det=this.detectIntent(x);
-    if(det==='compare'||det==='organize'||det==='plan')return this.generalTaskStart(x,det);
+    if(det==='compare'||det==='brainstorm'||det==='organize'||det==='plan')return this.generalTaskStart(x,det);
     if(det==='problem')return this.problemStart(x,true);
     if(det==='create')return this.createStart(x,true);
     if(det==='learn'||det==='learnSimple'||det==='learnSteps')return this.learnStart(x,det==='learnSteps'?'steps':det==='learnSimple'?'simple':'',true);
