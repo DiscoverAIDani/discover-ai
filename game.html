@@ -121,9 +121,6 @@ html{overflow-x:hidden} body{overflow-x:hidden} img,svg,video{max-width:100%;hei
 }
 
 button,.back{touch-action:manipulation}
-
-.realWorld{margin:24px auto 0;max-width:800px;padding:20px;border-radius:18px;background:#eef8f0;border:1px solid #cfe6d2;text-align:left}.realWorld h3{margin:0 0 7px;font-size:22px;color:var(--navy)}.realWorld p{margin:0 0 14px;font-size:17px;line-height:1.45}.platformGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.platformCard{display:flex;flex-direction:column;gap:7px;padding:14px;border:1px solid #d6e3e8;border-radius:15px;background:#fff}.platformCard strong{font-size:17px;color:var(--navy)}.platformCard span{font-size:14px;line-height:1.35;color:#5f707f;flex:1}.platformBtn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:9px 12px;border-radius:10px;background:#edf5ff;color:var(--navy);font-weight:900;font-size:14px}.platformNote{margin-top:11px;font-size:12px;line-height:1.35;color:#607180}@media(max-width:600px){.platformGrid{grid-template-columns:1fr}}
-
 </style>
 </head>
 <body>
@@ -137,18 +134,12 @@ button,.back{touch-action:manipulation}
   <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service.</div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
-<section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
-<div class="platformCard"><strong>💬 ChatGPT</strong><span>Good for everyday questions, learning, planning, writing, and back-and-forth conversations.</span><a class="platformBtn" href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">Try ChatGPT →</a></div>
-<div class="platformCard"><strong>✨ Gemini</strong><span>Google’s conversational tool for questions, planning, learning, writing, and more.</span><a class="platformBtn" href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer">Try Gemini →</a></div>
-<div class="platformCard"><strong>📝 Claude</strong><span>A conversational tool from Anthropic, useful for writing, learning, and working through information.</span><a class="platformBtn" href="https://claude.ai/" target="_blank" rel="noopener noreferrer">Try Claude →</a></div>
-<div class="platformCard"><strong>🪟 Microsoft Copilot</strong><span>A conversational tool that can be especially useful if you use Microsoft products.</span><a class="platformBtn" href="https://copilot.microsoft.com/" target="_blank" rel="noopener noreferrer">Try Copilot →</a></div>
-<div class="platformCard"><strong>🔎 Perplexity</strong><span>Useful when you want answers that search the web and show sources you can check.</span><a class="platformBtn" href="https://www.perplexity.ai/" target="_blank" rel="noopener noreferrer">Try Perplexity →</a></div>
-</div><div class="platformNote">These tools change over time, and some features may require an account. Whichever one you try, remember to check important information for yourself.</div></div><div class="end-note">The goal was not to find perfect words. The goal was to keep a useful conversation going.</div><button class="start-new" id="startNew" type="button">Try another conversation</button></section>
+<section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="end-note">The goal was not to find perfect words. The goal was to keep a useful conversation going.</div><button class="start-new" id="startNew" type="button">Try another conversation</button></section>
 </div></main>
 <script>
 class DiscoverConversation {
   constructor(){this.maxTurns=5;this.reset()}
-  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',sourceMode:'',sourceKind:'',sourceText:'',transformSource:'',transformFormat:'',transformItems:[],memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
+  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',sourceMode:'',sourceKind:'',sourceText:'',transformSource:'',transformFormat:'',transformItems:[],sequenceMode:false,sequenceItems:[],memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
   normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").replace(/\bidk\b/g,"i don't know").replace(/\b(?:resturant|restaraunt)\b/g,'restaurant').replace(/\b(?:grocey|grocry)\b/g,'grocery').replace(/\bgrocery lst\b/g,'grocery list').replace(/\bvaccation\b/g,'vacation').replace(/\bwek\b/g,'week').replace(/\bdisconects?\b/g,'disconnects').replace(/\bwi fi\b/g,'wifi').replace(/\s+/g,' ').trim()}
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
   uncertain(t){let x=this.normalize(t).replace(/^(?:uh+|um+|umm+|hmm+|erm+)[,\s-]*/i,'');return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\bno clue\b|\byou pick\b|\byou decide\b|\bchoose for me\b|\bup to you\b|\bsurprise me\b|\bwhatever works\b|^(?:dunno|i dunno|whatever(?: is fine)?)\b/i.test(x)}
@@ -326,10 +317,15 @@ class DiscoverConversation {
     }
     if(taskType==='compare'){
       const m=t.match(/^which\s+(.+?)\s+should i\s+(?:buy|choose|get)$/i);if(m)t=m[1];
+      const either=t.match(/(?:i(?:'m| am)?\s+(?:trying to\s+)?|help me\s+)?(?:decid(?:e|ing)|figure out|work out)\s+(?:whether\s+)?(?:to\s+)?(.+?)\s+or\s+(.+?)(?:[.!?]|$)/i);
+      const should=t.match(/should i\s+(.+?)\s+or\s+(.+?)(?:[.!?]|$)/i);
+      const pair=either||should;
+      if(pair)t=`${pair[1].trim()} versus ${pair[2].trim()}`;
       // Keep the thing being compared, not the user's emotional/setup clause.
       // Example: “two used cars, but I'm overwhelmed…” -> “two used cars”.
       t=t.replace(/\s*[,;:-]\s*(?:but|and)\s+(?:i|we)\b.*$/i,'').trim();
       t=t.replace(/\s+because\s+(?:i|we)\b.*$/i,'').trim();
+      t=t.replace(/\s*(?:help me think it through|help me decide|what do you think)\s*$/i,'').trim();
     }
     t=t.replace(/\s+for me$/i,'').trim();
     if(!t||t.length>90)return taskType==='compare'?'the options':taskType==='organize'?'this':taskType==='plan'?'this plan':'this';
@@ -677,11 +673,86 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/\b(?:mattress|mattresses|bed|beds)\b/.test(t))return{criteria:'comfort and support, materials, durability, trial or return policy, warranty, and price',ask:'Tell me the two mattresses or models you are considering',choices:['Add the two options','Help choose the criteria','Show a simple comparison']};
     return{criteria:'cost, quality or condition, ongoing effort or upkeep, useful features, and fit for what you actually need',ask:'Tell me the two options you are comparing',choices:['Add the two options','Help choose the criteria','Show a simple comparison']};
   }
+  isSequenceRequest(text){
+    const low=this.normalize(text);
+    return /\b(?:what order should i|what should i do first|which should i do first|what comes first|put (?:these|them|my tasks|my errands) in order|order (?:these|my tasks|my errands)|prioritize (?:these|my tasks|my errands)|prioritise (?:these|my tasks|my errands)|sequence (?:these|my tasks|my errands))\b/.test(low);
+  }
+  extractSequenceItems(text){
+    let raw=String(text||'').trim();
+    raw=raw.replace(/[?]+$/,'');
+    raw=raw.replace(/\s*(?:what order should i do (?:them|these|this) in|what should i do first|which should i do first|what comes first|put (?:these|them|my tasks|my errands) in order|order (?:these|my tasks|my errands)|prioritize (?:these|my tasks|my errands)|prioritise (?:these|my tasks|my errands)|sequence (?:these|my tasks|my errands)).*$/i,'').trim();
+    raw=raw.replace(/^(?:i\s+(?:need|have|want)\s+to|i've got to|ive got to|today i need to)\s+/i,'');
+    raw=raw.replace(/^(?:do|handle|finish)\s+(?:these\s+)?(?:\d+|two|three|four|five|six|seven)\s+(?:things|tasks|errands)\s*:\s*/i,'');
+    raw=raw.replace(/[.!]+$/,'');
+    let parts=raw.split(/\s*,\s*|\s+and\s+/i).map(v=>v.replace(/^and\s+/i,'').replace(/^(?:then\s+|also\s+)/i,'').trim()).filter(Boolean);
+    if(parts.length<2 && /\s*;\s*/.test(raw))parts=raw.split(/\s*;\s*/).map(v=>v.trim()).filter(Boolean);
+    return parts.filter(v=>v.length>1).slice(0,8);
+  }
+  sequenceResponse(text){
+    const items=this.extractSequenceItems(text);
+    this.s.sequenceMode=true;this.s.sequenceItems=items.slice();
+    this.s.taskType='organize';this.s.intent='organize';this.s.category='everyday';this.s.stage='generalTask';this.s.topic='today\'s tasks';
+    const score=(item,index)=>{
+      const n=this.normalize(item);let priority=0;
+      const time=/\b(?:at|by|before)\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/i.exec(item)||/\b(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/i.exec(item);
+      const fixed=!!time || /\b(?:appointment|meeting|class|flight|train|pickup|pick up (?:my|the)?\s*(?:kid|child|children)|reservation)\b/.test(n);
+      const deadline=/\b(?:due|deadline|must be done|by noon|by end of day|closes? at|before noon|before \d)\b/.test(n);
+      const perish=/\b(?:groceries|grocery|frozen|refrigerated|ice cream|food shopping|milk|dairy|meat|produce|cold food)\b/.test(n);
+      if(fixed)priority+=5;if(deadline)priority+=6;if(perish)priority-=1;
+      return{item,index,priority,fixed,deadline,perish,time:time?time[1]:''};
+    };
+    if(!items.length)return{say:'I can help put those in a sensible order. Tell me the tasks plus any fixed times, deadlines, or places that close, and I’ll use those as anchors instead of guessing.',choices:['Add my tasks','Add a deadline','Keep it simple']};
+    const ranked=items.map(score).sort((a,b)=>b.priority-a.priority||a.index-b.index);
+    const anchor=ranked.find(x=>x.deadline)||ranked.find(x=>x.fixed);
+    let say='I’d anchor the order around the time-sensitive item';
+    if(anchor)say+=`: ${anchor.item}`;
+    else say+=' first, then use travel time, closing times, and anything perishable to break ties';
+    say+='.';
+    if(anchor){
+      const flex=ranked.filter(x=>x!==anchor&&!x.perish).map(x=>x.item);
+      const perish=ranked.filter(x=>x!==anchor&&x.perish).map(x=>x.item);
+      if(anchor.deadline){
+        say+=` Because that has a deadline, I’d do it first rather than spending the buffer on a flexible errand.`;
+        if(flex.length)say+=` Then do ${flex.join(' and ')}.`;
+        if(perish.length)say+=` Put ${perish.join(' and ')} last when practical so temperature-sensitive items are not sitting around.`;
+      }else{
+        if(flex.length)say+=` If you have comfortable time before it, do ${flex[0]} first${flex.length>1?`, then ${flex.slice(1).join(', ')}`:''}.`;
+        if(perish.length)say+=` I’d usually put ${perish.join(' and ')} after the fixed-time stop so you are not rushing or leaving perishables sitting around.`;
+        say+=' If travel time makes that tight, protect the fixed-time item and move the flexible errands after it.';
+      }
+    }else{
+      say+=' A good default is deadlines first, then tasks that unlock other tasks, then flexible errands.';
+    }
+    return{say,choices:['Add travel time','Make it a simple order','What if I am running late?']};
+  }
   generalTaskStart(clean,intent){
     const type=this.inferTaskType(clean,intent);this.s.taskType=type;this.s.intent=intent||type;this.s.category=type==='create'?'create':type==='learn'?'learn':type==='troubleshoot'?'problem':type==='brainstorm'?'everyday':'open';
+    if(type==='organize'&&this.isSequenceRequest(clean))return this.sequenceResponse(clean);
     this.s.topic=this.subjectFromText(clean,type);this.s.stage='generalTask';this.updateUniversalMemory(clean);const known=this.memorySummary();
     if(type==='transform')return this.transformStart(clean);
     if(type==='compare'){
+      const low=this.normalize(clean);
+      const repairReplace=/\b(?:repair|fix)\b[^.!?]{0,90}\bor\b[^.!?]{0,90}\b(?:buy|replace|trade)\b/.test(low);
+      const keepUpgrade=/\b(?:keep|upgrade)\b[^.!?]{0,90}\bor\b[^.!?]{0,90}\b(?:upgrade|replace|buy|keep)\b/.test(low);
+      const rentBuy=/\b(?:rent|lease)\b[^.!?]{0,90}\bor\b[^.!?]{0,90}\b(?:buy|purchase|own)\b/.test(low);
+      if(repairReplace||keepUpgrade||rentBuy){
+        let criteria,ask,choices;
+        if(rentBuy){
+          criteria='upfront cost, monthly cost, flexibility, maintenance responsibility, how long you expect to stay, and how much uncertainty you are comfortable with';
+          ask='Start with your likely time horizon, budget, and how important flexibility is';
+          choices=['Add my time horizon','Add my budget','Show me the trade-offs'];
+        }else if(keepUpgrade&&!repairReplace){
+          criteria='how well the current item still meets your needs, reliability, missing features or performance, upgrade cost, and how much useful life you expect to get by keeping it';
+          ask='Start with the item’s age, what is frustrating or limiting you now, and what the upgrade would cost';
+          choices=['Add the age and problem','Add the upgrade cost','Show me the trade-offs'];
+        }else{
+          const isDevice=/\b(?:laptop|computer|phone|tablet|tv|camera|printer|appliance|washer|dryer|dishwasher|refrigerator|fridge|car|truck|vehicle)\b/.test(low);
+          criteria=isDevice?'repair cost, age, current reliability, performance, expected remaining life, and the cost of a replacement':'repair cost, age or condition, reliability, safety, expected remaining life, and replacement cost';
+          ask='Start with what you know about the current item—its age, what is wrong with it, and any repair estimate you have';
+          choices=['Add the age and problem','Add the repair estimate','Show me the trade-offs'];
+        }
+        return{say:`Absolutely. Let’s compare the two paths without deciding for you. The most useful factors are ${criteria}. ${ask}, then we can see where each option has the stronger trade-off.`,choices};
+      }
       const g=this.comparisonGuide(this.s.topic);
       return{say:`Absolutely. Let’s make ${this.s.topic} easier to compare. A useful starting set of criteria is ${g.criteria}. ${g.ask}, and I’ll put them side by side.`,choices:g.choices};
     }
@@ -786,12 +857,29 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     if(type==='compare'){
       const g=this.comparisonGuide(this.s.topic);
+      const topicLow=this.normalize(this.s.topic||'');
+      const repairPath=/\b(?:repair|fix)\b.*\bversus\b.*\b(?:buy|replace|trade)\b/.test(topicLow);
+      const keepPath=/\b(?:keep|upgrade)\b.*\bversus\b.*\b(?:upgrade|replace|buy|keep)\b/.test(topicLow);
+      if((repairPath||keepPath)&&(/\b(?:year|years|old|age|repair|estimate|quote|cost|price|broken|slow|battery|screen|keyboard|problem|issue|reliable|unreliable|upgrade)\b/.test(low)||this.amount(raw))){
+        const money=this.amount(raw);const age=(low.match(/\b(\d+)\s*(?:year|years)[- ]old\b/)||[])[1];
+        let bits=[];if(age)bits.push(`${age} years old`);if(money)bits.push(`a $${money} cost`);
+        const detail=bits.length?` You’ve now added ${bits.join(' and ')}.`:'';
+        return{say:`That helps because those are exactly the kinds of facts that change the trade-off.${detail} The next useful comparison is whether the current item otherwise still meets your needs and how the repair or upgrade cost compares with a realistic replacement—not just the cheapest new option.`,choices:['Add the replacement price','Add how well it still works','Show the trade-offs']};
+      }
       if(/\b(?:show|compare).*\b(?:trade-?offs?|pros and cons)|^compare (?:them|the options)(?: now)?$/.test(low))return{say:`Let’s put both options side by side using the same criteria. Start with ${g.criteria}. Then we can mark where each option is stronger, weaker, or roughly equal so the trade-offs are easy to see.`,choices:['Add another criterion','Focus on cost','Make it simpler']};
       if(/\b(?:cheaper|price|cost|budget)\b/.test(low))return{say:'Got it — cost matters more. I’ll keep the same comparison, give total cost more weight, and still keep an eye on the other trade-offs so a cheaper option does not hide a major downside.',choices:['Compare by cost','Add another criterion','Show trade-offs']};
       if(/\b(?:which|better|best|recommend|choose)\b/.test(low))return{say:'I can help you narrow it down, but first I want the two options judged by the same priorities. Once those trade-offs are visible, the choice will be much clearer.',choices:['Show the trade-offs','Add a criterion','Make it simpler']};
       return{say:`I’ll keep that as part of the same comparison. The next useful step is to put both options against the same few criteria—${g.criteria}.`,choices:['Compare them now','Add another criterion','Show pros and cons']};
     }
     if(type==='organize'){
+      if(this.s.sequenceMode){
+        if(/\b(?:running late|late|not enough time|short on time|behind schedule)\b/.test(low))return{say:'Protect the fixed-time or deadline item first. Drop or move the most flexible errand, and avoid squeezing in a stop that could make you late. The goal is to preserve the non-negotiable and reschedule the rest.',choices:['Which task should I drop?','Make a shorter order','What next?']};
+        if(/\b(?:travel time|distance|far apart|drive|driving|route)\b/.test(low))return{say:'Then route efficiency matters too. Keep the fixed-time stop as the anchor, group errands that are near each other, and leave a buffer before the appointment or deadline instead of planning the route down to the minute.',choices:['Make a simple order','What if I am late?','Add another task']};
+        if(/\b(?:simple order|put them in order|order them|just give me the order)\b/.test(low)){
+          const items=this.s.sequenceItems||[];const fixed=items.find(v=>/\b(?:appointment|meeting|class|flight|train|reservation|\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/i.test(v));const perish=items.filter(v=>/\b(?:groceries|grocery|frozen|refrigerated|food shopping)\b/i.test(v));const flex=items.filter(v=>v!==fixed&&!perish.includes(v));const ordered=[...flex.slice(0,1),...(fixed?[fixed]:[]),...perish,...flex.slice(1)].filter(Boolean);return{say:`A simple default order is: ${ordered.map((v,i)=>`${i+1}) ${v}`).join('  ')}. If travel time makes the first stop tight, skip it and protect the fixed-time item.`,choices:['Add travel time','What if I am late?','Add another task']};
+        }
+        if(/\b(?:add|also|one more)\b/.test(low)){const m=raw.match(/\b(?:add|also|one more)\s+(.+)$/i);if(m&&m[1])this.s.sequenceItems=[...(this.s.sequenceItems||[]),m[1].replace(/[.!?]+$/,'').trim()];return this.sequenceResponse(`I need to ${(this.s.sequenceItems||[]).join(', and ')}. What order should I do them in?`);}
+      }
       const mem=this.s.memory||{};
       const time=(mem.constraints||[]).slice().reverse().find(v=>/\b(?:minutes?|hours?)\b/i.test(v))||'';
       const topicLow=this.normalize(this.s.topic||'');
@@ -884,7 +972,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   detectIntent(t){
     const x=this.normalize(t);
     if(/what can i use ai for|what can ai do(?: for me)?|what can ai help me with|how can ai help(?: me)?|i (?:do not|don't)(?: really)? know what ai (?:can help me with|can do|is useful for)|i (?:do not|don't)(?: really)? know what i can use ai for/.test(x))return'explore';
-    if(/\b(?:compare|versus|\bvs\.?\b|difference between|which (?:one )?is better|pros and cons|help me choose between|decid(?:e|ing) between|choose between|pick between)\b/.test(x)||/\bwhich(?:\s+of)?\s+.+?\s+should i\s+(?:buy|choose|get|take|pick)\b/.test(x)||/\bhelp me choose\s+(?:a|an|the|my|new)?\s*.+/.test(x)||/\bi need to (?:pick|choose|decide) between\b/.test(x))return'compare';
+    if(/\b(?:compare|versus|\bvs\.?\b|difference between|which (?:one )?is better|pros and cons|help me choose between|decid(?:e|ing) between|choose between|pick between)\b/.test(x)||/\bwhich(?:\s+of)?\s+.+?\s+should i\s+(?:buy|choose|get|take|pick)\b/.test(x)||/\bhelp me choose\s+(?:a|an|the|my|new)?\s*.+/.test(x)||/\bi need to (?:pick|choose|decide) between\b/.test(x)||/\b(?:decid(?:e|ing)|figure out|work out)\s+(?:whether\s+)?(?:to\s+)?[^.!?]{2,90}\s+or\s+[^.!?]{2,90}/.test(x)||/\bshould i\s+[^?]{2,90}\s+or\s+[^?]{2,90}/.test(x)||/\b(?:repair|keep|rent|lease|upgrade)\b[^.!?]{0,70}\bor\b[^.!?]{0,70}\b(?:replace|buy|sell|trade|move|upgrade|keep)\b/.test(x))return'compare';
+    if(/\b(?:what order should i|what should i do first|which should i do first|what comes first|put (?:these|them|my tasks|my errands) in order|order (?:these|my tasks|my errands)|prioritize (?:these|my tasks|my errands)|prioritise (?:these|my tasks|my errands)|sequence (?:these|my tasks|my errands))\b/.test(x))return'organize';
     if(/grocery|groceries|shopping list|meal plan(?:\s+for)?\s+(?:\d+|two|three|four|five|six|seven)?\s*dinners?|plan groceries/.test(x))return'groceries';
     if(/organize my week|organise my week|plan my week|week.*organiz|organize.*week/.test(x))return'week';
     if(/place to eat|places to eat|restaurant|restaurants|find (?:a )?diner|somewhere to eat|where.*eat|food nearby|find.*food|find (?:some )?(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?|vegetarian|vegan)(?:\s|$)|(?:seafood|italian|mexican|thai|chinese|japanese|sushi|indian|pizza|burgers?)(?:\s+food)?\s+(?:in|near|around)\b|where should we go for (?:breakfast|brunch|lunch|dinner)|somewhere for (?:breakfast|brunch|lunch|dinner)|find somewhere(?:\s+[^.!?]{1,35})?\s+for (?:breakfast|brunch|lunch|dinner)/.test(x))return'restaurants';
@@ -899,7 +988,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/\b(?:make|create|build|write|draft|help me make)\s+(?:a\s+)?checklist\b/.test(x))return'plan';
     if(/birthday card|thank you card|write (a )?(card|letter|story|resume|cover letter)|make a card|resume|cover letter|job application|\b(?:write|draft|rewrite|compose|edit|revise)\b.*\b(?:email|message|text|invitation|post|note|letter)\b|\bmake this (?:email|message|text|letter)\b/.test(x))return'create';
     if(/^(?:teach me|explain|help me understand|i want to learn|i want to understand|i'd like to learn|i would like to learn|can you explain|could you explain)\b/.test(x))return /step by step|show me how/.test(x)?'learnSteps':(/simple terms|simply/.test(x)?'learnSimple':'learn');
-    if(/\b(?:brainstorm|suggest|recommend|give me ideas|ideas? for|help me find)\b/.test(x) || /\b(?:i (?:want|need|would like|d like)|looking for)\s+(?:a |an )?(?:new )?hobby\b/.test(x) || /\bsomething to do for fun\b/.test(x))return'brainstorm';
+    if(/\b(?:brainstorm|suggest|recommend|give me ideas|ideas? for|help me find|hobby ideas?)\b/.test(x) || /\b(?:i (?:want|need|would like|d like)|looking for)\s+(?:a |an )?(?:new )?hobby\b/.test(x) || /\bsomething to do for fun\b/.test(x))return'brainstorm';
     if(this.looksLikeProblem(x))return'problem';
     if(/\b(?:phone|iphone|android|laptop|computer|tablet|website|browser|app|bluetooth|roku|tv|television|router|wi-?fi|printer|dishwasher|washer|washing machine|dryer|coffee maker|refrigerator|fridge|microwave|device)\b.*\b(?:crash(?:es|ing)?|disconnect(?:s|ing)?|stop(?:s|ping)?|overheat(?:s|ing)?|freeze(?:s|ing)?|leak(?:s|ing)?|drop(?:s|ping)?|fail(?:s|ing)?|shut(?:s|ting)? off|restart(?:s|ing)?|run(?:s|ning)? slow)\b/.test(x))return'problem';
     if(/\b(?:won't|wont|will not|can't|cant|cannot|doesn't|doesnt|isn't|isnt|not working|broken|stuck|offline|error|stopped working|keeps? (?:failing|freezing|crashing|disconnecting|stopping|shutting off|restarting|dropping|leaking|beeping)|los(?:e|es|ing) (?:wi-?fi|wifi|internet|connection|signal)|leaks?|won't connect|wont connect|won't start|wont start|won't turn on|wont turn on|won't drain|wont drain|won't charge|wont charge|won't spin|wont spin|dying|wilting|yellowing|(?:turning|going) (?:yellow|brown)|overheating|leaking|flickering|dripping|drains? too fast|dies? (?:too )?(?:fast|quickly)|won't hold (?:a )?charge|wont hold (?:a )?charge|not cooling|not heating|no sound|no picture|running constantly|making (?:a )?(?:weird )?noise|running slow|is slow)\b/.test(x))return'problem';
@@ -908,8 +997,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/solve a problem|fix (this|it|something)|help me (solve|fix)|problem with|bill is|not working|ants? in my|pests? in my|bug[s]? in my|seal (?:the )?entry point|entry point|close the gap|(?:phone|iphone|computer|laptop|printer|tv|television|remote|app|device)\b.*(?:won't|wont|will not|can't|cant|cannot|isn't|isnt|doesn't|doesnt|stopped|keeps? (?:freezing|crashing)|freez(?:e|es|ing)|crash(?:es|ing)?|turn on|print|offline)/.test(x))return'problem';
     if(/\b(?:help me remember|learn to remember|memorize|memorise)\b/.test(x))return'learn';
     if(/\b(?:explain|help me understand|what does .+ mean|how does .+ work)\b/.test(x))return'learn';
-    if(/teach me.*step by step|step by step|show me how/.test(x))return'learnSteps';
-    if(/explain.*simple|explain.*simply|simple terms/.test(x))return'learnSimple';
+    if(/teach me.*step by step|step by step|show me how/.test(x))return'learnSteps';    if(/explain.*simple|explain.*simply|simple terms/.test(x))return'learnSimple';
     if(/\b(?:learn|study|understand|research|teach|practice|quiz|camera|phone|computer|iphone|android|email|text message|printer|tv|television|remote|app|device|golf|garden|gardening|photography|resume|cover letter|job application)\b/.test(x))return'learn';
     if(/plan (?:dinner|diner)|what.*make.*dinner|dinner tonight|make dinner|what.*for dinner|\b(?:dinner|chicken|pasta|steak|noodles|salmon|rice|tacos|casserole)\b/.test(x))return'dinner';
     return'';
@@ -1428,7 +1516,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       this.s.category='open';this.s.intent='explore';this.s.topic='using AI';this.s.stage='explore';
       return answer('AI can help with much more than answering questions. You can use it to plan a trip, organize your week, explain something confusing, make a grocery list, work through a problem, compare options, or help draft something. The useful part is that you can keep talking to it and refine the result as you go.', ['Plan a trip','Organize my week','Explain something','Help me create something']);
     }
-    if(intent==='things' || /find things to do|things to do|what (?:can i|should i) do|activities|places to visit/.test(low)){
+    if(intent==='things' || (/find things to do|things to do|what (?:can i|should i) do|activities|places to visit/.test(low) && !this.isSequenceRequest(x))){
       this.s.category='travel';this.s.intent='things';this.s.topic='things to do';this.s.stage='thingsPlan';
       const named=(low.match(/\b(?:sacramento|mendocino|san francisco|yosemite|monterey|downtown)\b/i)||[])[0];
       const loc=(low.match(/\b(?:in|near|around)\s+(.+?)(?:\s+(?:this weekend|today|tonight))?(?:[.!?]|$)/i)||[])[1];
@@ -1908,8 +1996,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
         return{say:`That pattern helps narrow it down. If the power or battery problem shows up only ${conditionText}, compare what is different then—what the device is doing, whether it is charging, temperature, brightness or workload, and any power-saving setting. Change one thing at a time so the next result tells us something.`,choices:['It happens under heavy use','It happens while charging','What should I check next?']};
       }
       if(software){
-        return{say:`That is a useful clue because the problem is conditional, not constant. If it happens only ${conditionText}, compare what changes then—network connection, device load, a particular app or browser, or a scheduled update or setting. Try to reproduce it once while changing only one of those factors.`,choices:['It happens in one app','It happens everywhere','What should I check next?']};
-      }
+        return{say:`That is a useful clue because the problem is conditional, not constant. If it happens only ${conditionText}, compare what changes then—network connection, device load, a particular app or browser, or a scheduled update or setting. Try to reproduce it once while changing only one of those factors.`,choices:['It happens in one app','It happens everywhere','What should I check next?']};      }
       return{say:`That pattern is useful. If the problem happens only ${conditionText}, focus on what changes in that situation instead of repeating the same basic fixes. Compare one factor at a time—location, load, temperature, moisture, power, connection, timing, or what is happening at that moment—and see which change makes the problem appear or disappear.`,choices:['I noticed another pattern','What should I check next?','Make it simpler']};
     }
     if(/\banother device\b.*\b(?:works?|fine|normal|normally|no problem)\b/.test(low)){
