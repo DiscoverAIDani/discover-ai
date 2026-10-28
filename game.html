@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: recall-intent-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: topic-switch-dinner-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -200,7 +200,7 @@ class DiscoverConversation {
   recallConversation(text){
     // Answer questions about prior user statements before task-specific follow-up
     // handlers run. Work only from the actual conversation, not guessed details.
-    const prior=(this.s.userTurns||[]).slice(0,-1).filter(v=>!this.isRecallRequest(v));
+    const prior=(this.s.userTurns||[]).slice(this.s.topicStartAt||0,-1).filter(v=>!this.isRecallRequest(v));
     if(!prior.length)return{say:"You haven't given me any details to recap yet. Tell me what you're working on and I'll keep track as we go.",choices:['Tell you the problem','Start a new example']};
     const devicePattern=/\b(laptop|computer|desktop|phone|iphone|android|tablet|printer|tv|television|router)\b/i;
     const failingPattern=/\b(?:keeps?\s+(?:disconnecting|dropping|freezing|crashing|stopping)|disconnect(?:s|ing|ed)?|drops?|los(?:es?|ing)\s+(?:wi-?fi|wifi|internet|connection|signal)|won't|cannot|can't|not working|not connecting|offline|stops?\s+working|fails?|has\s+no\s+internet)\b/i;
@@ -268,12 +268,12 @@ class DiscoverConversation {
   amount(t){const x=String(t||'');const money=x.match(/\$\s*([0-9]{1,4}(?:,[0-9]{3})?(?:\.\d{1,2})?)/);if(money)return money[1].replace(/,/g,'');const contextual=x.match(/\b(?:budget|spend|cost|under|around|about)\s*\$?\s*([0-9]{1,4}(?:,[0-9]{3})?(?:\.\d{1,2})?)/i);if(contextual)return contextual[1].replace(/,/g,'');return''}
   extractDinnerIngredients(t){
     const low=this.normalize(t);
-    const splitList=(v)=>String(v||'').split(/\s*,\s*|\s+and\s+/).map(x=>x.replace(/^and\s+/,'').replace(/^(?:some|a|an|the)\s+/,'').replace(/\s+(?:too|also|either)$/,'').trim()).filter(Boolean);
+    const splitList=(v)=>String(v||'').split(/\s*,\s*|\s+and\s+/).map(x=>x.replace(/^and\s+/,'').replace(/^(?:some|a|an|the)\s+/,'').replace(/\s+for\s+(?:dinner|lunch|breakfast)\b.*$/,'').replace(/\s+(?:too|also|either)$/,'').trim()).filter(Boolean);
     const exclude=[];
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:do not|don't|dont)\s+have\s+([^.!?]+)/g)) exclude.push(...splitList(m[1]));
     for(const m of low.matchAll(/\b(?:no|without)\s+([a-z][a-z -]{1,30})(?=[,.!?]|$)/g)) exclude.push(...splitList(m[1]));
     const include=[];
-    for(const m of low.matchAll(/\b(?:i|we)\s+have\s+([^.!?]+)/g)) include.push(...splitList(m[1]));
+    for(const m of low.matchAll(/\b(?:i|we)\s+have\s+([^.!?]+)/g)) include.push(...splitList(m[1].split(/\s+(?:but|and\s+(?:(?:i|we)\s+)?(?:cannot|can't|don't|do not)\b)/)[0]));
     if(!include.length){
       const known=low.match(/\b(?:eggs?|tortillas?|cheese|salsa|chicken|beef|steak|pork|turkey|fish|salmon|beans?|pasta|rice|noodles|potatoes|spinach|broccoli|salad|vegetables?|tomatoes?|bread|ham|sausage|tofu)\b/g)||[];
       include.push(...known);
@@ -1238,6 +1238,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/birthday card|thank you card|write (a )?(card|letter|story|resume|cover letter)|make a card|resume|cover letter|job application|\b(?:write|draft|rewrite|compose|edit|revise)\b.*\b(?:email|message|text|invitation|post|note|letter)\b|\bmake this (?:email|message|text|letter)\b/.test(x))return'create';
     if(/^(?:teach me|explain|help me understand|i want to learn|i want to understand|i'd like to learn|i would like to learn|can you explain|could you explain)\b/.test(x))return /step by step|show me how/.test(x)?'learnSteps':(/simple terms|simply/.test(x)?'learnSimple':'learn');
     if(/\b(?:brainstorm|suggest|recommend|give me ideas|ideas? for|help me find|hobby ideas?)\b/.test(x) || /\b(?:i (?:want|need|would like|d like)|looking for)\s+(?:a |an )?(?:new )?hobby\b/.test(x) || /\bsomething to do for fun\b/.test(x))return'brainstorm';
+    // A clear meal request wins over restrictions such as "can't have dairy".
+    if(/\b(?:(?:help me|can you|could you|please|let's|lets|i want to|i'd like to|i would like to)\s+)?(?:plan|make|cook|prepare|suggest|pick|choose)\s+(?:me\s+)?(?:(?:a|an|some|my)\s+)?(?:(?:quick|easy|simple|cheap|healthy|dairy[- ]?free|vegetarian|vegan|family)\s+){0,3}(?:dinner|meal|supper)\b|\b(?:dinner|meal)\s+(?:ideas?|recipes?)\b|\b(?:i|we)\s+have\b[^.!?]{0,110}\b(?:eggs?|tortillas?|chicken|vegetables?|pasta|rice|fish|beans?|spinach|tofu)\b[^.!?]{0,80}\bfor\s+dinner\b/.test(x))return'dinner';
     if(this.looksLikeProblem(x))return'problem';
     if(/\b(?:phone|iphone|android|laptop|computer|tablet|website|browser|app|bluetooth|roku|tv|television|router|wi-?fi|printer|dishwasher|washer|washing machine|dryer|coffee maker|refrigerator|fridge|microwave|device)\b.*\b(?:crash(?:es|ing)?|disconnect(?:s|ing)?|stop(?:s|ping)?|overheat(?:s|ing)?|freeze(?:s|ing)?|leak(?:s|ing)?|drop(?:s|ping)?|fail(?:s|ing)?|shut(?:s|ting)? off|restart(?:s|ing)?|run(?:s|ning)? slow)\b/.test(x))return'problem';
     if(/\b(?:won't|wont|will not|can't|cant|cannot|doesn't|doesnt|isn't|isnt|not working|broken|stuck|offline|error|stopped working|keeps? (?:failing|freezing|crashing|disconnecting|stopping|shutting off|restarting|dropping|leaking|beeping)|los(?:e|es|ing) (?:wi-?fi|wifi|internet|connection|signal)|leaks?|won't connect|wont connect|won't start|wont start|won't turn on|wont turn on|won't drain|wont drain|won't charge|wont charge|won't spin|wont spin|dying|wilting|yellowing|(?:turning|going) (?:yellow|brown)|overheating|leaking|flickering|dripping|drains? too fast|dies? (?:too )?(?:fast|quickly)|won't hold (?:a )?charge|wont hold (?:a )?charge|not cooling|not heating|no sound|no picture|running constantly|making (?:a )?(?:weird )?noise|running slow|is slow)\b/.test(x))return'problem';
@@ -1263,7 +1265,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -1817,13 +1819,15 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       const food=this.extractDinnerIngredients(x);
       this.s.ingredients=food.include.slice();
       if(/vegetarian|vegan/.test(low))this.noteFact((low.match(/\b(?:vegetarian|vegan)\b/)||['vegetarian'])[0]);
-      if(/lactose|dairy[- ]?free|no dairy|without dairy/.test(low))this.noteFact('no dairy');
+      if(/lactose|dairy[- ]?free|no dairy|without dairy|avoid dairy|(?:cannot|can't|don't|do not)\s+(?:have|eat|consume)\s+(?:any\s+)?dairy/.test(low))this.noteFact('no dairy');
       if(food.exclude.length)food.exclude.forEach(v=>this.noteFact('no '+v));
       if(this.s.ingredients.length){
         const have=this.s.ingredients.join(', ').replace(/, ([^,]*)$/,', and $1');
         if(this.s.ingredients.some(v=>/^eggs?$/.test(v))&&this.s.ingredients.some(v=>/^tortillas?$/.test(v))){
           const dairyFree=(this.s.facts||[]).includes('no dairy')||food.exclude.some(v=>/cheese|dairy/.test(v));
-          return answer(`Great — with ${have}, a quick option is ${dairyFree?'egg-and-salsa tacos':'egg-and-cheese tacos or folded tortillas with eggs, cheese, and salsa'}. I’ll build from what you actually have rather than asking you to list it again.`, ['Give me exact steps','Make it quick','Change an ingredient']);
+          const spinach=this.s.ingredients.includes('spinach');
+          const idea=spinach?'spinach-and-egg tacos: wilt the spinach in a pan, scramble the eggs, and fill warmed tortillas':(dairyFree?'simple egg tacos: scramble the eggs and fill warmed tortillas':'egg tacos: scramble the eggs, warm the tortillas, and add cheese only if you want it');
+          return answer(`Great — with ${have}, make ${idea}. ${dairyFree?'Keep it dairy-free: no cheese, butter, or cream.':'Season it to taste.'} That uses the ingredients you already gave me.`, ['Give me exact steps','Make it quicker','Change an ingredient']);
         }
         return answer(`Great — I already have ${have}. I’ll build dinner around those ingredients and keep the extras simple instead of asking you to repeat what is in your kitchen.`, ['Give me a meal idea','Make it quick','Give me exact steps']);
       }
@@ -1856,8 +1860,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     if(intent==='problem'){
       this.s.category='problem';this.s.intent='problem';this.s.topic=x;this.s.stage='problemSolution';this.noteFact(x);
-      const techClauses=String(x||'').split(/\b(?:but|while|whereas|although)\b|[,.;!?]/i).map(v=>v.trim()).filter(Boolean);
-      const failClause=techClauses.find(v=>/\b(?:laptop|computer|phone|iphone|android|tablet|printer|tv|television)\b/i.test(v)&&/\b(?:keeps?\s+(?:disconnecting|dropping|freezing|crashing|stopping)|disconnects?|drops?|loses?\s+(?:wi-?fi|wifi|internet|connection|signal)|won[’']?t\s+(?:connect|work|print)|cannot\s+(?:connect|work|print)|can[’']?t\s+(?:connect|work|print)|offline|not\s+working|stops?\s+working|fails?)\b/i.test(v))||'';
+      const techClauses=String(x||'').split(/\b(?:but|while|whereas|although)\b|\band\s+(?=(?:my|the)\s+(?:laptop|computer|phone|iphone|android|tablet|printer|tv|television)\b)|[,.;!?]/i).map(v=>v.trim()).filter(Boolean);
+      const failClause=techClauses.find(v=>/\b(?:laptop|computer|phone|iphone|android|tablet|printer|tv|television)\b/i.test(v)&&/\b(?:(?:keeps?|is|was)\s+(?:disconnecting|dropping|freezing|crashing|stopping)|disconnects?|drops?|loses?\s+(?:wi-?fi|wifi|internet|connection|signal)|won[’']?t\s+(?:connect|work|print)|cannot\s+(?:connect|work|print)|can[’']?t\s+(?:connect|work|print)|offline|not\s+working|stops?\s+working|fails?)\b/i.test(v))||'';
       const workClause=techClauses.find(v=>/\b(?:laptop|computer|phone|iphone|android|tablet|printer|tv|television)\b/i.test(v)&&/\b(?:(?:stays?|remains?)\s+(?:connected|online|working)|still\s+works?|works?\s+fine|has\s+no\s+problem)\b/i.test(v))||'';
       const failMatch=failClause.match(/\b(laptop|computer|phone|iphone|android|tablet|printer|tv|television)\b/i);
       const workMatch=workClause.match(/\b(laptop|computer|phone|iphone|android|tablet|printer|tv|television)\b/i);
@@ -1870,7 +1874,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
         const network=/\b(?:wi-?fi|wifi|internet|network|connection|signal|connected|disconnect)\b/.test(low);
         if(network){
           const tried=triedRouter?' Since restarting the router did not help, I would not repeat that step.':'';
-          return answer(`Because the ${workingDevice} stays connected while the ${failingDevice} drops, I’d focus on the ${failingDevice} first rather than treating this as the whole Wi‑Fi network going down.${tried} At the next disconnect, check one thing: does the ${failingDevice} still see your Wi‑Fi network, does it say “connected, no internet,” or does Wi‑Fi disappear entirely? That distinction helps separate a saved-network or IP issue from the ${failingDevice}’s Wi‑Fi adapter or power settings. Since it happens in the evening, also notice whether the ${failingDevice} is on battery, using a VPN, or running a scheduled update at that time.`, ['It still sees the Wi-Fi','It says connected, no internet','The Wi-Fi disappears']);
+          return answer(`Because the ${workingDevice} stays connected while the ${failingDevice} drops, I’d focus on the ${failingDevice} first rather than treating this as the whole Wi‑Fi network going down.${tried} At the next disconnect, check one thing: does the ${failingDevice} still see your Wi‑Fi network, does it say “connected, no internet,” or does Wi‑Fi disappear entirely? That distinction helps separate a saved-network or IP issue from the ${failingDevice}’s Wi‑Fi adapter or power settings. ${/\b(?:evening|evenings|at night|nightly)\b/.test(low)?` Since it happens in the evening, also notice whether the ${failingDevice} is on battery, using a VPN, or running a scheduled update at that time.`:''}`, ['It still sees the Wi-Fi','It says connected, no internet','The Wi-Fi disappears']);
         }
         return answer(`Since the ${workingDevice} still works while the ${failingDevice} has the problem, I’d troubleshoot the ${failingDevice} first. That comparison is useful evidence because it makes a shared failure less likely. Start with what is different on the ${failingDevice} when the problem appears, and do not repeat steps you already tried unless new evidence points back to them.`, ['Show me the first check','I noticed another pattern','I already tried something']);
       }
@@ -2126,7 +2130,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/recipe|steps|how to|how do i|exact amounts/.test(low)){
       const has=(v)=>safeIngredients.includes(v);
       let say;
-      if((has('egg')||has('eggs'))&&(has('tortilla')||has('tortillas'))&&has('salsa')){
+      if((has('egg')||has('eggs'))&&(has('tortilla')||has('tortillas'))&&has('spinach')){
+        say='For two small spinach-and-egg tacos: 1) Wash a handful of spinach. 2) Heat a little oil in a pan and wilt the spinach for about 1 minute. 3) Beat 2 eggs, add them to the pan, and scramble until fully cooked. 4) Warm 2 tortillas, fill with the spinach and eggs, and season to taste. '+(noDairy?'Use oil rather than butter and skip cheese to keep it dairy-free.':'Cheese is optional, not required.');
+      }else if((has('egg')||has('eggs'))&&(has('tortilla')||has('tortillas'))&&has('salsa')){
         say=`Here’s the simple recipe: scramble the eggs, warm the tortillas, spoon the eggs into them, and top with salsa. ${noDairy?'Keep it dairy-free as planned.':'Add cheese only if you still want it.'} That is enough for a quick dinner without adding a bunch of extra ingredients.`;
       }else if((has('tortilla')||has('tortillas'))&&has('salsa')&&safeIngredients.length<=2){
         say='With only tortillas and salsa left, you have the start of a meal but not much of a filling dinner. Warm the tortillas and use the salsa, then add one filling item you already have—beans, rice, eggs, tofu, or vegetables—rather than pretending those two ingredients are a complete recipe.';
