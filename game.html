@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: combined-draft-revisions-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: draft-context-recovery-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -148,7 +148,7 @@ button,.back{touch-action:manipulation}
 <script>
 class DiscoverConversation {
   constructor(){this.maxTurns=5;this.reset()}
-  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',draftAwaitingDetail:false,sourceMode:'',sourceKind:'',sourceText:'',transformSource:'',transformFormat:'',transformItems:[],sequenceMode:false,sequenceItems:[],memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]},userTurns:[]}}
+  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',draftAwaitingDetail:false,pendingDraftRevision:'',sourceMode:'',sourceKind:'',sourceText:'',transformSource:'',transformFormat:'',transformItems:[],sequenceMode:false,sequenceItems:[],memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]},userTurns:[]}}
   normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").replace(/\bidk\b/g,"i don't know").replace(/\b(?:resturant|restaraunt)\b/g,'restaurant').replace(/\b(?:grocey|grocry)\b/g,'grocery').replace(/\bgrocery lst\b/g,'grocery list').replace(/\bvaccation\b/g,'vacation').replace(/\bwek\b/g,'week').replace(/\bdisconects?\b/g,'disconnects').replace(/\bwi fi\b/g,'wifi').replace(/\s+/g,' ').trim()}
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
   uncertain(t){let x=this.normalize(t).replace(/^(?:uh+|um+|umm+|hmm+|erm+)[,\s-]*/i,'');return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\bno clue\b|\byou pick\b|\byou decide\b|\bchoose for me\b|\bup to you\b|\bsurprise me\b|\bwhatever works\b|^(?:dunno|i dunno|whatever(?: is fine)?)\b/i.test(x)}
@@ -774,6 +774,45 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     this.s.draftAwaitingDetail=false;
     return{say:`Here’s the revised version with that detail added:\n\n“${d}”`,choices:['Make it shorter','Try another tone','Add another detail']};
   }
+
+  handleUnanchoredDraftRevision(text){
+    // A fresh game has no earlier draft. Do not invent one for an edit-only request.
+    const raw=String(text||'').trim(),low=this.normalize(raw);
+    const ref='(?:(?:it|this|that)(?:\\s+(?:message|draft|text|email|note|version))?|the\\s+(?:message|draft|text|email|note|version))';
+    const changes=new RegExp('\\b(?:make\\s+'+ref+'\\s+(?:(?:a\\s+)?(?:bit|little)\\s+)?(?:shorter|more casual|less formal|warmer|friendlier|more professional)|shorten\\s+'+ref+'|(?:revise|rewrite|edit)\\s+'+ref+')\\b').test(low);
+    if(!changes||this.s.draftText)return null;
+    if(this.s.stage!=='start'&&this.s.stage!=='awaitingDraftText'&&this.s.intent!=='create')return null;
+    this.s.category='create';this.s.intent='create';this.s.taskType='create';this.s.createKind='message';
+    this.s.stage='awaitingDraftText';this.s.pendingDraftRevision=raw;this.s.topic='revising a message';
+    const inline=raw.match(/:\s*(.{18,})$/s);
+    if(inline){
+      const message=inline[1].replace(/^[“"']|[”"']$/g,'').trim();
+      if(message){
+        this.s.draftText=message;this.s.pendingDraftRevision='';this.s.stage='createPlan';
+        const instruction=raw.slice(0,raw.lastIndexOf(':'));
+        const effective=/\bshorten\b/i.test(instruction)?'Make it shorter':instruction;
+        return this.reviseCommunication(effective)||{say:'I have the text you supplied:\n\n“'+message+'”',choices:['Make it shorter','Make it more casual']};
+      }
+    }
+    return{say:'I don’t have an earlier message draft in this game to edit. Opening or refreshing the game starts a new conversation. Paste the draft here and I’ll revise it, or ask me to write a new message first.',choices:[]};
+  }
+  continueUnanchoredDraft(text){
+    if(this.s.stage!=='awaitingDraftText')return null;
+    const raw=String(text||'').trim(),low=this.normalize(raw);
+    if(/^(?:cancel|never mind|start over|forget it|go back)[.!?]?$/.test(low)){
+      this.s.pendingDraftRevision='';this.s.stage='start';this.s.intent='';
+      return{say:'Okay, we can start fresh. Tell me what you would like help with.',choices:['Write a new text','Plan something','Ask a question']};
+    }
+    if(/\b(?:write|draft|compose|create)\b/.test(low)&&/\b(?:text|message|email|note)\b/.test(low)){
+      this.s.pendingDraftRevision='';this.s.stage='start';this.s.draftText='';
+      return this.directAnswer(raw,'create')||this.routeIntent(raw,'create');
+    }
+    if(raw.length<12)return{say:'Please paste the message you want revised. I don’t want to invent or change the wrong text.',choices:[]};
+    this.s.draftText=raw.replace(/^[“"']|[”"']$/g,'').trim();this.s.stage='createPlan';
+    const edit=this.s.pendingDraftRevision||'';this.s.pendingDraftRevision='';
+    return this.reviseCommunication(edit)||{say:'I have the draft now:\n\n“'+this.s.draftText+'”',choices:['Make it shorter','Make it more casual']};
+  }
+
   reviseCommunication(text){
     if(!this.s.draftText)return null;
     const low=this.normalize(text),kind=this.s.createKind||'',recipient=this.s.createRecipient||'';
@@ -1323,7 +1362,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.pendingDraftRevision='';this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -1960,6 +1999,10 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    const pendingDraft=this.continueUnanchoredDraft(text);
+    if(pendingDraft)return pendingDraft;
+    const missingDraft=this.handleUnanchoredDraftRevision(text);
+    if(missingDraft)return missingDraft;
     if(this.s.stage!=='start' && this.isRecallRequest(x))return this.recallConversation(x);
     const detected=this.detectIntent(x);
     this.updateUniversalMemory(text);
