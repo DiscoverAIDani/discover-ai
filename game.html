@@ -235,6 +235,10 @@ class DiscoverConversation {
     if(/\b(?:brainstorm|suggest|recommend|ideas? for|give me ideas|help me find|help me choose a hobby|i (?:want|need|would like|d like) (?:a |an )?(?:new )?hobby|something to do for fun|new hobby)\b/.test(low))return'brainstorm';
     if(/\b(?:turn|convert|format|reformat|put|change)\b[^.!?]{0,120}\b(?:into|as)\s+(?:a\s+)?(?:checklist|to-?do list|list|bullet(?:ed)? list|bullets?|numbered list|steps?|outline|table)\b/.test(low)||/\bmake\b[^.!?]{0,100}\b(?:a\s+)?(?:checklist|to-?do list|bullet(?:ed)? list|numbered list|outline|table)\b/.test(low))return'transform';
     if(/\b(?:organize|organise|sort|declutter|prioritize|prioritise|arrange)\b/.test(low))return'organize';
+    const deadlineGoal=/\b(?:in|within)\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:days?|weeks?|months?)\b/.test(low);
+    const overwhelmedGoal=/\b(?:overwhelmed|don'?t know where to start|do not know where to start|not sure where to start|no idea where to start|where do i start)\b/.test(low);
+    const goalWork=/\b(?:move|moving|relocat(?:e|ing)|pack(?:ing)?|clean(?:ing)?|organize|organise|declutter|project|report|presentation|application|party|event|guests?|visits?|launch|study|exam|test|finish|complete|submit|prepare|get ready|wedding|interview|workshop)\b/.test(low);
+    if((deadlineGoal&&overwhelmedGoal&&goalWork)||(deadlineGoal&&/\b(?:i(?:'m| am)|we(?:'re| are))\s+(?:moving|relocating|packing|preparing|getting ready)\b/.test(low)))return'plan';
     if(/\b(?:plan|schedule|prepare for)\b/.test(low))return'plan';
     return this.s.taskType||'open';
   }
@@ -314,6 +318,12 @@ class DiscoverConversation {
     if(taskType==='organize'||taskType==='plan'){
       t=t.replace(/\s*,?\s*(?:but|and)\s+(?:i|we)\s+(?:only\s+)?have\s+(?:about\s+|around\s+|under\s+|less than\s+)?(?:\d+|one|two|three|four|five|six|seven|eight)\s*(?:minutes?|hours?|days?|weeks?).*$/i,'').trim();
       if(taskType==='organize')t=t.replace(/\s+(?:in|within)\s+(?:about\s+|around\s+|under\s+|less than\s+)?(?:\d+|one|two|three|four|five|six|seven|eight)\s*(?:minutes?|hours?)$/i,'').trim();
+      if(taskType==='plan'){
+        const due=t.match(/^i have\s+(.+?)\s+due\s+(?:in|within)\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:days?|weeks?|months?)\b/i);if(due)t=due[1].trim();
+        t=t.replace(/^(?:i(?:'m| am)|we(?:'re| are))\s+/i,'');
+        t=t.replace(/\s+(?:and|but)\s+(?:i|we)(?:'m| am|'re| are)?\s+(?:overwhelmed|not sure where to start|unsure where to start|don'?t know where to start|do not know where to start|have no idea where to start).*$/i,'').trim();
+        t=t.replace(/\s+(?:in|within)\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:days?|weeks?|months?)\b.*$/i,'').trim();
+      }
     }
     if(taskType==='compare'){
       const m=t.match(/^which\s+(.+?)\s+should i\s+(?:buy|choose|get)$/i);if(m)t=m[1];
@@ -631,7 +641,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const money=this.amount(raw);if(money)this.remember('constraints',`budget $${money}`);
     const duration=(low.match(/\b(?:under|within|about|around|only)?\s*(\d+|one|two|three|four|five|six|seven|eight)\s*(minutes?|hours?|days?|weeks?)\b/)||[]);
     if(duration[0])this.remember('constraints',duration[0]);
-    for(const m of low.matchAll(/\b(?:i|we)\s+(?:do not|don't|dont)\s+(?:want|like|need)?\s*([^.!?;]+)/g)){let v=m[1].split(/\bbut\b|\band\s+(?:i|we)\b/)[0].trim();if(v)this.remember('avoid',v)}
+    for(const m of low.matchAll(/\b(?:i|we)\s+(?:do not|don't|dont)\s+(?:want|like|need)\s+([^.!?;]+)/g)){let v=m[1].split(/\bbut\b|\band\s+(?:i|we)\b/)[0].trim();if(v)this.remember('avoid',v)}
     for(const m of low.matchAll(/\b(?:avoid|without|no)\s+([^.!?;,]{2,45})/g)){let v=m[1].trim();if(v)this.remember('avoid',v)}
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:like|prefer|love|want)\s+([^.!?;]+)/g)){let v=m[1].split(/\bbut\b/)[0].trim();if(v)this.remember('preferences',v)}
     for(const m of low.matchAll(/\b([^.!?;]{2,55}?)\s+(?:matters?(?:\s+most|\s+more)?|is important|are important|is a priority|are a priority)\b/g)){let v=m[1].trim().replace(/^(?:and|also|but|make|to|actually)\s+/,'');if(v&&!/(?:does not|doesn't|doesnt|not)\s*$/.test(v)&&!/\b(?:don't know|dont know|not sure|overwhelmed|unsure|no idea)\b/.test(v))this.remember('preferences',v)}
@@ -728,7 +738,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   generalTaskStart(clean,intent){
     const type=this.inferTaskType(clean,intent);this.s.taskType=type;this.s.intent=intent||type;this.s.category=type==='create'?'create':type==='learn'?'learn':type==='troubleshoot'?'problem':type==='brainstorm'?'everyday':'open';
     if(type==='organize'&&this.isSequenceRequest(clean))return this.sequenceResponse(clean);
-    this.s.topic=this.subjectFromText(clean,type);this.s.stage='generalTask';this.updateUniversalMemory(clean);const known=this.memorySummary();
+    this.s.topic=this.subjectFromText(clean,type);this.s.stage='generalTask';this.updateUniversalMemory(clean);
+    const startLow=this.normalize(clean);
+    const startDeadline=(startLow.match(/\b(?:in|within)\s+((?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:days?|weeks?|months?))\b/)||[])[1]||'';
+    if(startDeadline&&!((this.s.memory&&this.s.memory.constraints)||[]).some(v=>this.normalize(v)===this.normalize(startDeadline)))this.remember('constraints',startDeadline);
+    const known=this.memorySummary();
     if(type==='transform')return this.transformStart(clean);
     if(type==='compare'){
       const low=this.normalize(clean);
@@ -791,7 +805,17 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       }
       return{say:`Absolutely. Let’s make ${this.s.topic} noticeably better without turning it into a huge project. ${first}`,choices:['Give me the first step','Help me prioritize','Make a simple plan']};
     }
-    if(type==='plan')return{say:`Absolutely. I can help plan ${this.s.topic}. I’ll keep the details you give me as ongoing constraints instead of asking you to repeat them${known?`. So far I have ${known}`:''}.`,choices:['Build a simple plan','Add a constraint','What do you need from me?']};
+    if(type==='plan'){
+      const low=this.normalize(clean);
+      const deadline=(low.match(/\b(?:in|within)\s+((?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:days?|weeks?|months?))\b/)||[])[1]||((this.s.memory&&this.s.memory.constraints)||[]).slice().reverse().find(v=>/\b(?:days?|weeks?|months?)\b/i.test(v))||'';
+      const overwhelmed=/\b(?:overwhelmed|don'?t know where to start|do not know where to start|not sure where to start|no idea where to start|where do i start)\b/.test(low);
+      const moving=/\b(?:move|moving|relocat(?:e|ing)|apartment|house)\b/.test(low+' '+this.normalize(this.s.topic||''));
+      if(deadline||overwhelmed){
+        if(moving)return{say:`You do not need to plan the whole move at once. ${deadline?`With ${deadline} to work with, `:''}use three phases: start with logistics and one small nonessential area, use the middle stretch for most packing and address/utility changes, then keep the final days for essentials, cleaning, keys, and last checks. For today, confirm the move date and transportation, then pack or sort just one low-use area for 20–30 minutes.`,choices:['Make it week by week','Give me today’s checklist','I only have weekends']};
+        return{say:`Let’s shrink ${this.s.topic==='this plan'?'this goal':this.s.topic} instead of trying to solve it all at once. ${deadline?`With ${deadline} to work with, `:''}use three layers: one small action today, the bulk of the work in the middle, and a short final-check phase before the deadline. Start today by naming the one result that absolutely must be finished and doing one 20–30 minute task that moves it forward.`,choices:['Make it week by week','Give me today’s first step','I have another constraint']};
+      }
+      return{say:`Absolutely. I can help plan ${this.s.topic}. I’ll keep the details you give me as ongoing constraints instead of asking you to repeat them${known?`. So far I have ${known}`:''}.`,choices:['Build a simple plan','Add a constraint','What do you need from me?']};
+    }
     return{say:`Absolutely. I can help with ${this.s.topic}. I’ll keep track of what you tell me and build on it instead of restarting the conversation.`,choices:['Give me the first step','Add a detail','Show me an example']};
   }
   handleGeneralTask(text){
@@ -823,7 +847,10 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       if(type==='organize')return{say:`No problem. I’ll choose a simple place to start with ${this.s.topic}: pick one small area or category, spend 10 minutes separating keep/do-now, later, and remove/ignore, then stop and see what changed.`,choices:['Give me the first step','Make a checklist','Keep it very simple']};
       if(type==='compare')return{say:`That is okay. We can start with three neutral criteria for ${this.s.topic}: cost, ease of use, and quality or reliability. You can react to those instead of deciding the criteria up front.`,choices:['Compare using those','Change a criterion','Keep it simple']};
       if(type==='brainstorm')return{say:`No problem. I’ll give you a small set of different ideas instead of making you define the perfect one first. React to what sounds interesting, boring, too expensive, too much effort, or just not you.`,choices:['Give me a few ideas','Keep it inexpensive','Choose for me']};
-      if(type==='plan')return{say:`No problem. I’ll choose a simple default structure for ${this.s.topic}: one must-have, one main activity or task, one optional extra, and a little buffer. You can change anything that does not fit.`,choices:['Build that plan','Make it simpler','Show me an example']};
+      if(type==='plan'){
+        const deadline=((this.s.memory&&this.s.memory.constraints)||[]).slice().reverse().find(v=>/\b(?:days?|weeks?|months?)\b/i.test(v))||'';
+        return{say:`No problem. We’ll make ${this.s.topic} smaller. ${deadline?`Keeping ${deadline} in mind, `:''}pick one must-do result, one small action you can do next, and one later bucket for everything else. You do not need to map the whole project before starting.`,choices:['Give me the first step','Make it week by week','Keep it very simple']};
+      }
       return{say:`That is fine. I can choose a simple first step for ${this.s.topic} and let you react to it instead of making you decide everything first.`,choices:['Choose for me','Show me an example','Keep it simple']};
     }
     if(/\b(?:show me|give me)\s+(?:an?\s+)?example\b|^example$/.test(low)){
@@ -919,6 +946,12 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:`I’ll keep that inside the same organizing task. ${timeLead}use the new detail to narrow the next step instead of reopening the whole project. Choose one category that fits what you just told me, finish it, then reassess.`,choices:['Prioritize it','Make a checklist','What next?']};
     }
     if(type==='plan'){
+      const topicLow=this.normalize(this.s.topic||'');
+      const moving=/\b(?:move|moving|relocat(?:e|ing)|apartment|house)\b/.test(topicLow);
+      const deadline=((this.s.memory&&this.s.memory.constraints)||[]).slice().reverse().find(v=>/\b(?:days?|weeks?|months?)\b/i.test(v))||'';
+      if(/\b(?:only have weekends|weekends only|only on weekends|just weekends)\b/.test(low)){this.remember('constraints','weekends only');return{say:moving?`Then treat each weekend as a work block instead of trying to squeeze the move into weekdays. ${deadline?`With ${deadline} to work with, `:''}use the next available weekend for logistics, supplies, decluttering, and nonessential packing; use the following block for the bulk of packing; keep the final block for essentials, cleaning, keys, and last checks.`:`Then build the plan around weekend work blocks. ${deadline?`With ${deadline} to work with, `:''}put the highest-risk or longest task in the first available weekend, the bulk work in the middle, and keep the final block for finishing and checking.`,choices:['Give me this weekend’s checklist','What should I do first?','Make it simpler']};}
+      if(/\b(?:what should i do first|what do i do first|where do i start|first step|today.?s checklist|today checklist|this weekend.?s checklist)\b/.test(low)){return{say:moving?'Start with the pieces that unlock everything else: confirm the move date, how you are transporting things, and any key/utility deadlines. Then spend 20–30 minutes on one low-use area and pack or sort only that section. Stop there rather than opening the whole apartment.':`Start with one action that unlocks the rest of ${this.s.topic}. ${deadline?`Because you have ${deadline}, `:''}choose the highest-risk or most time-sensitive piece, work on it for 20–30 minutes, then decide the next step from what remains.`,choices:['Make it a checklist','What comes after that?','Keep it simple']};}
+      if(/\b(?:week by week|week-by-week|weekly plan|make it weekly)\b/.test(low)){return{say:moving?`Here is a simple phased version: early phase—confirm logistics, gather supplies, declutter, and pack low-use items; middle phase—pack most remaining rooms and handle address/utility changes; final phase—keep only essentials out, finish cleaning, confirm transportation/keys, and do a last walkthrough. ${deadline?`Use those phases across the ${deadline} you have rather than trying to do equal amounts every day.`:''}`:`Use three phases instead of one giant list: early phase—set the must-do outcome and remove blockers; middle phase—do the bulk of the work; final phase—finish, check, and leave buffer for surprises. ${deadline?`Use those phases across the ${deadline} you have.`:''}`,choices:['Give me the first phase','Add another constraint','Make it simpler']};}
       if(/\b(?:cheaper|less expensive|save money)\b/.test(low) || (/\bbudget\b/.test(low)&&!/does not matter|doesn't matter|doesnt matter|no budget|any price/.test(low)))this.remember('constraints','keep costs down');
       if(/\b(?:shorter|faster|less time|quick)\b/.test(low))this.remember('constraints','keep it short');
       if(/\b(?:build|show|make)\b.*\bplan\b|^build it$/.test(low))return{say:`Here is a simple first-pass plan${known?` using ${known}`:''}: 1) lock the non-negotiables, 2) choose two or three main anchors, 3) put them in a realistic order, 4) leave one flexible block for changes, and 5) check the plan against time, cost, and anything you said to avoid.`,choices:['Make it more specific','Add another detail','Keep it simple']};
@@ -985,6 +1018,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/\b(?:birthday|thank you|thank-you|apology|congratulations?|wedding|sympathy|holiday)\s+(?:card|message|text|note)\b|\b(?:write|draft|compose|rewrite|edit|revise|ideas? for)\b.*\b(?:card|email|message|text|invitation|post|note|letter)\b/.test(x))return'create';
     if(/\b(?:ideas? for|suggest|recommend|help me with|what should i make for)\b.*\b(?:dinner|meal|supper)\b|\b(?:dinner|meal)\s+ideas?\b/.test(x))return'dinner';
     if(/\b(?:ideas for|help me with)\b.*\b(?:birthday party|party|potluck|event|reunion|get-together|garage sale|moving day|move|study session|workday|fundraiser|picnic|cleaning day|family visit)\b/.test(x)||/\b(?:get ready for|prepare for)\s+(?:a\s+)?(?:move|moving day|birthday party|party|event|fundraiser|picnic|study session|workday|family visit)\b/.test(x))return'plan';
+    const deadlineGoal=/\b(?:in|within)\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:days?|weeks?|months?)\b/.test(x);
+    const overwhelmedGoal=/\b(?:overwhelmed|don'?t know where to start|do not know where to start|not sure where to start|no idea where to start|where do i start)\b/.test(x);
+    const goalWork=/\b(?:move|moving|relocat(?:e|ing)|pack(?:ing)?|clean(?:ing)?|organize|organise|declutter|project|report|presentation|application|party|event|guests?|visits?|launch|study|exam|test|finish|complete|submit|prepare|get ready|wedding|interview|workshop)\b/.test(x);
+    if(deadlineGoal&&overwhelmedGoal&&goalWork)return'plan';
+    if(deadlineGoal&&/\b(?:i(?:'m| am)|we(?:'re| are))\s+(?:moving|relocating|packing|preparing|getting ready)\b/.test(x))return'plan';
     if(/\b(?:make|create|build|write|draft|help me make)\s+(?:a\s+)?checklist\b/.test(x))return'plan';
     if(/birthday card|thank you card|write (a )?(card|letter|story|resume|cover letter)|make a card|resume|cover letter|job application|\b(?:write|draft|rewrite|compose|edit|revise)\b.*\b(?:email|message|text|invitation|post|note|letter)\b|\bmake this (?:email|message|text|letter)\b/.test(x))return'create';
     if(/^(?:teach me|explain|help me understand|i want to learn|i want to understand|i'd like to learn|i would like to learn|can you explain|could you explain)\b/.test(x))return /step by step|show me how/.test(x)?'learnSteps':(/simple terms|simply/.test(x)?'learnSimple':'learn');
