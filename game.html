@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: conversation-recall-startup-fix-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: conversation-recall-attempts-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -187,7 +187,7 @@ class DiscoverConversation {
     if(attempts.length){
       const latest=attempts.slice(-2).map(v=>String(v).replace(/^(?:i|we)\s+(?:already\s+)?/i,'').replace(/\s+and\s+it\s+(?:did not|didn't|does not|doesn't)\s+help.*$/i,'').replace(/[.!?]+$/,'').trim()).filter(Boolean);
       if(latest.length)parts.push("You already "+latest.join(' and ')+'.');
-      if(attempts.some(v=>/\b(?:didn't|did not|doesn't|does not)\s+help\b/i.test(v)))parts.push('That did not fix the problem.');
+      if((mem.results||[]).some(v=>/\b(?:didn't|did not|doesn't|does not)\s+(?:help|work|fix)\b/i.test(this.normalize(v))))parts.push('That did not fix the problem.');
     }
     if(timing)parts.push('You said it happens '+timing+'.');
     if(noInternet&&failing)parts.push('You later clarified that the '+failing+' shows “connected” but reports “No internet.”');
@@ -778,10 +778,16 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:also\s+)?need\s+something\s+([^.!?;]+)/g)){let v=m[1].trim().replace(/^to\s+/,'');if(v)this.remember('preferences',v)}
     if(type==='compare'){for(const m of low.matchAll(/\b(?:i|we)\s+(?:also\s+)?need\s+([^.!?;]+)/g)){let v=m[1].trim().replace(/^something\s+/,'');if(v)this.remember('preferences',v)}}
     if(!timeLeft[0])for(const m of low.matchAll(/\b(?:i|we)\s+only\s+have\s+([^.!?;]+)/g)){let v=m[1].trim();if(v)this.remember('constraints',v)}
-    for(const m of low.matchAll(/\b(?:(?:i|we)\s+(?:already\s+)?(?:tried|checked|restarted|reset|called|used|changed|reinstalled|removed|added|looked at|tested|cleaned|lubricated|tightened|loosened|replaced|unplugged|plugged in|moved|adjusted|washed|rinsed)|already\s+(?:tried|checked|restarted|reset|called|used|changed|reinstalled|removed|added|looked at|tested|cleaned|lubricated|tightened|loosened|replaced|unplugged|plugged in|moved|adjusted|washed|rinsed))\s+([^.!?;]+)/g)){let v=m[0].trim();if(v&&!/haven't|have not|didn't|did not/.test(v))this.remember('attempts',v)}
-    for(const m of low.matchAll(/\b(?:i|we)\s+(?:already\s+)?did\s+([^.!?;]+)/g)){let v=m[0].trim();if(v&&!/didn't|did not/.test(v))this.remember('attempts',v)}
+    // Store performed steps separately from their outcomes. Failed steps still count.
+    const completedAttempt=(value)=>String(value||'').replace(/\s+(?:and|but)\s+(?:it|that|this|they)\s+(?:did(?: not|n't)|does(?: not|n't)|was(?: not|n't))\s+(?:help|work|fix|solve|change|improve)\b.*$/,'').trim();
+    for(const m of low.matchAll(/\b(?:(?:i|we)\s+(?:already\s+)?(?:tried|checked|restarted|rebooted|reset|called|used|changed|updated|reinstalled|removed|added|looked at|tested|cleaned|lubricated|tightened|loosened|replaced|unplugged|plugged in|moved|adjusted|washed|rinsed)|already\s+(?:tried|checked|restarted|rebooted|reset|called|used|changed|updated|reinstalled|removed|added|looked at|tested|cleaned|lubricated|tightened|loosened|replaced|unplugged|plugged in|moved|adjusted|washed|rinsed))\s+([^.!?;]+)/g)){
+      const attempt=completedAttempt(m[0]);if(attempt)this.remember('attempts',attempt);
+    }
+    for(const m of low.matchAll(/\b(?:i|we)\s+(?:already\s+)?did\s+([^.!?;]+)/g)){
+      const attempt=completedAttempt(m[0]);if(attempt&&!/^(?:i|we)\s+(?:already\s+)?did\s+not\b/.test(attempt))this.remember('attempts',attempt);
+    }
     if(/\balready tried that\b|\balready did that\b/.test(low))this.remember('attempts','the previous suggested step');
-    if(/\b(?:still|same problem|same issue|did not work|didn't work|does not work|doesn't work|worked|fixed it|works now|no change|got worse|got better)\b/.test(low))this.remember('results',raw);
+    if(/\b(?:still|same problem|same issue|did not work|didn't work|does not work|doesn't work|did not help|didn't help|does not help|doesn't help|worked|fixed it|works now|no change|got worse|got better)\b/.test(low))this.remember('results',raw);
     // Conditions and patterns are often the most useful troubleshooting clues.
     // Keep them separately so a later response can reason from *when* or *where* a failure occurs.
     if(/\b(?:only|usually|mostly|sometimes|intermittently|at night|in the evening|in the morning|during the day|when |while |after |before |whenever |every time )/.test(low) &&
