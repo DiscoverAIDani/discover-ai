@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: tech-contrast-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: conversation-recall-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -148,11 +148,55 @@ button,.back{touch-action:manipulation}
 <script>
 class DiscoverConversation {
   constructor(){this.maxTurns=5;this.reset()}
-  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',draftAwaitingDetail:false,sourceMode:'',sourceKind:'',sourceText:'',transformSource:'',transformFormat:'',transformItems:[],sequenceMode:false,sequenceItems:[],memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
+  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',draftAwaitingDetail:false,sourceMode:'',sourceKind:'',sourceText:'',transformSource:'',transformFormat:'',transformItems:[],sequenceMode:false,sequenceItems:[],memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]},userTurns:[]}
   normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").replace(/\bidk\b/g,"i don't know").replace(/\b(?:resturant|restaraunt)\b/g,'restaurant').replace(/\b(?:grocey|grocry)\b/g,'grocery').replace(/\bgrocery lst\b/g,'grocery list').replace(/\bvaccation\b/g,'vacation').replace(/\bwek\b/g,'week').replace(/\bdisconects?\b/g,'disconnects').replace(/\bwi fi\b/g,'wifi').replace(/\s+/g,' ').trim()}
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
   uncertain(t){let x=this.normalize(t).replace(/^(?:uh+|um+|umm+|hmm+|erm+)[,\s-]*/i,'');return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\bno clue\b|\byou pick\b|\byou decide\b|\bchoose for me\b|\bup to you\b|\bsurprise me\b|\bwhatever works\b|^(?:dunno|i dunno|whatever(?: is fine)?)\b/i.test(x)}
   correction(t){return /^(?:actually|instead|wait|never mind|change of plans|i meant|no\s*,?\s*i mean)\b/i.test(String(t||''))}
+  isRecallRequest(text){
+    const low=this.normalize(text);
+    return /\b(?:remind me (?:which|what|who|where|when|of what|about what)|what (?:did i|have i) (?:say|tell you|mention|already (?:try|do))|what (?:do you|did you) remember|what (?:do|did|have) we (?:know|learn|learned)|what (?:have|do) you (?:remember|know) (?:about|from|so far)|(?:recap|summari[sz]e) (?:our|the|this|what|so far)|which device (?:is|was|has|keeps)|what (?:troubleshooting )?steps? (?:have i|did i|have we) (?:already )?(?:tried|taken|done|try|take|do))\b/.test(low);
+  }
+  recallConversation(text){
+    // Answer questions about prior user statements before task-specific follow-up
+    // handlers run. Work only from the actual conversation, not guessed details.
+    const prior=(this.s.userTurns||[]).slice(0,-1).filter(v=>!this.isRecallRequest(v));
+    if(!prior.length)return{say:"You haven't given me any details to recap yet. Tell me what you're working on and I'll keep track as we go.",choices:['Tell you the problem','Start a new example']};
+    const devicePattern=/\b(laptop|computer|desktop|phone|iphone|android|tablet|printer|tv|television|router)\b/i;
+    const failingPattern=/\b(?:keeps?\s+(?:disconnecting|dropping|freezing|crashing|stopping)|disconnect(?:s|ing|ed)?|drops?|los(?:es?|ing)\s+(?:wi-?fi|wifi|internet|connection|signal)|won't|cannot|can't|not working|not connecting|offline|stops?\s+working|fails?|has\s+no\s+internet)\b/i;
+    const workingPattern=/\b(?:(?:stays?|remains?)\s+(?:connected|online|working)|still\s+works?|works?\s+fine|has\s+no\s+problem|works?\s+normally|is\s+still\s+connected)\b/i;
+    let failing='',working='',timing='',noInternet=false;
+    for(const turn of prior){
+      const low=this.normalize(turn);
+      if(/\bno internet\b/.test(low))noInternet=true;
+      const when=(low.match(/\b(?:every (?:evening|morning|night|afternoon|day|weekday|weekend)|at night|in the evening|in the morning|during the day|each evening)\b/)||[])[0];
+      if(when)timing=when;
+      for(const clause of low.split(/\b(?:but|while|whereas|although)\b|[,.;!?]/i)){
+        const device=(clause.match(devicePattern)||[])[1]||'';
+        if(!device)continue;
+        if(workingPattern.test(clause))working=device;
+        else if(failingPattern.test(clause))failing=device;
+      }
+    }
+    const mem=this.s.memory||{};
+    // Previously recorded attempts are sourced from user statements, not suggestions.
+    const attempts=(mem.attempts||[]).filter(v=>!this.isRecallRequest(v));
+    const parts=[];
+    if(failing)parts.push('The '+failing+' is the device having problems.');
+    if(working)parts.push('The '+working+' is still working.');
+    if(attempts.length){
+      const latest=attempts.slice(-2).map(v=>String(v).replace(/^(?:i|we)\s+(?:already\s+)?/i,'').replace(/\s+and\s+it\s+(?:did not|didn't|does not|doesn't)\s+help.*$/i,'').replace(/[.!?]+$/,'').trim()).filter(Boolean);
+      if(latest.length)parts.push("You already "+latest.join(' and ')+'.');
+      if(attempts.some(v=>/\b(?:didn't|did not|doesn't|does not)\s+help\b/i.test(v)))parts.push('That did not fix the problem.');
+    }
+    if(timing)parts.push('You said it happens '+timing+'.');
+    if(noInternet&&failing)parts.push('You later clarified that the '+failing+' shows “connected” but reports “No internet.”');
+    if(parts.length)return{say:parts.join(' '),choices:['What should I try next?','Correct one of those details','Try another problem']};
+    const summary=this.memorySummary();
+    if(summary)return{say:'Here is what you have told me so far: '+summary+'.',choices:['What next?','Change a detail','Try another problem']};
+    return{say:'From what you told me: '+prior.slice(-2).join(' ').slice(0,360),choices:['Continue from there','Correct a detail','Try another problem']};
+  }
+
   liveInfoResponse(t){
     const low=this.normalize(t);
     const currentWord=/\b(?:today|tonight|tomorrow|this (?:morning|afternoon|evening|weekend|week)|next (?:weekend|week)|right now|currently|current|latest|live|yesterday|last night)\b/.test(low);
@@ -1801,6 +1845,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    if(this.s.stage!=='start' && this.isRecallRequest(x))return this.recallConversation(x);
     const detected=this.detectIntent(x);
     this.updateUniversalMemory(text);
     const liveLimit=this.liveInfoResponse(x);if(liveLimit)return liveLimit;
@@ -2365,7 +2410,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     return out;
   }
   scoreFor(text){const x=text.trim(),low=this.normalize(x);let points=10,why='You kept the conversation moving.';if(this.correction(x)){points=20;why='You corrected or redirected the conversation instead of starting over.'}else if(this.uncertain(x)){points=18;why='You were comfortable saying you were unsure and let the conversation help you decide.'}else if(this.amount(x)||/sacramento|near me|nearby|hotel|monday|tuesday|wednesday|thursday|friday|saturday|sunday|minutes?|hours?|chicken|pasta|steak|noodles|seafood|italian|mexican|thai|chinese|quick|casual|quiet|pet|golf|swing|putting/i.test(low)){points=20;why='You added a concrete detail that gives AI something useful to work with.'}else if(/simpler|simple|shorter|step by step|example|first step|slow down|too much/i.test(low)){points=20;why='You told AI how you wanted the help presented.'}else if(x.length>=14){points=16;why='You gave AI enough information to build on your answer.'}else if(x.length>=6){points=13;why='You gave AI something useful to continue from.'}return{points,why}}
-  process(text){const t=String(text||'').trim();if(!t||this.s.done)return null;const before=this.s.stage;const raw=this.responseFor(t);const r=this.ensureFresh(raw);const isFollowUp=before!=='start';if(isFollowUp){this.s.turns++;const sc=this.scoreFor(t);this.s.score=Math.min(100,this.s.score+sc.points);this.s.history.push({text:t,points:sc.points,why:sc.why});if(this.s.turns>=this.maxTurns)this.s.done=true}return{response:r,score:this.s.score,last:this.s.history[this.s.history.length-1]||null}}
+  process(text){const t=String(text||'').trim();if(!t||this.s.done)return null;const before=this.s.stage;this.s.userTurns.push(t);const raw=this.responseFor(t);const r=this.ensureFresh(raw);const isFollowUp=before!=='start';if(isFollowUp){this.s.turns++;const sc=this.scoreFor(t);this.s.score=Math.min(100,this.s.score+sc.points);this.s.history.push({text:t,points:sc.points,why:sc.why});if(this.s.turns>=this.maxTurns)this.s.done=true}return{response:r,score:this.s.score,last:this.s.history[this.s.history.length-1]||null}}
 }
 
 const engine=new DiscoverConversation();
