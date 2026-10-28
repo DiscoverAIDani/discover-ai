@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: message-context-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: combined-draft-revisions-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -810,15 +810,37 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
           body=[request,close.trim()].filter(Boolean).join(' ');
           d=`${greeting}\n\n${body}\n\n${signature}`;
         }else{
-          const body=d.replace(/^(?:Hi|Hello)[!,]?\s*/i,'');
+          const body=d.replace(/^(?:Hi|Hello|Hey)[!,]?\s*/i,'');
           const sentences=body.match(/[^.!?]+[.!?]+/g)||[body];
           const context=sentences[0]?.trim()||body;
           const request=sentences.find(v=>/would you mind|could you|would you be able|can you|please (?:let|check|keep|turn|help)/i.test(v))||'';
-          d='Hi! '+[context,request&&request!==context?request.trim():''].filter(Boolean).join(' ')+(request?' Thanks!':'');
+          const greeting=/^Hey!/i.test(d)?'Hey! ':'Hi! ';
+          d=greeting+[context,request&&request!==context?request.trim():''].filter(Boolean).join(' ')+(request?' Thanks!':'');
         }
       }
-      if(/\bmore casual|less formal\b/.test(low))d=d.replace(/^Hello,/,'Hi!').replace(/Thank you for your time\.?/g,'Thanks!');
-      if(/\bmore professional\b/.test(low))d=d.replace(/^Hi!/,'Hello,').replace(/\bThanks!?/g,'Thank you');
+      if(/\b(?:more casual|less formal|more relaxed|less stiff|more conversational|more laid[- ]back|informal)\b/.test(low)){
+        // Apply tone requests to the actual text, preserving the issue, timing
+        // and requested action, rather than only changing the greeting.
+        if(kind==='message'||kind==='note'){
+          const mentionsNight=/\b(?:late at night|at night|during the night)\b/i.test(d);
+          d=d.replace(/^(?:Hello,|Hi!|Hi,)\s*/i,/^(?:boss|manager|landlord|client|customer)$/.test(recipient)?'Hi! ':'Hey! ');
+          d=d.replace(/\bI wanted to mention that I[’']ve been hearing\b/gi,'Just wanted to mention I’ve been hearing');
+          d=d.replace(/\bI wanted to mention that\b/gi,'Just wanted to mention');
+          d=d.replace(/\bI wanted to let you know\b/gi,'Just wanted to let you know');
+          d=d.replace(/Would you mind seeing if there[’']s a way to keep (.+?) down during those hours\?/gi,(_,thing)=>'Could you help keep '+thing+' down'+(mentionsNight?' at night':' then')+'?');
+          d=d.replace(/Would you mind seeing if there[’']s a way to keep (.+?) down\?/gi,(_,thing)=>'Could you help keep '+thing+' down?');
+          d=d.replace(/Would you mind turning it down during those hours\?/gi,'Could you turn it down'+(mentionsNight?' at night':' then')+'?');
+          d=d.replace(/\bWould you be able to\b/gi,'Could you');
+          d=d.replace(/\bNo pressure if you can[’']t—just let me know\./gi,'No worries if not.');
+          d=d.replace(/\bI[’']d really appreciate it\.\s*/gi,'');
+          d=d.replace(/\bThank you for your time\.\s*/gi,'Thanks! ');
+          d=d.replace(/\bThank you!/gi,'Thanks!');
+          d=d.replace(/\s+/g,' ').trim();
+        }else{
+          d=d.replace(/^Hello,/,'Hi!').replace(/Thank you for your time\.?/g,'Thanks!');
+        }
+      }
+      if(/\bmore professional\b/.test(low))d=d.replace(/^(?:Hi!|Hey!)/,'Hello,').replace(/\bJust wanted to mention\b/gi,'I wanted to mention').replace(/\bCould you help\b/gi,'Would you be able to help').replace(/\bThanks!/g,'Thank you!').replace(/\bThanks\b/g,'Thank you');
       if(/\bwarm|warmer|friendlier\b/.test(low)&&!/I really appreciate/.test(d))d=d.replace(/Thanks!?$/,'I really appreciate it. Thanks!');
     }
     this.s.draftText=d;
