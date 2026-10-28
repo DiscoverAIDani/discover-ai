@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: conversation-recall-attempts-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: device-correction-memory-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -153,6 +153,37 @@ class DiscoverConversation {
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
   uncertain(t){let x=this.normalize(t).replace(/^(?:uh+|um+|umm+|hmm+|erm+)[,\s-]*/i,'');return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\bno clue\b|\byou pick\b|\byou decide\b|\bchoose for me\b|\bup to you\b|\bsurprise me\b|\bwhatever works\b|^(?:dunno|i dunno|whatever(?: is fine)?)\b/i.test(x)}
   correction(t){return /^(?:actually|instead|wait|never mind|change of plans|i meant|no\s*,?\s*i mean)\b/i.test(String(t||''))}
+
+  deviceCorrectionInfo(text){
+    if(this.s.intent!=='problem'||!this.correction(text))return null;
+    const low=this.normalize(text),device='(laptop|computer|desktop|tablet|phone|iphone|android|printer|tv|television)';
+    const issue='(?:disconnect(?:s|ing|ed)?|drops?|dropping|loses?|losing|fails?|failing|offline|not\\s+(?:working|connecting)|won.t\\s+(?:connect|work)|can.t\\s+(?:connect|work))';
+    const explicit=new RegExp('\\b(?:my|the)\\s+'+device+'\\s+(?:(?:is|was|keeps?|has\\s+been)\\s+)?'+issue+'\\b').exec(low);
+    const replacement=new RegExp('\\b(?:i meant|it is|it.s)\\s+(?:my|the)?\\s*'+device+'\\b').exec(low);
+    const negative=new RegExp('\\b(?:not|rather than|instead of)\\s+(?:my|the)?\\s*'+device+'\\b').exec(low);
+    const failing=(explicit&&explicit[1])||(replacement&&replacement[1])||'';
+    if(!failing||(negative&&negative[1]===failing))return null;
+    const working=new RegExp('\\b(?:my|the)\\s+'+device+'\\s+(?:(?:still|also)\\s+)?(?:works?|is\\s+(?:working|connected|fine)|stays?\\s+connected|remains?\\s+connected)\\b').exec(low);
+    return{failing,working:working&&working[1]!==failing?working[1]:'',replaced:negative?negative[1]:'',network:/\b(?:wi-?fi|internet|network|connect|disconnect)\b/.test(low)};
+  }
+  applyDeviceCorrection(text,info){
+    const prior=this.s.deviceContext||{},old=prior.failing||info.replaced||'previous device';
+    const failing=info.failing,working=info.working||prior.working||'';
+    const existingNetwork=/\b(?:wi-?fi|wifi|internet|network|disconnect|connection)\b/.test(this.normalize(this.s.topic||''));
+    const network=info.network||existingNetwork;
+    this.s.deviceContext={failing,working:working===failing?'':working,correctedAt:this.s.userTurns.length-1};
+    this.s.topic=failing+(network?' Wi-Fi connection problem':' device problem');
+    this.s.stage='problemSolution';
+    this.s.taskType='troubleshoot';
+    const mem=this.s.memory||{},attempts=mem.attempts||[];
+    const routerAttempt=attempts.some(v=>/\b(?:restarted|rebooted|reset)\s+(?:the\s+)?router\b/.test(this.normalize(v)));
+    const failed=(mem.results||[]).some(v=>/\b(?:didn't|did not|doesn't|does not)\s+(?:help|work|fix)\b/.test(this.normalize(v)));
+    const confirm=old!==failing&&old!=='previous device'?' — not the '+old:'';
+    const contrast=this.s.deviceContext.working?' The '+this.s.deviceContext.working+' still works, so that helps narrow the issue to the '+failing+'.':'';
+    const tried=routerAttempt?' You already restarted the router'+(failed?' without success':'')+', so I won’t repeat that step.':'';
+    const guide=network?' On the '+failing+', check whether Wi-Fi still shows connected but reports “No internet,” or whether the network disappears completely. That distinction helps distinguish network configuration from a wireless-connection problem.':' On the '+failing+', check the exact error or symptom first and use it to choose the next troubleshooting step.';
+    return{say:'Got it — the '+failing+' is the device having trouble'+confirm+'.'+contrast+tried+guide,choices:network?['It says connected, no internet','The Wi-Fi disappears','What next?']:['I see an error','Describe the symptom','What next?']};
+  }
   isRecallRequest(text){
     const low=this.normalize(text);
     return /\b(?:remind me (?:which|what|who|where|when|of what|about what)|what (?:did i|have i) (?:say|tell you|mention|already (?:try|do))|what (?:do you|did you) remember|what (?:do|did|have) we (?:know|learn|learned)|what (?:have|do) you (?:remember|know) (?:about|from|so far)|(?:recap|summari[sz]e) (?:our|the|this|what|so far)|which device (?:is|was|has|keeps)|what (?:troubleshooting )?steps? (?:have i|did i|have we) (?:already )?(?:tried|taken|done|try|take|do))\b/.test(low);
@@ -177,6 +208,12 @@ class DiscoverConversation {
         if(workingPattern.test(clause))working=device;
         else if(failingPattern.test(clause))failing=device;
       }
+    }
+    const context=this.s.deviceContext||{};
+    if(context.failing)failing=context.failing;
+    if(context.working)working=context.working;
+    if(Number.isInteger(context.correctedAt)&&context.correctedAt>=0){
+      noInternet=(this.s.userTurns||[]).slice(context.correctedAt,-1).some(v=>/\bno internet\b/.test(this.normalize(v)));
     }
     const mem=this.s.memory||{};
     // Previously recorded attempts are sourced from user statements, not suggestions.
@@ -1818,6 +1855,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       const failingDevice=failMatch?failMatch[1].toLowerCase():'';
       const workingDevice=workMatch?workMatch[1].toLowerCase():'';
       if(failingDevice&&workingDevice&&failingDevice!==workingDevice){
+        this.s.deviceContext={failing:failingDevice,working:workingDevice,correctedAt:-1};
         const attempts=((this.s.memory&&this.s.memory.attempts)||[]);
         const triedRouter=attempts.some(v=>/restart(?:ed|ing)?\s+(?:the\s+)?router|reset(?:ting)?\s+(?:the\s+)?router|reboot(?:ed|ing)?\s+(?:the\s+)?router/i.test(v))||/already\s+restarted\s+(?:the\s+)?router|restarted\s+(?:the\s+)?router[^.!?]*(?:didn[’']?t|did not)\s+help/i.test(low);
         const network=/\b(?:wi-?fi|wifi|internet|network|connection|signal|connected|disconnect)\b/.test(low);
@@ -1854,6 +1892,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(this.s.stage!=='start' && this.isRecallRequest(x))return this.recallConversation(x);
     const detected=this.detectIntent(x);
     this.updateUniversalMemory(text);
+    const correctionInfo=this.s.stage!=='start'?this.deviceCorrectionInfo(text):null;
+    if(correctionInfo)return this.applyDeviceCorrection(text,correctionInfo);
     const liveLimit=this.liveInfoResponse(x);if(liveLimit)return liveLimit;
     const intentFamily=(v)=>/^(?:learn|learnSimple|learnSteps)$/.test(v)?'learn':v;
 
