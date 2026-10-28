@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: draft-context-recovery-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: comparison-routing-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1022,10 +1022,27 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(type==='transform')return this.transformStart(clean);
     if(type==='compare'){
       const low=this.normalize(clean);
-      const repairReplace=/\b(?:repair|fix)\b[^.!?]{0,90}\bor\b[^.!?]{0,90}\b(?:buy|replace|trade)\b/.test(low);
+      const repairReplace=/\b(?:repair(?:ing)?|fix(?:ing)?)\b[^.!?]{0,150}\b(?:or|versus|vs|and)\b[^.!?]{0,150}\b(?:buy(?:ing)?|replace|replacing|purchase)\b|\b(?:buy(?:ing)?|replace|replacing|purchase)\b[^.!?]{0,150}\b(?:or|versus|vs|and)\b[^.!?]{0,150}\b(?:repair(?:ing)?|fix(?:ing)?)\b/.test(low);
       const keepUpgrade=/\b(?:keep|upgrade)\b[^.!?]{0,90}\bor\b[^.!?]{0,90}\b(?:upgrade|replace|buy|keep)\b/.test(low);
       const rentBuy=/\b(?:rent|lease)\b[^.!?]{0,90}\bor\b[^.!?]{0,90}\b(?:buy|purchase|own)\b/.test(low);
       if(repairReplace||keepUpgrade||rentBuy){
+        // A supplied estimate and price should produce an actual comparison,
+        // not another request for prices the user already supplied.
+        if(repairReplace){
+          const repairCost=(String(clean).match(/\b(?:repair(?:ing)?|fix(?:ing)?)\b[^.!?]{0,120}?\$\s*([0-9,]+(?:\.\d{1,2})?)/i)||[])[1];
+          const buyCost=(String(clean).match(/\b(?:buy(?:ing)?|replace|replacing|purchase)\b[^.!?]{0,120}?\$\s*([0-9,]+(?:\.\d{1,2})?)/i)||[])[1];
+          if(repairCost&&buyCost){
+            const r=Number(repairCost.replace(/,/g,'')),b=Number(buyCost.replace(/,/g,''));
+            const fmt=n=>'$'+n.toLocaleString('en-US',{maximumFractionDigits:2});
+            const gap=b-r;
+            const difference=gap>0?' Buying new costs '+fmt(gap)+' more upfront.':gap<0?' Repairing costs '+fmt(-gap)+' more upfront.':' Both have the same quoted upfront cost.';
+            const item=/\b(?:laptop|computer|macbook)\b/.test(low)?'laptop':/\b(?:phone|tablet)\b/.test(low)?'device':/\b(?:car|vehicle|truck)\b/.test(low)?'vehicle':'item';
+            const budget=/\b(?:budget is tight|tight budget|limited budget|money is tight)\b/.test(low);
+            const reliable=/\b(?:reliable|reliability|dependable|dependability)\b/.test(low);
+            this.s.decisionContext={item,repair:r,buy:b,budget,reliable};
+            return{say:'Here is the comparison without choosing for you. Repair the '+item+': '+fmt(r)+' upfront. A repair may cost less now, but reliability depends on what failed and the rest of the '+item+'’s condition. Buy new: '+fmt(b)+' upfront. A replacement might have a warranty and less wear, but reliability is not guaranteed.'+difference+(budget||reliable?' You said '+[budget?'your budget is tight':'',reliable?'you need something reliable':''].filter(Boolean).join(' and ')+', so both immediate cost and the risk of another failure matter.':'')+' The most useful missing facts are the '+item+'’s age, what the repair actually fixes, and what warranty or guarantee each option offers. Those facts help you weigh the trade-offs without me making the decision.',choices:['Tell you the age and problem','Compare long-term risk','What warranties should I check?']};
+          }
+        }
         let criteria,ask,choices;
         if(rentBuy){
           criteria='upfront cost, monthly cost, flexibility, maintenance responsibility, how long you expect to stay, and how much uncertainty you are comfortable with';
@@ -1362,7 +1379,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.pendingDraftRevision='';this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2005,6 +2022,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(missingDraft)return missingDraft;
     if(this.s.stage!=='start' && this.isRecallRequest(x))return this.recallConversation(x);
     const detected=this.detectIntent(x);
+    // Repair-versus-buy is a new goal, even without a leading "Help me".
+    const newDecision=detected==='compare'&&this.s.intent!=='compare'&&
+      /\b(?:repair|repairing|fix|fixing)\b/.test(low)&&/\b(?:buy|buying|replace|replacing|purchase)\b/.test(low)&&
+      /\b(?:or|versus|vs|compare|decide)\b/.test(low);
+    if(newDecision){this.clearContext();return this.generalTaskStart(x,'compare');}
     this.updateUniversalMemory(text);
     const inventoryChange=this.dinnerInventoryChange(text);
     if(inventoryChange)return inventoryChange;
@@ -2041,7 +2063,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       const switchedDirect=this.directAnswer(x,detected);
       return switchedDirect||this.routeIntent(x,detected);
     }
-    if(this.s.stage!=='start' && detected && intentFamily(detected)!==intentFamily(this.s.intent) && /^(?:help me|i need help|i want to|actually|instead|wait|can you|could you|please|i'm looking to|explain|teach me|show me how|find|plan|write|create|turn|convert|format|reformat)/i.test(String(text||''))){
+    if(this.s.stage!=='start' && detected && intentFamily(detected)!==intentFamily(this.s.intent) && /^(?:help me|i need help|i want to|actually|instead|wait|can you|could you|please|i'm looking to|i'm trying to decide|i am trying to decide|i'm deciding whether|i am deciding whether|compare|explain|teach me|show me how|find|plan|write|create|turn|convert|format|reformat)/i.test(String(text||''))){
       this.clearContext();this.s.category=this.detectCategory(x);this.s.intent=detected;
       const switchedDirect=this.directAnswer(x,detected);
       return switchedDirect||this.routeIntent(x,detected);
