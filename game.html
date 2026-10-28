@@ -629,8 +629,14 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     // Corrections update memory instead of stacking contradictory facts forever.
     const budgetFree=/\b(?:budget|price|cost)\s+(?:does not|doesn't|doesnt)\s+matter|\bno budget(?: limit)?\b|\bany price\b/.test(low);
     if(budgetFree){this.forget('constraints',/budget|cost|price/);this.forget('requirements',/budget|cost|price|\$\d+/)}
-    const newDuration=(low.match(/\b(?:make it|instead|now)?\s*(\d+|one|two|three|four|five|six|seven|eight)\s*(minutes?|hours?|days?|weeks?)\b/)||[]);
-    if((this.correction(raw)||/\b(?:instead|now)\b/.test(low))&&newDuration[0])this.forget('constraints',/minutes?|hours?|days?|weeks?/);
+    const newDuration=(low.match(/\b(?:make it|instead|now)?\s*(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s*(minutes?|hours?|days?|weeks?|months?)\b/)||[]);
+    const timeLeft=(low.match(/\b(?:i|we)\s+(?:only\s+)?have\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(minutes?|hours?|days?|weeks?|months?|weekends?|evenings?|mornings?)\s+left\b/)||[]);
+    if((this.correction(raw)||/\b(?:instead|now)\b/.test(low))&&newDuration[0])this.forget('constraints',/minutes?|hours?|days?|weeks?|months?/);
+    if(timeLeft[0]&&(this.correction(raw)||/\bonly\s+have\b/.test(low))){
+      this.forget('constraints',/minutes?|hours?|days?|weeks?|months?|weekends?|evenings?|mornings?/);
+      this.forget('constraints',/weekends only/);
+      this.remember('constraints',`${timeLeft[1]} ${timeLeft[2]} left`);
+    }
     let positive='';
     if(this.correction(raw)||/\bafter all\b/.test(low)){
       positive=(low.match(/^(?:actually\s+)?(?:i|we)\s+(?:do\s+)?(?:want|like)\s+(.+?)(?:\s+after all|\s+now)?$/)||[])[1]||
@@ -639,8 +645,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(positive){const token=this.normalize(positive).replace(/^(?:to|the|anything)\s+/,'').replace(/\s+(?:after all|now)$/,'');if(token){this.forget('avoid',new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'));this.remember('preferences',token)}}
     const noLonger=(low.match(/\b([^.!?;]{2,40}?)\s+(?:does not|doesn't|doesnt)\s+matter(?:\s+anymore)?/)||[])[1];if(noLonger)this.forget('preferences',new RegExp(this.normalize(noLonger).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'));
     const money=this.amount(raw);if(money)this.remember('constraints',`budget $${money}`);
-    const duration=(low.match(/\b(?:under|within|about|around|only)?\s*(\d+|one|two|three|four|five|six|seven|eight)\s*(minutes?|hours?|days?|weeks?)\b/)||[]);
-    if(duration[0])this.remember('constraints',duration[0]);
+    const duration=(low.match(/\b(?:under|within|about|around|only)?\s*(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s*(minutes?|hours?|days?|weeks?|months?)\b/)||[]);
+    if(duration[0]&&!timeLeft[0])this.remember('constraints',duration[0]);
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:do not|don't|dont)\s+(?:want|like|need)\s+([^.!?;]+)/g)){let v=m[1].split(/\bbut\b|\band\s+(?:i|we)\b/)[0].trim();if(v)this.remember('avoid',v)}
     for(const m of low.matchAll(/\b(?:avoid|without|no)\s+([^.!?;,]{2,45})/g)){let v=m[1].trim();if(v)this.remember('avoid',v)}
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:like|prefer|love|want)\s+([^.!?;]+)/g)){let v=m[1].split(/\bbut\b/)[0].trim();if(v)this.remember('preferences',v)}
@@ -650,7 +656,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     for(const m of low.matchAll(/\b([^.!?;]{2,55}?)\s+(?:is|are)?\s*(?:more|most)\s+important\b/g)){let v=m[1].trim().replace(/^(?:and|also|but|make|to)\s+/,'');if(v)this.remember('preferences',v)}
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:also\s+)?need\s+something\s+([^.!?;]+)/g)){let v=m[1].trim().replace(/^to\s+/,'');if(v)this.remember('preferences',v)}
     if(type==='compare'){for(const m of low.matchAll(/\b(?:i|we)\s+(?:also\s+)?need\s+([^.!?;]+)/g)){let v=m[1].trim().replace(/^something\s+/,'');if(v)this.remember('preferences',v)}}
-    for(const m of low.matchAll(/\b(?:i|we)\s+only\s+have\s+([^.!?;]+)/g)){let v=m[1].trim();if(v)this.remember('constraints',v)}
+    if(!timeLeft[0])for(const m of low.matchAll(/\b(?:i|we)\s+only\s+have\s+([^.!?;]+)/g)){let v=m[1].trim();if(v)this.remember('constraints',v)}
     for(const m of low.matchAll(/\b(?:(?:i|we)\s+(?:already\s+)?(?:tried|checked|restarted|reset|called|used|changed|reinstalled|removed|added|looked at|tested|cleaned|lubricated|tightened|loosened|replaced|unplugged|plugged in|moved|adjusted|washed|rinsed)|already\s+(?:tried|checked|restarted|reset|called|used|changed|reinstalled|removed|added|looked at|tested|cleaned|lubricated|tightened|loosened|replaced|unplugged|plugged in|moved|adjusted|washed|rinsed))\s+([^.!?;]+)/g)){let v=m[0].trim();if(v&&!/haven't|have not|didn't|did not/.test(v))this.remember('attempts',v)}
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:already\s+)?did\s+([^.!?;]+)/g)){let v=m[0].trim();if(v&&!/didn't|did not/.test(v))this.remember('attempts',v)}
     if(/\balready tried that\b|\balready did that\b/.test(low))this.remember('attempts','the previous suggested step');
@@ -949,6 +955,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       const topicLow=this.normalize(this.s.topic||'');
       const moving=/\b(?:move|moving|relocat(?:e|ing)|apartment|house)\b/.test(topicLow);
       const deadline=((this.s.memory&&this.s.memory.constraints)||[]).slice().reverse().find(v=>/\b(?:days?|weeks?|months?)\b/i.test(v))||'';
+      const timeLeft=(low.match(/\b(?:i|we)\s+(?:only\s+)?have\s+((?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:minutes?|hours?|days?|weeks?|months?|weekends?|evenings?|mornings?))\s+left\b/)||[])[1]||'';
+      if(timeLeft){
+        if(moving)return{say:`Okay — you only have ${timeLeft} left, so I’d compress the move around essentials and drop nice-to-have organizing. First lock transportation, keys, utility/address deadlines, and supplies. Next pack everything nonessential, then essentials last. Use the final part of the window for cleaning, a walkthrough, and anything that would prevent you from actually leaving on time.`,choices:['Make a Saturday/Sunday plan','What can I skip?','Give me the must-do checklist']};
+        return{say:`Okay — you only have ${timeLeft} left. I’d cut the plan to three layers: 1) anything that blocks completion, 2) the minimum work needed to finish the goal, and 3) a short final check. Anything optional moves out of this version of the plan.`,choices:['Give me the must-do list','What can I skip?','Make it a simple schedule']};
+      }
       if(/\b(?:only have weekends|weekends only|only on weekends|just weekends)\b/.test(low)){this.remember('constraints','weekends only');return{say:moving?`Then treat each weekend as a work block instead of trying to squeeze the move into weekdays. ${deadline?`With ${deadline} to work with, `:''}use the next available weekend for logistics, supplies, decluttering, and nonessential packing; use the following block for the bulk of packing; keep the final block for essentials, cleaning, keys, and last checks.`:`Then build the plan around weekend work blocks. ${deadline?`With ${deadline} to work with, `:''}put the highest-risk or longest task in the first available weekend, the bulk work in the middle, and keep the final block for finishing and checking.`,choices:['Give me this weekend’s checklist','What should I do first?','Make it simpler']};}
       if(/\b(?:what should i do first|what do i do first|where do i start|first step|today.?s checklist|today checklist|this weekend.?s checklist)\b/.test(low)){return{say:moving?'Start with the pieces that unlock everything else: confirm the move date, how you are transporting things, and any key/utility deadlines. Then spend 20–30 minutes on one low-use area and pack or sort only that section. Stop there rather than opening the whole apartment.':`Start with one action that unlocks the rest of ${this.s.topic}. ${deadline?`Because you have ${deadline}, `:''}choose the highest-risk or most time-sensitive piece, work on it for 20–30 minutes, then decide the next step from what remains.`,choices:['Make it a checklist','What comes after that?','Keep it simple']};}
       if(/\b(?:week by week|week-by-week|weekly plan|make it weekly)\b/.test(low)){return{say:moving?`Here is a simple phased version: early phase—confirm logistics, gather supplies, declutter, and pack low-use items; middle phase—pack most remaining rooms and handle address/utility changes; final phase—keep only essentials out, finish cleaning, confirm transportation/keys, and do a last walkthrough. ${deadline?`Use those phases across the ${deadline} you have rather than trying to do equal amounts every day.`:''}`:`Use three phases instead of one giant list: early phase—set the must-do outcome and remove blockers; middle phase—do the bulk of the work; final phase—finish, check, and leave buffer for surprises. ${deadline?`Use those phases across the ${deadline} you have.`:''}`,choices:['Give me the first phase','Add another constraint','Make it simpler']};}
