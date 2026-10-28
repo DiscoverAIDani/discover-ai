@@ -623,7 +623,28 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       else if(/\bwarm|warmer|friendlier|more personal|less mushy|less sentimental\b/.test(low))d=`Happy birthday! I hope you have a really good day. I’m glad you’re in my life, and I hope this next year brings you plenty to smile about.`;
       else if(newRel)d=d.replace(/\b(sister|brother|mom|mother|dad|father|friend|neighbor|boss|manager|coworker|daughter|son|husband|wife|partner)\b/i,newRel);
     } else {
-      if(/\bshorter|brief|concise\b/.test(low))d=d.split(/(?<=[.!?])\s+/).slice(0,2).join(' ');
+      if(/\bshorter|brief|concise\b/.test(low)){
+        if(kind==='email'){
+          const greeting=(d.match(/^(?:Hi|Hello),?/)||[])[0]||'Hi,';
+          const signature=(d.match(/(?:Thank you|Thanks),?\s*\n\[Your name\]\s*$/i)||[])[0]||'Thank you,\n[Your name]';
+          let body=d.replace(/^(?:Hi|Hello),?\s*/i,'').replace(/(?:Thank you|Thanks),?\s*\n\[Your name\]\s*$/i,'').trim();
+          body=body.replace(/I wanted to reach out in advance and ask whether it would be okay for me to ([^.?!]+)[.?!]/i,'Would it be possible for me to $1?');
+          body=body.replace(/I wanted to ask if I could ([^.?!]+)[.?!]/i,'Would it be possible for me to $1?');
+          body=body.replace(/I wanted to ask if you could ([^.?!]+)[.?!]/i,'Could you $1?');
+          body=body.replace(/I wanted to ask if we could ([^.?!]+)[.?!]/i,'Would it be possible to $1?');
+          body=body.replace(/I wanted to be upfront about the timing and ask ahead of time\.\s*/ig,'');
+          const sentences=body.match(/[^.!?]+[.!?]+/g)||[body];
+          const request=sentences[0]?sentences[0].trim():body;
+          const close=sentences.find((s,i)=>i>0&&/please let me know|would that work|would be acceptable|could you let me know/i.test(s))||'';
+          body=[request,close.trim()].filter(Boolean).join(' ');
+          d=`${greeting}\n\n${body}\n\n${signature}`;
+        }else{
+          const sentences=d.match(/[^.!?]+[.!?]+/g)||[d];
+          const first=sentences[0]?sentences[0].trim():d;
+          const close=sentences.find((s,i)=>i>0&&/thanks|thank you|please let me know|appreciate/i.test(s))||'';
+          d=[first,close.trim()].filter(Boolean).join(' ');
+        }
+      }
       if(/\bmore casual|less formal\b/.test(low))d=d.replace(/^Hello,/,'Hi!').replace(/Thank you for your time\.?/g,'Thanks!');
       if(/\bmore professional\b/.test(low))d=d.replace(/^Hi!/,'Hello,').replace(/\bThanks!?/g,'Thank you');
       if(/\bwarm|warmer|friendlier\b/.test(low)&&!/I really appreciate/.test(d))d=d.replace(/Thanks!?$/,'I really appreciate it. Thanks!');
