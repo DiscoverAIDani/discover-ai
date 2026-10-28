@@ -580,10 +580,20 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     } else if(kind==='email'){
       const askThem=(raw.match(/\b(?:asking|ask)\s+(?:(?:them|him|her)|my\s+(?:landlord|boss|manager|neighbor|coworker|client|customer|tenant))\s+to\s+(.+?)(?:[.!?]|$)/i)||[])[1];
       const ask=(raw.match(/\b(?:asking|ask)\s+(?:my\s+\w+\s+)?(?:to|for)\s+(.+?)(?:[.!?]|$)/i)||[])[1];
+      const askIf=(raw.match(/\b(?:asking|ask|requesting)\s+(?:them\s+)?(?:if|whether)\s+(?:it\s+(?:would\s+be\s+okay|is\s+okay)\s+(?:for\s+me\s+)?to\s+|i\s+(?:can|could)\s+)(.+?)(?:[.!?]|$)/i)||[])[1]||
+        (raw.match(/\b(?:would it be okay|is it okay)\s+(?:if\s+i|for\s+me\s+to)\s+(.+?)(?:[.!?]|$)/i)||[])[1];
       const leave=(low.match(/\b(?:leave|leaving)\s+early\s+(.+?)(?:[.!?]|$)/)||[])[1];
       const purpose=(raw.match(/\b(?:about|regarding)\s+(.+?)(?:[.!?]|$)/i)||[])[1];
+      const responsible=/\b(?:responsible|accountable|upfront|proactive|mature|reliable)\b/.test(low);
+      const calm=/\b(?:calm|straightforward|matter[- ]of[- ]fact|not desperate|not needy|not pushy|not dramatic)\b/.test(low);
       const greeting='Hi,';
       if(leave)draft=`${greeting}\n\nI wanted to ask if I could leave early ${leave}. Please let me know if that works or if you need anything from me beforehand.\n\nThanks,\n[Your name]`;
+      else if(askIf){
+        const action=askIf.replace(/\s+(?:i want|i'd like|i would like)\s+to\s+sound.*$/i,'').trim();
+        const opener=(responsible||calm)?'I wanted to reach out in advance and ask':'I wanted to ask';
+        const close=(responsible||calm)?'I wanted to be upfront about the timing and ask ahead of time. Please let me know if that would be acceptable.':'Please let me know if that would work.';
+        draft=`${greeting}\n\n${opener} whether it would be okay for me to ${action}. ${close}\n\nThank you,\n[Your name]`;
+      }
       else if(askThem)draft=`${greeting}\n\nI wanted to ask if you could ${askThem}. Please let me know if you need any additional information from me.\n\nThanks,\n[Your name]`;
       else if(ask)draft=`${greeting}\n\nI wanted to ask if we could ${ask.replace(/^leave early/i,'leave early')}. Please let me know if that would work, or if there’s anything you need from me first.\n\nThanks,\n[Your name]`;
       else if(purpose)draft=`${greeting}\n\nI wanted to reach out about ${purpose}. Please let me know what works best or if you need any additional information from me.\n\nThanks,\n[Your name]`;
