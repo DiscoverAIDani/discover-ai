@@ -131,7 +131,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: writing-shortening-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: writing-detail-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="end-note">The goal was not to find perfect words. The goal was to keep a useful conversation going.</div><button class="start-new" id="startNew" type="button">Try another conversation</button></section>
@@ -139,7 +139,7 @@ button,.back{touch-action:manipulation}
 <script>
 class DiscoverConversation {
   constructor(){this.maxTurns=5;this.reset()}
-  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',sourceMode:'',sourceKind:'',sourceText:'',transformSource:'',transformFormat:'',transformItems:[],sequenceMode:false,sequenceItems:[],memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
+  reset(){this.s={stage:'start',category:'',intent:'',taskType:'',topic:'',goal:'',location:'',interest:'',budget:'',dates:'',time:'',currentDay:0,ingredients:[],excludedIngredients:[],mealCount:0,details:[],turns:0,score:0,history:[],lastQuestion:'',done:false,aiResponses:[],promptHistory:[],facts:[],asked:[],createKind:'',createRecipient:'',draftText:'',draftAwaitingDetail:false,sourceMode:'',sourceKind:'',sourceText:'',transformSource:'',transformFormat:'',transformItems:[],sequenceMode:false,sequenceItems:[],memory:{constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]}}}
   normalize(t){return String(t||'').toLowerCase().replace(/[’]/g,"'").replace(/\bidk\b/g,"i don't know").replace(/\b(?:resturant|restaraunt)\b/g,'restaurant').replace(/\b(?:grocey|grocry)\b/g,'grocery').replace(/\bgrocery lst\b/g,'grocery list').replace(/\bvaccation\b/g,'vacation').replace(/\bwek\b/g,'week').replace(/\bdisconects?\b/g,'disconnects').replace(/\bwi fi\b/g,'wifi').replace(/\s+/g,' ').trim()}
   clean(t){return String(t||'').replace(/^\s*(?:actually|instead|wait|never mind|change of plans|i meant)\s*[,.:;!?-]?\s*/i,'').replace(/^\s*no\s*[,.:;!?-]\s*(?:i mean\s*)?/i,'').replace(/^\s*no\s+i mean\s+/i,'').trim()}
   uncertain(t){let x=this.normalize(t).replace(/^(?:uh+|um+|umm+|hmm+|erm+)[,\s-]*/i,'');return /^(?:i\s+)?(?:(?:do not|don't)\s+(?:really\s+)?know)\b|\bnot sure\b|\bno idea\b|\bno clue\b|\byou pick\b|\byou decide\b|\bchoose for me\b|\bup to you\b|\bsurprise me\b|\bwhatever works\b|^(?:dunno|i dunno|whatever(?: is fine)?)\b/i.test(x)}
@@ -610,13 +610,50 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     this.s.draftText=draft;
     return{say:`Here’s a first draft you can use:\n\n“${draft}”`,choices:['Make it shorter','Make it warmer','Make it more casual']};
   }
+  addDraftDetail(detail){
+    if(!this.s.draftText)return null;
+    let clean=String(detail||'').trim().replace(/^(?:that|please add that|add that|include that|mention that)\s+/i,'').trim();
+    if(!clean)return{say:'What personal detail would you like me to add? I’ll use only what you give me.',choices:['Keep it general']};
+    clean=clean.replace(/[“”"]/g,'').trim();
+    const sentence=clean.replace(/[.!?]+$/,'')+'.';
+    let d=this.s.draftText,kind=this.s.createKind||'';
+    if(this.normalize(d).includes(this.normalize(clean))){
+      this.s.draftAwaitingDetail=false;
+      return{say:'That detail is already in the draft, so I left it as-is.',choices:['Make it shorter','Try another tone','Add another detail']};
+    }
+    if(kind==='email'){
+      const greeting=(d.match(/^(?:Hi|Hello),?/)||[])[0]||'Hi,';
+      const signature=(d.match(/(?:Thank you|Thanks),?\s*\n\[Your name\]\s*$/i)||[])[0]||'Thank you,\n[Your name]';
+      let body=d.replace(/^(?:Hi|Hello),?\s*/i,'').replace(/(?:Thank you|Thanks),?\s*\n\[Your name\]\s*$/i,'').trim();
+      const close=/\b(?:Please let me know[^.!?]*[.!?]|Let me know[^.!?]*[.!?])/i;
+      const m=body.match(close);
+      if(m&&typeof m.index==='number')body=(body.slice(0,m.index).trim()+' '+sentence+' '+m[0].trim()).trim();
+      else body=(body+' '+sentence).trim();
+      d=`${greeting}\n\n${body}\n\n${signature}`;
+    }else{
+      const thanks=/(?:Thanks|Thank you)[^.!?]*[.!?]?\s*$/i;
+      const m=d.match(thanks);
+      if(m&&typeof m.index==='number')d=(d.slice(0,m.index).trim()+' '+sentence+' '+m[0].trim()).trim();
+      else d=(d.trim()+' '+sentence).trim();
+    }
+    this.s.draftText=d;
+    this.s.draftAwaitingDetail=false;
+    return{say:`Here’s the revised version with that detail added:\n\n“${d}”`,choices:['Make it shorter','Try another tone','Add another detail']};
+  }
   reviseCommunication(text){
     if(!this.s.draftText)return null;
     const low=this.normalize(text),kind=this.s.createKind||'',recipient=this.s.createRecipient||'';
-    if(!/\b(?:shorter|warmer|friendlier|funnier|more playful|more casual|less formal|more professional|less mushy|less sentimental|more personal|change it|make it|instead|for my|for a)\b/.test(low))return null;
+    if(!/\b(?:shorter|warmer|friendlier|funnier|more playful|more casual|less formal|more professional|less mushy|less sentimental|more personal|personal detail|add a detail|add another detail|add that|include that|mention that|change it|make it|instead|for my|for a)\b/.test(low))return null;
     const newRel=(low.match(/\b(?:for|to)\s+(?:my\s+)?(sister|brother|mom|mother|dad|father|friend|neighbor|boss|manager|coworker|co-worker|daughter|son|husband|wife|partner|landlord|tenant|client|customer)\b/)||[])[1];
     if(newRel)this.s.createRecipient=newRel;
     let d=this.s.draftText;
+    const asksForDetail=/^(?:add|include)\s+(?:a\s+|another\s+)?(?:personal\s+)?detail[.!?]?$|^(?:make it|make this|make the draft)\s+more personal[.!?]?$/i.test(String(text||'').trim());
+    const inlineDetail=(String(text||'').match(/\b(?:add|include|mention)\s+(?:the\s+detail\s+)?(?:that\s+)(.+)$/i)||[])[1]||'';
+    if(asksForDetail){
+      this.s.draftAwaitingDetail=true;
+      return{say:'Sure. What personal detail would you like me to add? I’ll use only what you give me and keep the rest of the draft intact.',choices:['Keep it general']};
+    }
+    if(inlineDetail)return this.addDraftDetail(inlineDetail);
     if(kind==='birthday'){
       if(/\bshorter|brief|concise\b/.test(low))d=`Happy birthday! Hope you have a great day and an even better year ahead. ❤️`;
       else if(/\bfunny|funnier|playful|humor\b/.test(low))d=`Happy birthday! Hope your day has great food, good laughs, and absolutely no unnecessary responsibilities. Have a great one!`;
@@ -1798,6 +1835,13 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     // Once a communication draft exists, revision requests should modify that draft
     // before generic free-text handling can swallow the correction.
     if(this.s.stage!=='start' && this.s.intent==='create' && this.s.draftText){
+      if(this.s.draftAwaitingDetail){
+        if(/^(?:never mind|skip it|keep it general|no detail|leave it as is|leave it alone)[.!?]?$/i.test(x)){
+          this.s.draftAwaitingDetail=false;
+          return{say:'No problem. I’ll keep the draft as it is.',choices:['Make it shorter','Try another tone','Add a personal detail']};
+        }
+        return this.addDraftDetail(x);
+      }
       const revised=this.reviseCommunication(x);if(revised)return revised;
     }
     if(this.s.stage==='createPlan' && this.s.intent==='create' && !this.s.draftText && /^(?:message|note|email)$/.test(this.s.createKind||'')){
