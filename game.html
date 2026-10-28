@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: serving-amounts-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: message-context-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -644,6 +644,37 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     return null;
   }
+
+  contextualMessageDraft(raw,relation){
+    // Draft from details already supplied by the user. Don't invent names or events.
+    const low=this.normalize(raw);
+    const neighbor=relation==='neighbor'||/\b(?:my|the|our|upstairs|next[- ]door)\s+neighbor\b/.test(low);
+    const landlord=relation==='landlord'||/\bmy landlord\b/.test(low);
+    const time=(low.match(/\b(?:late at night|during the night|at night|early in the morning|in the morning|in the evening|during the day|in the afternoon)\b/)||[])[0]||'';
+    const dog=/\b(?:dog|dogs|puppy)\b[^.!?]{0,65}\b(?:bark|barking|barks|loud)\b|\b(?:bark|barking|barks)\b[^.!?]{0,55}\b(?:dog|dogs|puppy)\b/.test(low);
+    if(neighbor&&dog){
+      const sleep=/\b(?:can't sleep|cannot sleep|keeps? me up|wakes? me up|affects? my sleep)\b/.test(low);
+      return 'Hi! I wanted to mention that I’ve been hearing your dog barking'+(time?' '+time:'')+'. '+(sleep?'It’s been interrupting my sleep. ':'')+'Would you mind seeing if there’s a way to keep the barking down'+(time?' during those hours':'')+'? I’d really appreciate it. Thanks!';
+    }
+    if(neighbor&&/\b(?:loud music|music (?:is|has been|keeps|playing|blaring)|noise from (?:your|their) music)\b/.test(low))
+      return 'Hi! I wanted to mention that I’ve been hearing loud music'+(time?' '+time:'')+'. Would you mind turning it down'+(time?' during those hours':'')+'? I’d really appreciate it. Thanks!';
+    if(neighbor&&/\b(?:block(?:ing|ed|s)? (?:my|the|our)?\s*driveway|park(?:ing|ed)? (?:in front of|across) (?:my|the|our)?\s*driveway)\b/.test(low))
+      return 'Hi! I wanted to mention that the driveway has been blocked by a parked vehicle. Could you please keep the driveway clear? I’d really appreciate it. Thanks!';
+    if(landlord&&/\b(?:sink|faucet|tap|pipe|ceiling|roof|toilet)\b[^.!?]{0,70}\b(?:leak|leaking|dripping|broken|not working)\b|\b(?:leak|leaking|dripping)\b[^.!?]{0,50}\b(?:sink|faucet|tap|pipe|ceiling|roof|toilet)\b/.test(low)){
+      const fixture=(low.match(/\b(?:kitchen sink|bathroom sink|sink|faucet|tap|pipe|ceiling|roof|toilet)\b/)||[])[0]||'sink';
+      return 'Hi! I wanted to let you know the '+fixture+(/\b(?:broken|not working)\b/.test(low)?' is not working':' is leaking')+'. Could you please let me know when it could be checked or repaired? Thank you!';
+    }
+    const action=(raw.match(/\bask(?:ing)?\s+(?:them|him|her|my\s+\w+)\s+to\s+(.+?)(?:[.!?]|$)/i)||[])[1]||
+      (raw.match(/\bask(?:ing)?\s+(?:if|whether)\s+(?:she|he|they|you)\s+(?:can|could|would)\s+(.+?)(?:[.!?]|$)/i)||[])[1];
+    if(action&&action.length>4&&action.length<180){
+      const request=action.replace(/\s+(?:and|but)\s+(?:i|we)\s+(?:want|need|would like|don't want|do not want).*$/i,'').replace(/[.!?]+$/,'').trim();
+      if(request&&!/^(?:for|about|if|whether)\b/i.test(request))return 'Hi! Would you be able to '+request.replace(/^[A-Z]/,v=>v.toLowerCase())+'? No pressure if you can’t—just let me know. Thanks!';
+    }
+    const told=(raw.match(/\b(?:tell|telling)\s+(?:them|him|her|my\s+\w+)\s+(?:that\s+)?(.+?)(?:[.!?]|$)/i)||[])[1];
+    if(told&&told.length>8&&told.length<170)return 'Hi! I wanted to let you know '+told.replace(/[.!?]+$/,'')+'. Thanks!';
+    return '';
+  }
+
   communicationDraft(text){
     const raw=String(text||'').trim(),low=this.normalize(raw);
     if(!/\b(?:write|draft|compose|help me write|help me draft)\b/.test(low))return null;
@@ -698,9 +729,13 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       else if(purpose)draft=`${greeting}\n\nI wanted to reach out about ${purpose}. Please let me know what works best or if you need any additional information from me.\n\nThanks,\n[Your name]`;
       else {this.s.draftText='';return{say:`Absolutely. What is the main thing you want the email${relation?` to your ${relation}`:''} to say or ask for?`,choices:['Make a request','Share an update','Ask a question']};}
     } else if(kind==='message'||kind==='note'){
+      const situation=this.contextualMessageDraft(raw,relation);
+      if(situation)draft=situation;
+      else {
       const purpose=(raw.match(/\b(?:about|regarding)\s+(.+?)(?:[.!?]|$)/i)||[])[1];
       if(purpose)draft=`Hi! I wanted to reach out about ${purpose}. When you have a chance, could we talk about it? Thanks—I appreciate it.`;
       else {this.s.draftText='';return{say:`Absolutely. What is the main thing you want the ${kind}${relation?` to your ${relation}`:''} to say?`,choices:['Share an update','Ask for something','Keep it simple']};}
+      }
     } else {
       draft='Here’s a simple first draft: “Hi [Name], I wanted to reach out about [main point]. [Add the key detail, request, or feeling here.] Thanks for taking the time to read this.”';
     }
@@ -775,10 +810,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
           body=[request,close.trim()].filter(Boolean).join(' ');
           d=`${greeting}\n\n${body}\n\n${signature}`;
         }else{
-          const sentences=d.match(/[^.!?]+[.!?]+/g)||[d];
-          const first=sentences[0]?sentences[0].trim():d;
-          const close=sentences.find((s,i)=>i>0&&/thanks|thank you|please let me know|appreciate/i.test(s))||'';
-          d=[first,close.trim()].filter(Boolean).join(' ');
+          const body=d.replace(/^(?:Hi|Hello)[!,]?\s*/i,'');
+          const sentences=body.match(/[^.!?]+[.!?]+/g)||[body];
+          const context=sentences[0]?.trim()||body;
+          const request=sentences.find(v=>/would you mind|could you|would you be able|can you|please (?:let|check|keep|turn|help)/i.test(v))||'';
+          d='Hi! '+[context,request&&request!==context?request.trim():''].filter(Boolean).join(' ')+(request?' Thanks!':'');
         }
       }
       if(/\bmore casual|less formal\b/.test(low))d=d.replace(/^Hello,/,'Hi!').replace(/Thank you for your time\.?/g,'Thanks!');
