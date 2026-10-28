@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: device-correction-memory-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: recall-intent-v2</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -186,7 +186,16 @@ class DiscoverConversation {
   }
   isRecallRequest(text){
     const low=this.normalize(text);
-    return /\b(?:remind me (?:which|what|who|where|when|of what|about what)|what (?:did i|have i) (?:say|tell you|mention|already (?:try|do))|what (?:do you|did you) remember|what (?:do|did|have) we (?:know|learn|learned)|what (?:have|do) you (?:remember|know) (?:about|from|so far)|(?:recap|summari[sz]e) (?:our|the|this|what|so far)|which device (?:is|was|has|keeps)|what (?:troubleshooting )?steps? (?:have i|did i|have we) (?:already )?(?:tried|taken|done|try|take|do))\b/.test(low);
+    // Recall intent takes priority over troubleshooting; do not mistake a
+    // question about prior facts for another attempted fix or next-step request.
+    const explicit=/\b(?:remind me|do you remember|can you remember|can you recall|what do you remember|what did you remember|what have you remembered|recap|recapitulate|summari[sz]e|what did i (?:say|tell you|mention)|what have i (?:said|told you|mentioned)|what (?:have|did|do) we (?:learn|learned|know|figure out|decide|decided|establish|established|discuss|discussed|try|tried|do|done)|what (?:are|were) we (?:talking about|working on)|where (?:are|were) we (?:at|up to|left off))\b/.test(low);
+    if(explicit)return true;
+    const priorActions=/\bwhat (?:have|did) (?:i|we) (?:already |previously )?(?:tried|done|checked|tested|restarted|attempted|used|changed|fixed)\b|\bwhat (?:have|did) (?:i|we) (?:try|do|check|test|restart|attempt|use|change)\b|\b(?:what|which) (?:troubleshooting )?(?:steps?|fixes|things|actions) (?:have|did) (?:i|we) (?:already )?(?:tried|taken|done|try|take|do|attempted)\b/.test(low);
+    if(priorActions)return true;
+    const deviceQuestion=/\b(?:which|what) (?:of (?:those|the) )?(?:devices?|one)\b/.test(low);
+    const deviceRecall=/\b(?:are we|were we|am i|was i|did i|do i|have i) (?:now |currently )?(?:troubleshooting|working on|talking about|having trouble with)\b|\b(?:still (?:works?|working|connected)|having (?:a |the )?(?:problems?|issues?|trouble)|(?:is|was|keeps?) (?:failing|broken|disconnecting|dropping|offline)|(?:had|has) the (?:problem|issue))\b/.test(low);
+    if(deviceQuestion&&deviceRecall)return true;
+    return /\b(?:what|which) (?:are|were) (?:we|you) (?:troubleshooting|working on|discussing)\b/.test(low);
   }
   recallConversation(text){
     // Answer questions about prior user statements before task-specific follow-up
