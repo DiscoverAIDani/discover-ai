@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: topic-switch-dinner-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: ingredient-corrections-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1905,6 +1905,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(this.s.stage!=='start' && this.isRecallRequest(x))return this.recallConversation(x);
     const detected=this.detectIntent(x);
     this.updateUniversalMemory(text);
+    const inventoryChange=this.dinnerInventoryChange(text);
+    if(inventoryChange)return inventoryChange;
     const correctionInfo=this.s.stage!=='start'?this.deviceCorrectionInfo(text):null;
     if(correctionInfo)return this.applyDeviceCorrection(text,correctionInfo);
     const liveLimit=this.liveInfoResponse(x);if(liveLimit)return liveLimit;
@@ -2088,6 +2090,59 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/something quick|quick/i.test(low)){this.s.details.push('quick');this.s.stage='dinnerPlan';return{say:'Let’s keep it quick: think 20–30 minutes, one pan if possible, and ingredients you already have. Tell me what you have and I’ll build it around that.',choices:['I’ll list what I have','Give me a quick idea','Keep it simple']}}
     const food=this.extractDinnerIngredients(x);this.s.ingredients=food.include.length?food.include:x.split(/\s*,\s*|\s+and\s+/).map(v=>this.normalize(v)).filter(Boolean);this.s.details.push(...this.s.ingredients);this.s.stage='dinnerPlan';return{say:`Great — I’ll build the dinner around ${this.s.ingredients.join(' and ')}. A simple approach is to make those ingredients the center of the meal and keep the extras easy.`,choices:['Give me the recipe','Make it quick','What else could I add?']}
   }
+
+  dinnerInventoryChange(text){
+    // Ingredient corrections update the active dinner state before general
+    // intent routing can turn "I'm out of eggs" into a new problem.
+    if(this.s.intent!=='dinner'||this.s.stage==='start')return null;
+    const low=this.normalize(text);
+    const names=/\b(?:black beans?|pinto beans?|kidney beans?|refried beans?|chickpeas?|eggs?|tortillas?|spinach|cheese|salsa|chicken|beans?|rice|pasta|tofu|potatoes?|broccoli|tomatoes?|mushrooms?|peppers?|onions?|corn|lettuce|salmon)\b/g;
+    const aliases={egg:'eggs',tortilla:'tortillas',bean:'beans','black bean':'black beans','pinto bean':'pinto beans','kidney bean':'kidney beans','refried bean':'refried beans',chickpea:'chickpeas',potato:'potatoes',tomato:'tomatoes',mushroom:'mushrooms',pepper:'peppers',onion:'onions'};
+    const foods=(phrase)=>[...new Set((String(phrase||'').match(names)||[]).map(v=>aliases[v]||v))];
+    const removed=[],added=[];
+    const push=(array,phrase)=>{for(const v of foods(phrase))if(!array.includes(v))array.push(v)};
+    const removePatterns=[
+      /\b(?:out of|ran out of|don't have|do not have|no longer have|no more|used up|remove|skip|omit|leave out|take out)\s+(?:any\s+|the\s+)?(.+?)(?=\bbut\b|[.!?]|$)/g,
+      /\b(?:i|we)\s+have\s+(?:no|zero)\s+([^.!?]+)/g,
+      /\b(?:no)\s+((?:black\s+)?(?:eggs?|beans?|tortillas?|spinach|tofu|rice|pasta))\s+(?:left|remaining|available)\b/g
+    ];
+    for(const pat of removePatterns)for(const m of low.matchAll(pat))push(removed,m[1].split(/\band\s+(?:add|use|include|i|we)\b|\b(?:but|instead)\b/)[0]);
+    for(const m of low.matchAll(/\b(?:swap|replace)\s+(?:the\s+)?([^.!?]+?)\s+(?:with|for)\s+([^.!?]+)/g)){push(removed,m[1]);push(added,m[2].split(/\band\s+(?:remove|skip)\b/)[0])}
+    for(const m of low.matchAll(/\b(?:i|we)\s+(?:(?:also|now|still|do)\s+)?have\s+([^.!?]+)/g)){
+      const segment=m[1].split(/\b(?:but|instead)\b/)[0];
+      if(!/^\s*(?:no|zero|none)\b/.test(segment))push(added,segment);
+    }
+    for(const m of low.matchAll(/\b(?:add|include|use)\s+(?:the\s+|some\s+)?([^.!?]+)/g))push(added,m[1].split(/\b(?:but|without|instead of|and remove|and skip)\b/)[0]);
+    if(!removed.length&&!added.length)return null;
+    const normalizeItem=(v)=>foods(this.normalize(v))[0]||this.normalize(v);
+    const unavailable=new Set((this.s.excludedIngredients||[]).map(normalizeItem));
+    for(const item of removed)unavailable.add(item);
+    for(const item of added)unavailable.delete(item);
+    const current=(this.s.ingredients||[]).map(normalizeItem);
+    this.s.excludedIngredients=[...unavailable];
+    this.s.ingredients=[...new Set([...current,...added].filter(v=>!unavailable.has(v)))];
+    const items=this.safeDinnerIngredients(),has=(v)=>items.includes(v);
+    const beans=items.find(v=>/\bbeans\b/.test(v)||v==='chickpeas')||'';
+    const noDairy=(this.s.facts||[]).includes('no dairy')||/dairy[- ]?free|can't have dairy|cannot have dairy/.test(low);
+    if(noDairy)this.noteFact('no dairy');
+    let recipe='';
+    if(beans&&has('tortillas')){
+      recipe='Updated recipe: 1) Use cooked '+beans+' (drain and rinse if canned). 2) Warm the '+beans+' in a pan until hot. '+(has('spinach')?'3) Wilt the spinach in the same pan. ':'')+(has('spinach')?'4':'3')+') Warm the tortillas and fill them with '+beans+(has('spinach')?' and spinach':'')+'.';
+    }else if(has('eggs')&&has('tortillas')){
+      recipe='Updated recipe: scramble the eggs until fully cooked, warm the tortillas, and fill them with eggs'+(has('spinach')?' and wilted spinach':'')+'.';
+    }else if(beans&&has('rice')){
+      recipe='Updated recipe: warm the cooked '+beans+' and cooked rice; '+(has('spinach')?'wilt the spinach, ':'')+'mix together, and season to taste.';
+    }else if(items.length){
+      recipe='Available ingredients: '+items.join(', ')+'. '+(has('tortillas')?'Warm the tortillas and use your remaining filling ingredients.':'Prepare only the available ingredients as appropriate.')+' I won’t use removed ingredients.';
+    }else{
+      recipe='No ingredients remain for the previous recipe. Tell me what you have and I will rebuild it.';
+    }
+    const plural=removed.length>1||removed.length===1&&/s$/.test(removed[0]);
+    const change=removed.length?'Got it — '+removed.join(' and ')+' '+(plural?'are':'is')+' no longer available. ':'Got it — I updated the ingredients. ';
+    const newItems=added.length?'I added '+added.join(' and ')+'. ':'';
+    return{say:change+newItems+recipe+(noDairy?' Keep it dairy-free: no butter, cheese, or cream.':''),choices:['Give me exact steps','Make it quicker','Change another ingredient']};
+  }
+
   handleDinnerPlan(x){
     const low=this.normalize(x);
     const listText=(items)=>items.length<=1?(items[0]||'what you have'):(items.length===2?items.join(' and '):items.slice(0,-1).join(', ')+', and '+items[items.length-1]);
@@ -2132,6 +2187,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       let say;
       if((has('egg')||has('eggs'))&&(has('tortilla')||has('tortillas'))&&has('spinach')){
         say='For two small spinach-and-egg tacos: 1) Wash a handful of spinach. 2) Heat a little oil in a pan and wilt the spinach for about 1 minute. 3) Beat 2 eggs, add them to the pan, and scramble until fully cooked. 4) Warm 2 tortillas, fill with the spinach and eggs, and season to taste. '+(noDairy?'Use oil rather than butter and skip cheese to keep it dairy-free.':'Cheese is optional, not required.');
+      }else if(safeIngredients.some(v=>/\bbeans\b/.test(v)||v==='chickpeas')&&(has('tortilla')||has('tortillas'))){
+        const bean=safeIngredients.find(v=>/\bbeans\b/.test(v)||v==='chickpeas');
+        say='For two bean tacos: 1) Use cooked '+bean+' (drain and rinse if canned). 2) Warm the '+bean+' in a pan until hot. '+(has('spinach')?'3) Wilt the spinach. ':'')+(has('spinach')?'4':'3')+') Fill two warmed tortillas with '+bean+(has('spinach')?' and spinach':'')+'. '+(noDairy?'Avoid cheese and butter to keep it dairy-free.':'Season to taste.');
       }else if((has('egg')||has('eggs'))&&(has('tortilla')||has('tortillas'))&&has('salsa')){
         say=`Here’s the simple recipe: scramble the eggs, warm the tortillas, spoon the eggs into them, and top with salsa. ${noDairy?'Keep it dairy-free as planned.':'Add cheese only if you still want it.'} That is enough for a quick dinner without adding a bunch of extra ingredients.`;
       }else if((has('tortilla')||has('tortillas'))&&has('salsa')&&safeIngredients.length<=2){
