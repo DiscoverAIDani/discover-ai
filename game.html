@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: grocery-unit-pricing-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: monthly-budget-math-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1804,7 +1804,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2484,6 +2484,79 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
 
 
+
+  budgetAmount(v){const n=Number(String(v||'').replace(/[$,\s]/g,''));return Number.isFinite(n)&&n>=0&&n<=10000000?n:null;}
+  budgetPrice(v){return '$'+Number(Math.abs(v)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  budgetKey(x){
+    x=this.normalize(x).replace(/^(?:my|the|our)\s+/,'');
+    const names={'rent':'rent','housing':'rent','utilities':'utilities','utility bills':'utilities','utility bill':'utilities','electricity':'utilities','electric bill':'utilities','power bill':'utilities','water bill':'utilities','groceries':'groceries','grocery':'groceries','food shopping':'groceries','transportation':'transportation','transport':'transportation','commuting':'transportation','commute':'transportation','bus fare':'transportation','phone':'phone','phone bill':'phone','cell phone':'phone','internet':'internet','wifi':'internet','insurance':'insurance','insurance bill':'insurance','entertainment':'entertainment','subscriptions':'subscriptions','subscription':'subscriptions','childcare':'childcare','child care':'childcare','gasoline':'fuel','gas':'fuel','fuel':'fuel','dining out':'dining out','restaurants':'dining out','restaurant':'dining out','misc':'other','miscellaneous':'other','other':'other','unexpected expenses':'other','unexpected expense':'other'};
+    return names[x.trim()]||null;
+  }
+  budgetExpenses(text){
+    const out={},cats='(rent|housing|utilities|utility bills?|electricity|electric bill|power bill|water bill|groceries|grocery|food shopping|transportation|transport|commuting|commute|bus fare|phone bill|cell phone|phone|internet|wifi|insurance bill|insurance|entertainment|subscriptions|subscription|childcare|child care|gasoline|gas|fuel|dining out|restaurants|restaurant|miscellaneous|misc|unexpected expenses?|other)';
+    const re=new RegExp('\\b'+cats+'\\b\\s*(?:spending|expense|expenses|bill|cost|costs|is|are|of|for|was|now|:|=|at)?\\s*\\$\\s*([\\d,]+(?:\\.\\d{1,2})?)\\b','gi');
+    for(const m of String(text||'').matchAll(re)){const k=this.budgetKey(m[1]),v=this.budgetAmount(m[2]);if(k&&v!==null)out[k]=v;}return out;
+  }
+  budgetFunds(text){
+    const raw=String(text||'');
+    const list=[
+      /\b(?:monthly\s+)?(?:budget|income|take[- ]?home(?: pay)?|paycheck|available (?:money|funds))\s*(?:is\s+now|is|of|:|=|amounts? to|comes? to|now|for|at)?\s*\$\s*([\d,]+(?:\.\d{1,2})?)/i,
+      /\b(?:have|receive|earn|make|bring home)\s+\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:each|per|a)\s*month\b/i,
+      /\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:monthly\s+)?(?:budget|income)\b/i
+    ];for(const re of list){const m=raw.match(re);if(m)return this.budgetAmount(m[1]);}return null;
+  }
+  isBudgetMath(text){
+    const x=this.normalize(text);
+    if(/^(?:please\s+)?(?:write|draft|create|compose)\b[^.!?\n]{0,80}\b(?:story|fictional|fiction|email|letter|advertisement|post)\b/.test(x))return false;
+    return this.budgetFunds(text)!==null&&Object.keys(this.budgetExpenses(text)).length>=2
+     &&/\b(?:left|remaining|remainder|balance|over budget|under budget|within budget|afford|shortfall|surplus|how much|calculate|add up|show the math|budget)\b/.test(x)
+     &&/\b(?:monthly|month|expenses?|spending|rent|utilities|budget)\b/.test(x);
+  }
+  budgetAnswer(){
+    const c=this.s.monthlyBudgetCalc;if(!c)return null;
+    const fmt=n=>this.budgetPrice(n),items=Object.entries(c.items);
+    if(c.funds===null)return{say:'I need the monthly income or budget to calculate the remainder. I cannot invent it.',choices:['Provide monthly income','Provide budget amount']};
+    if(!items.length)return{say:'I need expenses to subtract from '+fmt(c.funds)+'; I cannot guess what the bills cost.',choices:['Provide expenses','Explain the method']};
+    const total=Math.round(items.reduce((sum,[,v])=>sum+v,0)*100)/100,remain=Math.round((c.funds-total)*100)/100;
+    let answer='Using your stated monthly budget of '+fmt(c.funds)+': '+items.map(([k,v])=>k+': '+fmt(v)).join('; ')+'. Total expenses: '+items.map(([,v])=>fmt(v)).join(' + ')+' = '+fmt(total)+'. ';
+    if(remain>=0)answer+='Money remaining: '+fmt(c.funds)+' − '+fmt(total)+' = '+fmt(remain)+'. That is '+fmt(remain)+' within the stated budget.';
+    else answer+='Budget shortfall: '+fmt(total)+' − '+fmt(c.funds)+' = '+fmt(-remain)+'. You would be '+fmt(-remain)+' over the stated budget.';
+    return{say:answer+' These calculations use only the figures you provided, not unstated bills, savings goals, taxes, or fees.',choices:['Add an unexpected expense','Reduce grocery spending','Update my rent']};
+  }
+  budgetBegin(text){
+    const funds=this.budgetFunds(text),items=this.budgetExpenses(text);
+    this.clearContext();this.s.category='everyday';this.s.intent='monthlyBudget';this.s.stage='monthlyBudgetMath';this.s.topic='budget arithmetic';this.s.monthlyBudgetCalc={funds,items};
+    return this.budgetAnswer();
+  }
+  budgetContinue(text){
+    if(this.s.stage!=='monthlyBudgetMath'||!this.s.monthlyBudgetCalc)return null;
+    const raw=String(text||''),x=this.normalize(raw),c=this.s.monthlyBudgetCalc;
+    if(/\b(?:dinner|recipe|cereal|box a|box b|jacket|discount|advertisement|phishing|password|water contamination|appointment|reminder|doctor|email)\b/.test(x)
+       &&!/\b(?:budget|expense|rent|groceries|spending|monthly|income)\b/.test(x))return null;
+    if(!/\b(?:budget|expense|spending|rent|groceries|grocery|utilities|transportation|insurance|phone|internet|income|monthly|money|left|balance|surplus|shortfall|afford|remaining|over|under|cost|bill|save|cut|reduce|add|increase|decrease|now|actually)\b/.test(x))return null;
+    if(this.isBudgetMath(raw)&&/\b(?:new budget|different budget|start over|separate scenario|new scenario)\b/.test(x))return this.budgetBegin(raw);
+    let changed=false;
+    const top=this.budgetFunds(raw);
+    if(top!==null&&/\b(?:budget|income|take[- ]?home|paycheck|monthly)\b/.test(x)){c.funds=top;changed=true;}
+    const listed=this.budgetExpenses(raw),keys=Object.keys(listed);
+    if(keys.length){for(const k of keys)c.items[k]=listed[k];changed=true;}
+    const rx=/\b(?:additional|extra|another|unexpected|new)\s*(?:\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:(?:unexpected|extra|additional|new)\s+)?(?:expense|bill|cost|charge)|(?:(?:unexpected|extra|new)\s+)?(?:expense|bill|cost|charge)\s*(?:of|for|is|:)?\s*\$\s*([\d,]+(?:\.\d{1,2})?))/i;
+    const extra=raw.match(rx);
+    if(extra&&!keys.length){
+      const amount=this.budgetAmount(extra[1]||extra[2]);if(amount!==null){c.items.other=Math.round(((c.items.other||0)+amount)*100)/100;changed=true;}
+    }
+    const adj=raw.match(/\b(reduce|reduced|cut|lower|lowered|decrease|decreased|trim|trimmed|increase|increased|raise|raised)\s+(?:(?:my|the|our)\s+)?([a-z][a-z -]{1,30}?)\s+(?:spending|expense|expenses|costs?|bill|budget)?\s*by\s*\$\s*([\d,]+(?:\.\d{1,2})?)/i);
+    if(adj){const k=this.budgetKey(adj[2]),n=this.budgetAmount(adj[3]);if(k&&n!==null&&Object.hasOwn(c.items,k)){
+      const sign=/^(?:increase|increased|raise|raised)$/i.test(adj[1])?1:-1,next=c.items[k]+sign*n;
+      if(next<0)return{say:'That reduction is larger than the '+k+' expense currently recorded ('+this.budgetPrice(c.items[k])+'). I cannot make it negative. Please supply a revised amount.',choices:['Provide new amount','Keep old amount']};
+      c.items[k]=Math.round(next*100)/100;changed=true;}}
+    const went=raw.match(/\b([a-z][a-z -]{0,25}?)\s+(?:went|goes)\s+(up|down)\s+(?:by\s+)?\$\s*([\d,]+(?:\.\d{1,2})?)/i);
+    if(went){const k=this.budgetKey(went[1]),n=this.budgetAmount(went[3]);if(k&&n!==null&&Object.hasOwn(c.items,k)){
+      const next=c.items[k]+(went[2].toLowerCase()==='up'?n:-n);
+      if(next>=0){c.items[k]=Math.round(next*100)/100;changed=true;}}}
+    if(changed||/\b(?:what|how much|balance|left|remaining|calculate|recalculate|total|within|over|under|afford)\b/.test(x))return this.budgetAnswer();
+    return null;
+  }
   unitValueNumber(v){const n=Number(String(v||'').replace(/[$,]/g,''));return Number.isFinite(n)&&n>=0&&n<=1000000?n:null;}
   unitNormalize(u){
     u=this.normalize(u).replace(/\.+$/,'');
@@ -3142,6 +3215,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    if(this.s.stage==='monthlyBudgetMath'){const b=this.budgetContinue(text);if(b)return b;}
+    if(this.isBudgetMath(text))return this.budgetBegin(text);
     if(this.s.stage==='unitPriceComparison'){const u=this.unitPriceFollowup(text);if(u)return u;}
     if(this.isUnitPriceQuestion(text))return this.unitPriceStart(text);
     if(this.s.stage==='discountReview'){const r=this.discountContinue(text);if(r)return r;}
