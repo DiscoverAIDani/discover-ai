@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: phishing-incident-recall-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: phishing-incident-recall-v2</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2452,7 +2452,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       if(clickYes)state.clicked=true;
       if(enterYes)state.entered=true;
       if(clickNo)state.clicked=false;
-      if(enterNo)state.entered=false;
+      if(enterNo||/\b(?:did not|didn't|never)\s+(?:click|tap|open)\b[^.!?]{0,70}\b(?:or|and)\s+(?:enter|type|submit|share|give)\b/.test(low))state.entered=false;
+      if(/\b(?:did not|didn't|never)\s+(?:enter|type|submit|share|give)\b[^.!?]{0,70}\b(?:or|and)\s+(?:click|tap|open)\b/.test(low))state.clicked=false;
       if(/\b(?:i|we)\s+only\s+(?:clicked|tapped|opened)\b/.test(low))state.entered=false;
     }
     if(state.clicked===true&&state.entered===true)return{say:'You told me you already clicked the suspicious bank link AND entered your banking password. You did not say you only clicked it. That is why I advised treating the password as potentially exposed.',choices:['Review security steps','Correct a detail']};
@@ -2462,7 +2463,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(state.clicked===true)return{say:'You said you clicked the suspicious link. I cannot confirm from your previous statements that you entered your password.',choices:['Review next steps','Correct a detail']};
     if(state.entered===false)return{say:'You said you did not enter the banking password. I cannot confirm whether you clicked the link.',choices:['Review next steps','Correct a detail']};
     if(state.clicked===false)return{say:'You said you did not click the suspicious link. I cannot confirm whether you entered your password.',choices:['Review next steps','Correct a detail']};
-    return{say:'I cannot confirm either action from your earlier messages in this game conversation. You described a suspicious bank text, but that does not mean you clicked or entered a password. A new game does not retain a previous game’s messages.',choices:['I clicked but entered nothing','I entered my password','Review safety steps']};
+    const priorBankReport=history.some(t=>/\b(?:bank|banking|phishing|suspicious|fraud)\b/.test(this.normalize(t)));
+    return{say:'I cannot confirm either action from your earlier messages in this game conversation. '+(priorBankReport?'You described a suspicious bank message, but that does not mean you clicked or entered a password. ':'There is no earlier bank incident report to verify in this conversation. ')+'A new game does not retain a previous game’s messages.',choices:['I clicked but entered nothing','I entered my password','Review safety steps']};
   }
   isCredentialReuseQuestion(text){
     const low=this.normalize(text);
