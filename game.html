@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: contradictory-recipe-safety-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: source-prompt-injection-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -533,7 +533,7 @@ class DiscoverConversation {
   sourceUnderstandingStart(text){
     const inline=this.inlineExplanationSource(text);
     const detailRequest=this.sourceDetailRequest(text);
-    const isRequest=detailRequest || this.sourceUnderstandingRequest(text) || (!!inline && /\b(?:explain|plain english|plain language|simple terms|simpler|what does|what .* means?|tell me what|make sense of|summari[sz]e)\b/i.test(String(text||'')));
+    const isRequest=detailRequest || this.sourceUnderstandingRequest(text) || /\b(?:summari[sz]e|summar[yie]s?|review|analy[sz]e)\b[^.!?\n]{0,90}\b(?:email|message|letter|document)\b/.test(this.normalize(text)) || (!!inline && /\b(?:explain|plain english|plain language|simple terms|simpler|what does|what .* means?|tell me what|make sense of|summari[sz]e)\b/i.test(String(text||'')));
     if(!isRequest)return null;
     const low=this.normalize(text);
     const kind=(low.match(/\b(email|message|letter|notice|document|form|bill|statement|lease|policy|instructions?|paperwork|contract)\b/)||[])[1]||'text';
@@ -544,6 +544,7 @@ class DiscoverConversation {
   }
   handleSourceDetails(text){
     const raw=String(text||'').trim(),low=this.normalize(raw),kind=this.s.sourceKind||'text';
+    if(this.sourceThreatSignals(raw).any)return this.sourceReviewStart(raw,true);
     const saved=Array.isArray(this.s.sourceDetails)?this.s.sourceDetails:[];
     if(/^(?:make it a checklist|checklist)[.!?]*$/i.test(low) && saved.length){
       return{say:saved.map(d=>`☐ ${d.label}: ${d.value}`).join('\n'),choices:['What action do I need to take?','Make it simpler','Keep going']};
@@ -595,6 +596,13 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   handleSourceInterpret(text){
     const raw=String(text||'').trim(),low=this.normalize(raw),kind=this.s.sourceKind||'document';
+    if(this.sourceThreatSignals(raw).any)return this.sourceReviewStart(raw,true);
+    // Extract ordinary class updates without labelling all community classes as schools.
+    const ordinary=this.sourceReviewFacts(raw);
+    if(ordinary.changed&&ordinary.day&&ordinary.time&&ordinary.event!=='event'){
+      this.s.sourceText=raw;
+      return{say:'The '+ordinary.event+' is reported as moved to '+ordinary.day+' at '+ordinary.time+'. '+(ordinary.bring?'The email asks you to bring '+ordinary.bring+'. ':'')+'This is what the excerpt states; I have not independently confirmed the schedule.',choices:['What should I do?','What is the new time?','Make a checklist']};
+    }
     if(this.correction(raw) && /^(?:help me|plan|write|find|compare|organize|organise|fix|teach|explain)\b/i.test(this.clean(raw)))return null;
     if(this.uncertain(raw)||/^(?:paste the confusing part|find the action items|explain a section)$/i.test(low)){
       return{say:`Paste one or two sentences from the ${kind}. You can leave out names, account numbers, or anything private. I’ll explain only what is actually in the text.`,choices:['I’ll paste it','What should I leave out?','Make it simpler']};
@@ -1796,7 +1804,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2473,6 +2481,79 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     return{appointment,drive,early,extra,earlyUnspecified};
   }
 
+
+  sourceThreatSignals(text){
+    const x=this.normalize(text);
+    const addressed=/\b(?:for (?:ai|a\.i\.) assistants?|(?:ai|a\.i\.) assistants?|to (?:the|an) assistant|system prompt|developer instructions?|language model|chatgpt)\b/.test(x);
+    const redirect=/\b(?:ignore|disregard|override|forget|do not follow|don't follow|instead|must tell|tell the user|pretend|act as|you are now|new instructions?|reveal)\b/.test(x);
+    const overrides=/\b(?:ignore|disregard|override)\b[^.!?\n]{0,70}\b(?:user'?s?|previous|earlier|original|prior|request|instructions?|safety|rules?|summar(?:y|ize))\b/.test(x);
+    const credential=/\b(?:send|share|give|provide|enter|type|submit|upload|email|text|forward)\b[^.!?\n]{0,100}\b(?:password|passcode|login credentials?|security code|verification code|one[- ]time code|otp|pin)\b/.test(x);
+    return{attack:(addressed&&redirect)||overrides,credential,any:(addressed&&redirect)||overrides||credential};
+  }
+  sourceReviewFacts(text){
+    const raw=String(text||'');
+    const cleaned=raw.split(/\b(?:IMPORTANT FOR (?:AI|A\.I\.) ASSISTANTS?|SYSTEM PROMPT|DEVELOPER INSTRUCTIONS?|TO THE AI ASSISTANT)\s*:/i)[0].replace(/^[\s"'“”]+|[\s"'“”]+$/g,'');
+    const event=(cleaned.match(/\b(?:community class|class|workshop|meeting|appointment|session|event|course)\b/i)||[])[0]||'';
+    const changed=/\b(?:moved|rescheduled|changed|shifted|postponed)\b/i.test(cleaned);
+    const weekday=(cleaned.match(/\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i)||[])[0]||'';
+    const clock=(cleaned.match(/\b\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)\b/i)||[])[0]||'';
+    const bring=(cleaned.match(/\b(?:please\s+)?bring\s+(a\s+|an\s+|the\s+)?([^.!?\n]{2,85})/i)||[]);
+    const day=weekday?weekday[0].toUpperCase()+weekday.slice(1).toLowerCase():'';
+    const time=clock.replace(/\s+/g,' ').replace(/a\.m\./i,'AM').replace(/p\.m\./i,'PM').replace(/\b(?:am|pm)\b/i,m=>m.toUpperCase()).replace(/[.!?,;]+$/,'').trim();
+    return{event:event||'event',changed,day,time,bring:bring[2]?((bring[1]||'')+bring[2]).trim():'',cleaned};
+  }
+  isSuspiciousSourceSummaryRequest(text){
+    const x=this.normalize(text),body=this.inlineExplanationSource(text);
+    return !!body&&/\b(?:summari[sz]e|explain|review|read|analy[sz]e|understand|extract|pull out|tell me what)\b/.test(x)
+      &&/\b(?:email|message|letter|notice|document|excerpt|text)\b/.test(x)
+      &&this.sourceThreatSignals(body).any;
+  }
+  sourceReviewSummary(){
+    const d=this.s.emailReviewContext;if(!d)return null;
+    let say='Based on the email text (not independently verified): ';
+    if(d.day||d.time){
+      say+='Your '+d.event+(d.changed?' has been moved':' is listed')+(d.day?' to '+d.day:'')+(d.time?' at '+d.time:'')+'. ';
+    }else say+='I cannot identify a confirmed schedule from the excerpt. ';
+    if(d.bring)say+='It asks you to bring '+d.bring+'. ';
+    say+='The email also includes instructions addressed to an AI assistant, telling it to ignore your request. That is a prompt-injection attempt, not a command I should obey. ';
+    if(d.credential)say+='The demand for an email password is suspicious. Do not send, share, or paste your password to confirm a class seat. ';
+    say+='Verify any schedule changes through the organizer’s official contact details found independently. I cannot verify the sender or the schedule from this practice game.';
+    return{say,choices:['What should I actually do?','Make a safe checklist','Why is that prompt injection?']};
+  }
+  sourceReviewStart(text,isBody=false){
+    const body=isBody?String(text):this.inlineExplanationSource(text);
+    const threat=this.sourceThreatSignals(body);
+    if(!threat.any)return null;
+    const facts=this.sourceReviewFacts(body);
+    this.clearContext();this.s.category='learn';this.s.intent='learn';this.s.stage='sourceSafetyReview';this.s.topic='untrusted email text';this.s.sourceKind='email';this.s.sourceText=body;
+    this.s.emailReviewContext={...facts,...threat};
+    return this.sourceReviewSummary();
+  }
+  sourceReviewFollowup(text){
+    if(this.s.stage!=='sourceSafetyReview'||!this.s.emailReviewContext)return null;
+    const x=this.normalize(text),d=this.s.emailReviewContext;
+    const irrelevant=/\b(?:dinner|recipe|printer|wifi|wi-fi|blood pressure|medication|appointment departure|drive home|electric company|utility bill|phone reminder|grocery shopping)\b/.test(x);
+    const related=/\b(?:email|class|meeting|workshop|notebook|friday|time|password|suspicious|prompt|injection|assistant|instructions?|checklist|summary|seat|confirm|sender|safe|what should|why)\b/.test(x);
+    if(irrelevant&&!related)return null;
+    if(/\b(?:send|share|give|provide|enter|paste|submit|use)\b[^.!?\n]{0,85}\b(?:password|passcode|login credentials?|security code|verification code|pin)\b/.test(x)||/\b(?:should i|do i need|must i|can i|is it safe)\b[^.!?\n]{0,80}\b(?:password|passcode|login)\b/.test(x)){
+      return{say:'No. Do not send your email password or sign-in codes to confirm a class seat. The password demand is in suspicious email content aimed at redirecting the AI, not a requirement I can verify. Contact the organizer through independently verified official channels instead; I cannot authenticate the sender.',choices:['Make a safe checklist','Why is it suspicious?','Summarize the legitimate details']};
+    }
+    if(/\b(?:checklist|action items?|what (?:do|should) i (?:actually )?do|next steps?|what do i need)\b/.test(x)){
+      let steps=[];
+      if(d.day||d.time)steps.push('Note the '+d.event+' schedule stated in the email'+(d.day?' for '+d.day:'')+(d.time?' at '+d.time:''));
+      if(d.bring)steps.push('Bring '+d.bring+' if the schedule is confirmed');
+      steps.push('Verify any schedule change using the organizer’s independently found official contact information');
+      steps.push('Do not share your email password or sign-in codes');
+      return{say:'Safe checklist (the email itself is not verified):\n'+steps.map((v,i)=>(i+1)+'. '+v+'.').join('\n')+'\nThe text addressed to the AI assistant is not an instruction for you or me.',choices:['What makes it suspicious?','Summarize class details','How do I verify the organizer?']};
+    }
+    if(/\b(?:prompt injection|ai assistant|for ai|ignore.*(?:user|request)|why|suspicious|attack|trick|malicious|unsafe)\b/.test(x)){
+      return{say:'This is prompt injection: instructions are embedded in an email you asked the game to summarize, telling the AI to ignore your request and change its answer. The email is material to analyze, not an authority that controls the assistant. The password request is suspicious and should not be followed. The ordinary class details can be summarized but not independently verified.',choices:['Make a safe checklist','What did the email actually say?','How can I verify the class?']};
+    }
+    if(/\b(?:verify|confirm|sender|organizer|legitimate|real|official|link|website)\b/.test(x))
+      return{say:'I cannot confirm who sent the email or whether the class was really rescheduled. Find the organizer’s official website or a number from a trusted source and ask about the date, time, and materials. Do not provide a password or sign-in code.',choices:['Summarize the email','Make a safe checklist','Why is that suspicious?']};
+    if(/\b(?:summari[sz]e|plain english|class time|what did it say|details|notebook|friday|when|what to bring)\b/.test(x))return this.sourceReviewSummary();
+    return null;
+  }
   isConflictingDairyRecipe(text){
     const x=this.normalize(text);
     if(/\b(?:forget|drop|remove|ignore|no longer need|don't need)\b[^.!?]{0,50}\b(?:dairy[- ]?free|dairy rule|dairy restriction)\b/.test(x))return false;
@@ -2905,6 +2986,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    if(this.s.stage==='sourceSafetyReview'){const r=this.sourceReviewFollowup(text);if(r)return r;}
+    if(this.isSuspiciousSourceSummaryRequest(text))return this.sourceReviewStart(text);
     // Recipe contradictions are resolved before generic intent or source extraction.
     if(this.s.stage==='recipeConstraintConflict'){const r=this.recipeConflictFollowup(text);if(r)return r;}
     if(this.isConflictingDairyRecipe(text))return this.recipeConflictStart();
