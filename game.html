@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: summary-priority-safeguard-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: invitation-revision-context-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -675,13 +675,33 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     return '';
   }
 
+
+  workshopInvitationDetails(raw){
+    const low=this.normalize(raw);
+    if(!/\b(?:workshop|class|session|seminar|training)\b/.test(low))return null;
+    const months='January|February|March|April|May|June|July|August|September|October|November|December';
+    const date=(raw.match(new RegExp('\\b(?:'+months+')\\s+\\d{1,2}(?:st|nd|rd|th)?(?:,?\\s+\\d{4})?\\b','i'))||[])[0]||(raw.match(/\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/i)||[])[0]||'';
+    const time=(raw.match(/\b(?:from\s+)?\d{1,2}(?::\d{2})?\s*(?:am|pm)?\s*(?:to|–|—|-)\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/i)||[])[0]||(raw.match(/\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/i)||[])[0]||'';
+    const places=[...raw.matchAll(/\bat\s+([A-Za-z][^.!?;,]{2,80})/gi)].map(x=>x[1].trim()).filter(x=>!/^(?:\d|night\b|home\b)/i.test(x));
+    const place=places.length?places[places.length-1].replace(/\s+(?:and|but|because)\s+.*$/i,'').trim():'';
+    const title=/\bAI\b/i.test(raw)?'AI workshop':/\bworkshop\b/i.test(raw)?'workshop':(/\b(?:class|session|seminar|training)\b/i.exec(raw)||[])[0]||'workshop';
+    return{date,time,location:place,title,free:/\bfree\b/.test(low),beginner:/\b(?:beginner|beginners|first timers|first-time|new to ai)\b/.test(low),noExperience:/\b(?:no (?:prior )?(?:ai )?experience|don't need (?:ai )?experience)\b/.test(low),concise:false,casual:false};
+  }
+  renderWorkshopInvitation(f){
+    const kind=(f.free?'free ':'')+(f.beginner?'beginner-friendly ':'')+(f.title||'workshop');
+    const when=(f.date?' on '+f.date:'')+(f.time?', '+f.time:'');
+    const where=f.location?' at '+f.location:'';
+    return f.concise||f.casual?'Hey! There’s a '+kind+when+where+'.'+(f.noExperience?' No experience needed.':'')+' Want to come?':
+      'Hi! I wanted to invite you to a '+kind+when+where+'.'+(f.noExperience?' No experience needed.':'')+' I’d love for you to come!';
+  }
+
   communicationDraft(text){
     const raw=String(text||'').trim(),low=this.normalize(raw);
     if(!/\b(?:write|draft|compose|help me write|help me draft)\b/.test(low))return null;
     if(/\b(?:resume|cover letter|job application)\b/.test(low))return null;
     if(/\b(?:rewrite|revise|edit)\b/.test(low)&&!/\b(?:birthday|thank|apolog|invite|invitation|congrat|landlord|boss|neighbor|friend|sister|brother|mom|dad|post)\b/.test(low))return null;
     const relation=(low.match(/\b(?:to|for)\s+(?:my\s+)?(sister|brother|mom|mother|dad|father|friend|neighbor|boss|manager|coworker|co-worker|daughter|son|husband|wife|partner|landlord|tenant|client|customer)\b/)||[])[1]||'';
-    const kind=/\b(?:invite|invitation|potluck|party)\b/.test(low)?'invitation':/\bbirthday\b/.test(low)?'birthday':/\bthank(?:s| you)?\b|\bthank-you\b/.test(low)?'thank-you':/\bapolog(?:y|ize|ise)\b|\bsorry\b/.test(low)?'apology':/\bcongrat(?:s|ulations)\b/.test(low)?'congratulations':/\b(?:facebook|social|instagram|nextdoor)\b.*\bpost\b|\bpost\b.*\b(?:facebook|social|instagram|nextdoor)\b/.test(low)?'social post':/\bemail\b/.test(low)?'email':/\b(?:text|message)\b/.test(low)?'message':/\bnote\b/.test(low)?'note':'draft';
+    const kind=/\b(?:invite|invites?|invited|inviting|invitation|potluck|party)\b/.test(low)?'invitation':/\bbirthday\b/.test(low)?'birthday':/\bthank(?:s| you)?\b|\bthank-you\b/.test(low)?'thank-you':/\bapolog(?:y|ize|ise)\b|\bsorry\b/.test(low)?'apology':/\bcongrat(?:s|ulations)\b/.test(low)?'congratulations':/\b(?:facebook|social|instagram|nextdoor)\b.*\bpost\b|\bpost\b.*\b(?:facebook|social|instagram|nextdoor)\b/.test(low)?'social post':/\bemail\b/.test(low)?'email':/\b(?:text|message)\b/.test(low)?'message':/\bnote\b/.test(low)?'note':'draft';
     this.s.category='create';this.s.intent='create';this.s.taskType='create';this.s.stage='createPlan';this.s.createKind=kind;this.s.createRecipient=relation;this.s.topic=kind==='draft'?'your draft':`${kind}${relation?` to your ${relation}`:''}`;this.updateUniversalMemory(raw);
     const short=/\b(?:short|brief|quick|concise)\b/.test(low), warm=/\b(?:warm|friendly|kind|heartfelt)\b/.test(low), funny=/\b(?:funny|playful|humor|humorous)\b/.test(low), professional=/\b(?:professional|polished|work)\b/.test(low), casual=/\b(?:casual|not too formal|not stiff|less formal)\b/.test(low), restrained=/\b(?:not too mushy|not mushy|not too sentimental|less sentimental|not sappy)\b/.test(low);
     let draft='';
@@ -699,9 +719,15 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       const cleanReason=reason.replace(/\btheir\s+call\b/i,'your call').replace(/\btheir\s+/i,'your ');
       draft=`I’m sorry about ${cleanReason}. I should have handled that better, and I didn’t want to leave it unacknowledged. I hope we’re okay.`;
     } else if(kind==='invitation'){
+      const workshop=this.workshopInvitationDetails(raw);
+      if(workshop){
+        workshop.concise=short;workshop.casual=casual;this.s.invitationFacts=workshop;
+        draft=this.renderWorkshopInvitation(workshop);
+      }else{
       const when=(raw.match(/\b(?:on\s+)?((?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:\s+at\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)?)?|\d{1,2}(?::\d{2})?\s*(?:am|pm))/i)||[])[1]||'[day/time]';
       const event=/potluck/.test(low)?'potluck':/birthday/.test(low)?'birthday get-together':'get-together';
       draft=`Hi! I’m having a ${event} ${when==='[day/time]'?'on [day] at [time]':`on ${when}`} and would love for you to come. Let me know if you can make it!`;
+      }
     } else if(kind==='congratulations'){
       draft=`Congratulations! That’s such great news, and I’m really happy for you. You worked hard for this—hope you get a chance to celebrate.`;
     } else if(kind==='social post'){
@@ -816,10 +842,22 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   reviseCommunication(text){
     if(!this.s.draftText)return null;
     const low=this.normalize(text),kind=this.s.createKind||'',recipient=this.s.createRecipient||'';
-    if(!/\b(?:shorter|warmer|friendlier|funnier|more playful|more casual|less formal|more professional|less mushy|less sentimental|more personal|personal detail|add a detail|add another detail|add that|include that|mention that|change it|make it|instead|for my|for a)\b/.test(low))return null;
+    if(!/\b(?:shorter|warmer|friendlier|funnier|more playful|more casual|less formal|more professional|less mushy|less sentimental|more personal|personal detail|add a detail|add another detail|add that|include that|mention that|change it|make it|instead|for my|for a)\b/.test(low)
+       &&!(kind==='invitation'&&this.s.invitationFacts&&/\b(?:mention|include|add|beginner|no experience|no prior experience)\b/.test(low)))return null;
     const newRel=(low.match(/\b(?:for|to)\s+(?:my\s+)?(sister|brother|mom|mother|dad|father|friend|neighbor|boss|manager|coworker|co-worker|daughter|son|husband|wife|partner|landlord|tenant|client|customer)\b/)||[])[1];
     if(newRel)this.s.createRecipient=newRel;
     let d=this.s.draftText;
+    if(kind==='invitation'&&this.s.invitationFacts){
+      const f=this.s.invitationFacts;
+      if(/\b(?:beginner|beginners|first[- ]timers?|new to ai)\b/.test(low))f.beginner=true;
+      if(/\b(?:no (?:prior )?(?:ai )?experience|don't need (?:ai )?experience|do not need (?:ai )?experience)\b/.test(low))f.noExperience=true;
+      if(/\bfree\b/.test(low))f.free=true;
+      if(/\b(?:shorter|shorten|brief|concise)\b/.test(low))f.concise=true;
+      if(/\b(?:casual|less formal|not stiff)\b/.test(low))f.casual=true;
+      if(/\b(?:warmer|more personal|friendlier)\b/.test(low))f.casual=false;
+      d=this.renderWorkshopInvitation(f);this.s.draftText=d;
+      return{say:'Here’s the revised version:\n\n“'+d+'”',choices:['Make it shorter','Make it warmer','Add another detail']};
+    }
     const asksForDetail=/^(?:add|include)\s+(?:a\s+|another\s+)?(?:personal\s+)?detail[.!?]?$|^(?:make it|make this|make the draft)\s+more personal[.!?]?$/i.test(String(text||'').trim());
     const inlineDetail=(String(text||'').match(/\b(?:add|include|mention)\s+(?:the\s+detail\s+)?(?:that\s+)(.+)$/i)||[])[1]||'';
     if(asksForDetail){
