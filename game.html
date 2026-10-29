@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: invitation-initial-details-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: explicit-topic-switch-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1731,7 +1731,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2384,6 +2384,26 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     if(this.s.stage!=='start' && this.isRecallRequest(x))return this.recallConversation(x);
     const detected=this.detectIntent(x);
+    // Explicit requests to change subjects outrank the previous topic's
+    // continuity rules. Route the new task before saving its facts to memory.
+    const explicitTopicSwitch=/^(?:(?:let'?s|lets|can we|i(?:'d| would)? like to|i want to|please|now|okay|ok)\s+)?(?:switch|change)\s+(?:the\s+)?(?:topics?|subjects?)\b|^(?:let'?s|lets)\s+switch\s+gears\b|^(?:new|different)\s+(?:topic|subject)\b/.test(low);
+    if(this.s.stage!=='start' && explicitTopicSwitch){
+      this.clearContext();
+      if(!detected){
+        this.s.stage='start';this.s.category='open';
+        return{say:'Sure — what would you like help with next?',choices:['Solve a problem','Plan something','Write something','Learn something']};
+      }
+      this.s.category=this.detectCategory(x);this.s.intent=detected;
+      const switchedDirect=this.directAnswer(x,detected);
+      return switchedDirect||this.routeIntent(x,detected);
+    }
+    // Strong, standalone device-failure reports also start a new task.
+    // A drafting command such as "Please add that my printer..." does not.
+    const standaloneDeviceProblem=/^(?:my|the|our)\s+(?:printer|laptop|computer|phone|iphone|tablet|router|tv|television|wifi|wi-fi)\b[^.!?]{0,135}\b(?:keeps?\s+(?:disconnecting|crashing|freezing|dropping)|disconnects?|won't\s+(?:connect|work|print)|cannot\s+(?:connect|work|print)|can't\s+(?:connect|work|print)|is\s+(?:offline|broken|not\s+working))\b/.test(low);
+    if(this.s.stage!=='start' && detected==='problem' && this.s.intent!=='problem' && standaloneDeviceProblem){
+      this.clearContext();this.s.category='problem';this.s.intent='problem';
+      return this.directAnswer(x,'problem')||this.routeIntent(x,'problem');
+    }
     // Pronouns such as 'the risks' refer to the active comparison, not a new lesson.
     if(this.s.intent==='compare'&&this.s.decisionContext&&detected!=='compare'&&
        /\b(?:the|these|those|our|this|my)\s+(?:risks?|downsides?|trade[- ]offs?|warrant(?:y|ies)|costs?|comparison|repair|battery|laptop)\b/.test(low)){
