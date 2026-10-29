@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: appointment-departure-calculator-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: contradictory-recipe-safety-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -526,6 +526,7 @@ class DiscoverConversation {
   }
   sourceDetailRequest(text){
     const low=this.normalize(text);
+    if(/\b(?:recipe|dinner|meal)\b/.test(low)&&/\b(?:give me|make|create|cook|plan)\b/.test(low)&&!/\b(?:extract|pull out|document|notice|letter|form|bill|message|email)\b/.test(low))return false;
     return /\b(?:pull out|extract|list|find|identify|show me|give me)\b[\s\S]{0,55}\b(?:important|key|main|useful)?\s*(?:details?|information|info|dates?|times?|deadlines?|action items?|requirements?|things to bring)\b/.test(low)
       || /\b(?:what|which)\s+(?:are|is)\s+(?:the\s+)?(?:important|key|main)\s+(?:details?|information|action items?)\b/.test(low);
   }
@@ -1795,7 +1796,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2471,6 +2472,65 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const earlyUnspecified=/\b(?:arrive|be there|check in)\b[^.!?\n]{0,45}?\bearly\b/.test(x)&&early===null;
     return{appointment,drive,early,extra,earlyUnspecified};
   }
+
+  isConflictingDairyRecipe(text){
+    const x=this.normalize(text);
+    if(/\b(?:forget|drop|remove|ignore|no longer need|don't need)\b[^.!?]{0,50}\b(?:dairy[- ]?free|dairy rule|dairy restriction)\b/.test(x))return false;
+    const dairyFree=/\b(?:dairy[- ]?free|no dairy|without dairy|free of dairy|avoid(?:ing)? dairy|vegan)\b/.test(x);
+    const recipe=/\b(?:recipe|dinner|meal|dish|cook|make|prepare|quesadilla|pasta|pizza)\b/.test(x);
+    const animalCheese=/\b(?:regular|real|ordinary|traditional|cow'?s?[- ]milk|dairy|milk[- ]based)\s+(?:(?:cow'?s?[- ]milk)\s+)?(?:cheese|cheddar|mozzarella|parmesan|gouda)\b|\b(?:cheese|cheddar|mozzarella|parmesan|gouda)\s+(?:made (?:from|with)|from)\s+(?:cow'?s?[- ]milk|dairy)\b/.test(x);
+    const mustInclude=/\b(?:must|has to|have to|requires?|absolutely|insist|cannot omit|can't omit|do not omit|don't omit|include|includes?|contain|containing|with|add|use|using|keep|need)\b[^.!?]{0,95}\b(?:cheese|cheddar|mozzarella|parmesan|gouda)\b/.test(x);
+    const excluded=/\b(?:do not|don't|no|without|avoid|exclude|never|must not|cannot|can't)\s+(?:use |add |include |contain |have |any |the )?(?:(?:regular|cow'?s?[- ]milk|dairy)\s+)?(?:cheese|cheddar|mozzarella|parmesan|gouda)\b/.test(x);
+    return dairyFree&&recipe&&animalCheese&&mustInclude&&!excluded;
+  }
+  isStandaloneDairyFreeRecipe(text){
+    const x=this.normalize(text);
+    if(!/\b(?:dairy[- ]?free|no dairy|without dairy|vegan)\b/.test(x))return false;
+    if(!/\b(?:recipe|dinner|meal|dish)\b/.test(x)||!/\b(?:need|give|make|suggest|want|plan|cook|create)\b/.test(x))return false;
+    if(this.multiMealCount(text)>1)return false;
+    return !this.isConflictingDairyRecipe(text);
+  }
+  recipeConflictMessage(){
+    return{say:'These requirements conflict: a completely dairy-free recipe cannot include regular cow’s-milk cheese, because that cheese is made from dairy. No recipe can honestly satisfy both as written, even if you ask me not to substitute or ask questions. I will not label a cheese-containing dish dairy-free. If dairy-free matters most, choose a bean-and-vegetable rice bowl without cheese or other dairy; this would break the regular-cheese rule. If regular cow’s-milk cheese matters most, a cheese-and-vegetable quesadilla is possible, but it is not dairy-free. I will not pretend either option satisfies both requirements.',choices:['Prioritize dairy-free: give me a recipe','Prioritize regular cheese: give me a recipe','Explain why they conflict']};
+  }
+  recipeConflictStart(){
+    this.clearContext();this.s.category='everyday';this.s.intent='dinner';this.s.stage='recipeConstraintConflict';this.s.topic='contradictory recipe requirements';this.s.recipeConflictContext={active:true,requiresDairyFree:true,requiresCowCheese:true};return this.recipeConflictMessage();
+  }
+  dairyFreeRecipeAnswer(plantCheese=false){
+    if(this.s.recipeConflictContext){this.s.recipeConflictContext.requiresDairyFree=true;this.s.recipeConflictContext.requiresCowCheese=false;}
+    const ingredient=plantCheese?'1/3 cup verified dairy-free plant-based cheese, ':'';
+    const topping=plantCheese?'Top with the plant-based cheese after heating. ':'';
+    return{say:'Dairy-free recipe — bean-and-vegetable rice bowl. Ingredients: 1 cup dry rice, 1 can drained beans, 1 chopped tomato, 1 bell pepper or other vegetable, '+ingredient+'1 tablespoon olive oil, and salt, pepper, and cumin. Steps: (1) Cook the rice following its package directions. (2) Sauté the chopped vegetables in oil until tender. (3) Stir in the beans and spices and heat through. (4) Serve the beans and vegetables over rice. '+topping+'Do not add regular cow’s-milk cheese, butter, or other dairy ingredients. This satisfies dairy-free but not the original requirement to include regular cow’s-milk cheese. Check packaged ingredients for milk and possible cross-contact if an allergy is involved.',choices:['Make it faster','Give me a shopping list','What if I want cheese flavor?']};
+  }
+  dairyCheeseRecipeAnswer(){
+    if(this.s.recipeConflictContext){this.s.recipeConflictContext.requiresDairyFree=false;this.s.recipeConflictContext.requiresCowCheese=true;}
+    return{say:'Regular-cheese recipe — vegetable quesadilla. Ingredients: two flour tortillas, 1/2 cup regular cow’s-milk cheese such as cheddar, 1/2 cup cooked peppers or spinach, and a little oil. Steps: (1) Heat a skillet on medium. (2) Place a tortilla in the skillet, add cooked vegetables and cheese, and cover with the second tortilla. (3) Cook until lightly golden, flip carefully, and cook until the cheese melts. (4) Cut and serve. This dish contains dairy and cannot be described as dairy-free. Choosing regular cheese means dropping the dairy-free requirement.',choices:['Can you give me a dairy-free version instead?','What is the difference between dairy-free and lactose-free?']};
+  }
+  recipeConflictFollowup(text){
+    if(this.s.stage!=='recipeConstraintConflict'||!this.s.recipeConflictContext)return null;
+    const x=this.normalize(text);
+    const unrelated=/\b(?:phone reminder|alarm|electric company|utility bill|bill payment|password|phishing|blood pressure|medication|appointment|drive|driving|water contamination|birthday|invitation|printer|wifi|wi-fi|website)\b/.test(x);
+    if(unrelated&&!/\b(?:dairy|cheese|recipe|milk|dinner|meal)\b/.test(x))return null;
+    const cheeseChoice=/\b(?:forget|drop|remove|ignore)\b[^.!?]{0,65}\b(?:dairy[- ]?free|no dairy|dairy restriction|dairy rule)\b/.test(x)
+      ||(/\b(?:regular (?:cow'?s?[- ]milk )?cheese|cow'?s?[- ]milk cheese|cheddar)\b/.test(x)&&/\b(?:not dairy[- ]?free|dairy is okay|can contain dairy)\b/.test(x))
+      ||/\b(?:prioriti[sz]e regular cheese|regular cheese matters most|go with regular cheese)\b/.test(x);
+    const dairyChoice=/\b(?:dairy[- ]?free|no dairy|without cheese|leave out (?:the )?(?:regular )?cheese|omit (?:the )?(?:regular )?cheese|dairy-free cheese|plant[- ]based cheese)\b/.test(x)
+      &&/\b(?:prioriti[sz]e|matters|priority|most important|keep|stay|okay|ok|fine|instead|give me|recipe|make it|go with|choose|first)\b/.test(x)
+      &&!/\b(?:still must include|must include|regular cow'?s?[- ]milk cheese must)\b/.test(x);
+    const dropCheese=/\b(?:drop|remove|omit|leave out|forget)\b[^.!?]{0,55}\b(?:regular|cow'?s?[- ]milk)\s+cheese\b/.test(x);
+    if(cheeseChoice)return this.dairyCheeseRecipeAnswer();
+    if(dairyChoice||dropCheese)return this.dairyFreeRecipeAnswer(/\b(?:plant[- ]based cheese|dairy-free cheese)\b/.test(x));
+    if(this.isConflictingDairyRecipe(text))return this.recipeConflictStart();
+    if(/\b(?:milk allergy|allergic to (?:dairy|milk)|dairy allergy|severe allergy|anaphyla)\b/.test(x))
+      return{say:'With a milk allergy, regular cow’s-milk cheese contains milk proteins and must not be treated as dairy-free. Avoid it, check ingredient labels and cross-contact risks, and follow medical guidance for your allergy. A bean-and-vegetable rice bowl without cheese is a dairy-free alternative.',choices:['Give me the dairy-free recipe','How do I check labels?']};
+    if(/\b(?:lactose[- ]free|lactose intolerance|lactose)\b/.test(x))
+      return{say:'Lactose-free and dairy-free are not interchangeable. A cow’s-milk cheese can be low in lactose or labeled lactose-free while still containing dairy and milk proteins. Regular cheese is not automatically lactose-free. If your requirement is dairy-free, regular cow’s-milk cheese still does not qualify.',choices:['Prioritize dairy-free: give me a recipe','Prioritize regular cheese: give me a recipe']};
+    if(/\b(?:pretend|just say|label it|call it|claim|insist|do it anyway|make it work|somehow|both requirements|both rules|both constraints|must include|not substitut|don't substitute|do not substitute|no questions)\b/.test(x))return this.recipeConflictMessage();
+    if(/\b(?:why|explain|how|conflict|contradict|dairy[- ]?free|what is wrong|is that possible)\b/.test(x))
+      return{say:'Regular cow’s-milk cheese is made from milk, so it is dairy. Dairy-free means excluding milk-based ingredients. Including that cheese and requiring absolutely no dairy are mutually exclusive conditions; changing the wording cannot make the ingredient dairy-free. I can make a dairy-free meal or one with regular cheese, but not one that meets both conditions.',choices:['Give me a dairy-free recipe','Give me a regular-cheese recipe']};
+    if(/\b(?:recipe|dinner|meal|what should i make|suggest|give me an option)\b/.test(x))return this.recipeConflictMessage();
+    return null;
+  }
   isDepartureTimeQuestion(text){
     const x=this.normalize(text);
     const event=/\b(?:appointment|meeting|checkup|check-up|class|session)\b/.test(x);
@@ -2844,6 +2904,10 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    // Recipe contradictions are resolved before generic intent or source extraction.
+    if(this.s.stage==='recipeConstraintConflict'){const r=this.recipeConflictFollowup(text);if(r)return r;}
+    if(this.isConflictingDairyRecipe(text))return this.recipeConflictStart();
+    if(this.isStandaloneDairyFreeRecipe(text))return this.dairyFreeRecipeAnswer(/\b(?:plant[- ]based cheese|dairy-free cheese)\b/.test(low));
     if(this.s.stage==='departureCalculation'){const d=this.departureFollowup(text);if(d)return d;}
     if(this.isDepartureTimeQuestion(text))return this.departureStart(text);
     // Never invent amounts or dates from a utility notice this game has not seen.
