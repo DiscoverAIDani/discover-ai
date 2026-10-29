@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: shared-bill-calculator-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: weekly-work-hours-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1804,7 +1804,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2486,6 +2486,90 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
 
 
+
+  workParseTime(text){
+    const m=String(text||'').trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)$/i);
+    if(!m||Number(m[1])<1||Number(m[1])>12||Number(m[2]||0)>59)return null;
+    return ((Number(m[1])%12)+(/^p/i.test(m[3])?12:0))*60+Number(m[2]||0);
+  }
+  workClock(n){n=(n+1440)%1440;const h=Math.floor(n/60),m=n%60;return String(h%12||12)+(m?':'+String(m).padStart(2,'0'):'')+' '+(h>=12?'PM':'AM');}
+  workDays(text){
+    const x=this.normalize(text),days=['monday','tuesday','wednesday','thursday','friday','saturday','sunday'],short=['mon','tue','wed','thu','fri','sat','sun'];
+    const r=x.match(/\b(mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)\s*(?:through|thru|to|-)\s*(mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)\b/);
+    if(r){const a=short.findIndex(k=>r[1].startsWith(k)),b=short.findIndex(k=>r[2].startsWith(k));if(a>=0&&b>=a)return days.slice(a,b+1);}
+    return days.filter((d,i)=>new RegExp('\\b(?:'+d+'|'+short[i]+')\\b').test(x));
+  }
+  workBreak(text){
+    const x=this.normalize(text);
+    if(/\b(?:no unpaid (?:break|lunch)|without an unpaid lunch|paid lunch|paid break)\b/.test(x))return 0;
+    const hour=x.match(/\b(\d+(?:\.\d+)?)\s*(?:hours?|hrs?)\s*(?:of\s+)?(?:unpaid|lunch|meal|break)\b/)||x.match(/\b(?:unpaid|lunch|break)\s*(?:for|of|lasting)?\s*(\d+(?:\.\d+)?)\s*(?:hours?|hrs?)\b/);
+    if(hour)return Number(hour[1])*60;
+    const minutes=x.match(/\b(\d+)\s*(?:minutes?|mins?)\s*(?:of\s+)?(?:unpaid|lunch|break)\b/)||x.match(/\b(?:unpaid|lunch|break)\s*(?:for|of|lasting)?\s*(\d+)\s*(?:minutes?|mins?)\b/);
+    if(minutes)return Number(minutes[1]);
+    if(/\b(?:an?|one)\s+(?:unpaid\s+)?hour\b[^.!?\n]{0,45}\b(?:lunch|break)\b|\b(?:an?|one)\s+hour\s+(?:unpaid|lunch|break)\b/.test(x))return 60;
+    if(/\bhalf\s+(?:an?\s+)?hour\b[^.!?\n]{0,40}\b(?:unpaid|lunch|break)\b/.test(x))return 30;
+    return null;
+  }
+  workRange(text){
+    const t='(\\d{1,2}(?::\\d{2})?\\s*(?:a\\.?m\\.?|p\\.?m\\.?))';
+    const re=new RegExp('\\b(?:from|working from|work from|shift from|work|working|shift)\\s*'+t+'\\s*(?:to|until|through|[-–])\\s*'+t,'i'),m=String(text||'').match(re);
+    if(!m)return null;const a=this.workParseTime(m[1]),b=this.workParseTime(m[2]);return a===null||b===null?null:{start:a,end:b};
+  }
+  workRate(text){
+    const m=String(text||'').match(/\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:per|an?|each|\/)\s*(?:hour|hr)\b/i)||String(text||'').match(/\b(?:hourly\s+(?:rate|pay|wage)|pay(?:ing)?|earn(?:ing)?|make|wage|rate)\s*(?:is|of|at|now|changed to|increased to|:)?\s*\$\s*([\d,]+(?:\.\d{1,2})?)/i);
+    return m?Number(m[1].replace(/,/g,'')):null;
+  }
+  isWorkHoursQuestion(text){
+    const x=this.normalize(text);
+    if(/^(?:please\s+)?(?:write|draft|compose|create)\b[^.!?\n]{0,60}\b(?:story|fiction|email|letter|post)\b/.test(x))return false;
+    return !!this.workRange(text)&&this.workDays(text).length>0&&this.workRate(text)!==null
+      &&/\b(?:weekly|week|gross pay|paid hours|show the math|how many paid hours|how much pay)\b/.test(x)
+      &&/\b(?:work|shift|paid|pay|hourly|job|lunch|break|wage)\b/.test(x);
+  }
+  workMoney(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  workSummary(){
+    const c=this.s.workHoursCalc;if(!c)return null;const pieces=[];let total=0;
+    for(const [day,shift] of Object.entries(c.days)){
+      let span=(shift.end-shift.start+1440)%1440;if(!span)span=1440;
+      if(shift.breakMinutes>span||shift.breakMinutes<0)return{say:'That unpaid break is longer than the shift. Please correct the time before I calculate paid hours.'};
+      const paid=span-shift.breakMinutes;total+=paid;
+      const h=n=>String(Math.round(n*100)/100);
+      pieces.push({detail:day[0].toUpperCase()+day.slice(1)+': '+this.workClock(shift.start)+'–'+this.workClock(shift.end)+' ('+h(span/60)+' elapsed hours) − '+h(shift.breakMinutes/60)+' unpaid break hours = '+h(paid/60)+' paid hours',hour:h(paid/60)});
+    }
+    const hrs=Math.round(total/60*100)/100,money=this.workMoney(c.rate),gross=this.workMoney(hrs*c.rate);
+    return{say:'Based on the fictional schedule: '+pieces.map(p=>p.detail).join('; ')+'. Weekly paid hours: '+pieces.map(p=>p.hour).join(' + ')+' = '+hrs+' hours. Straight-time gross pay at '+money+'/hour: '+hrs+' × '+money+' = '+gross+'. This is base-rate arithmetic, not a prediction of take-home pay. I have not assumed overtime premiums, taxes, deductions, payroll rounding rules, or legal overtime eligibility.',choices:['What if Wednesday ends later?','What if Friday ends earlier?','What if the hourly rate changes?']};
+  }
+  workStart(text){
+    const days=this.workDays(text),range=this.workRange(text),rate=this.workRate(text),breakMinutes=this.workBreak(text);
+    if(!days.length||!range||rate===null)return null;
+    if(breakMinutes===null)return{say:'To calculate paid time accurately I need the length of any unpaid lunch or break. I cannot assume a break length.'};
+    this.clearContext();this.s.stage='workHoursCalculation';this.s.category='everyday';this.s.intent='workHours';this.s.topic='weekly paid hours';
+    this.s.workHoursCalc={days:Object.fromEntries(days.map(day=>[day,{...range,breakMinutes}])),rate};return this.workSummary();
+  }
+  workFollowup(text){
+    const c=this.s.workHoursCalc;if(this.s.stage!=='workHoursCalculation'||!c)return null;
+    const raw=String(text||''),x=this.normalize(raw);
+    if(/\b(?:recipe|dinner|cereal|grocery|restaurant bill|tip|sale price|discount|phishing|password|email|appointment|water contamination|doctor|medication)\b/.test(x)&&!/\b(?:work|shift|pay|hourly|wage|weekly hours)\b/.test(x))return null;
+    if(!/\b(?:work|worked|shift|pay|paid|hourly|wage|hours|lunch|break|weekly|week|wednesday|monday|tuesday|thursday|friday|saturday|sunday|left at|until|finished|instead|actually|per hour|overtime)\b/.test(x))return null;
+    if(this.isWorkHoursQuestion(raw)&&/\b(?:different schedule|new schedule|start over|another job)\b/.test(x))return this.workStart(raw);
+    const weekdays=this.workDays(raw),rate=this.workRate(raw),range=this.workRange(raw);let changed=false;
+    if(rate!==null&&/\b(?:pay|hourly|rate|wage|earn|make)\b/.test(x)){c.rate=rate;changed=true;}
+    if(range){
+      if(weekdays.length!==1)return{say:'Which weekday should use the new shift times? Please name the day so I do not change the wrong one.'};
+      if(c.days[weekdays[0]]){c.days[weekdays[0]].start=range.start;c.days[weekdays[0]].end=range.end;changed=true;}
+    }
+    const t='(\\d{1,2}(?::\\d{2})?\\s*(?:a\\.?m\\.?|p\\.?m\\.?))';
+    const end=raw.match(new RegExp('\\b(?:worked|work|working|stayed|stay|until|ended|ends|finished|finish|clocked out|left)\\b[^.!?\\n]{0,50}?\\b(?:until|at|to)\\s*'+t,'i'))
+      ||raw.match(new RegExp('\\b(?:shift ends?|end(?:ed)? time|clocked out|left at|worked until|finished at)\\s*(?:at|is|now|to)?\\s*'+t,'i'));
+    if(end&&weekdays.length===1&&c.days[weekdays[0]]){const clock=this.workParseTime(end[1]);if(clock!==null){c.days[weekdays[0]].end=clock;changed=true;}}
+    const start=raw.match(new RegExp('\\b(?:started|start|clocked in|came in|arrived)\\s*(?:at|now|to)?\\s*'+t,'i'));
+    if(start&&weekdays.length===1&&c.days[weekdays[0]]){const clock=this.workParseTime(start[1]);if(clock!==null){c.days[weekdays[0]].start=clock;changed=true;}}
+    const rest=this.workBreak(raw);
+    if(rest!==null&&weekdays.length===1&&c.days[weekdays[0]]&&!/\b(?:same|unchanged|still)\s+(?:unpaid\s+)?(?:lunch|break)\b/.test(x)){c.days[weekdays[0]].breakMinutes=rest;changed=true;}
+    if(rest!==null&&/\b(?:every day|all days|each day|every shift|each shift)\b/.test(x)){for(const day of Object.values(c.days))day.breakMinutes=rest;changed=true;}
+    if(changed||/\b(?:how many|how much|what|recalculate|paid hours|gross pay|total|weekly)\b/.test(x))return this.workSummary();
+    return null;
+  }
   sharedBillParse(text){
     const raw=String(text||''),money='\\$\\s*([\\d,]+(?:\\.\\d{1,2})?)',num=x=>Number(String(x).replace(/,/g,''));
     const pats=[new RegExp('\\b(?:restaurant\\s+|dinner\\s+|meal\\s+)?(?:bill|tab|check|total|amount)\\s*(?:is now|was|is|of|comes? to|at|:|=)?\\s*'+money,'i'),new RegExp('\\b(?:spend|spent|owe|paid|pay)\\s*'+money+'\\s*(?:for|on)\\s*(?:dinner|restaurant|lunch|meal|food)','i')];
@@ -3265,6 +3349,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    if(this.s.stage==='workHoursCalculation'){const a=this.workFollowup(text);if(a)return a;}
+    if(this.isWorkHoursQuestion(text))return this.workStart(text);
     if(this.s.stage==='sharedBillMath'){const a=this.sharedBillFollowup(text);if(a)return a;}
     if(this.sharedBillQuestion(text))return this.sharedBillStart(text);
     if(this.s.stage==='monthlyBudgetMath'){const b=this.budgetContinue(text);if(b)return b;}
