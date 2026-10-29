@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: personal-data-privacy-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: water-safety-fact-check-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1795,7 +1795,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2433,6 +2433,40 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
 
 
+
+  isWaterSafetyClaim(text){
+    const x=this.normalize(text);
+    const water=/\b(?:tap water|drinking water|water supply|municipal water|water quality|water contamination|boil[- ]water|water advisory|water (?:is|isn't|was|might be) (?:safe|unsafe|contaminated))\b/.test(x);
+    const safety=/\b(?:safe|unsafe|drink|drinking|contaminat|boil|do not drink|don't drink|advisory|alert|warning|notice|chemical|pollut)\w*/.test(x);
+    const current=/\b(?:today|now|currently|latest|this morning|verify|true|safe|should i|can i|facebook|social media|someone|posted|claims?|says?|rumou?r|alert|notice|advisory)\b/.test(x);
+    const fictional=/^(?:please\s+)?(?:write|draft|create|invent)\s+(?:a\s+)?(?:fictional|fake|example|sample)\b/.test(x);
+    return water&&safety&&current&&!fictional;
+  }
+  startWaterSafety(text){
+    const x=this.normalize(text);
+    this.clearContext();
+    this.s.category='problem';this.s.intent='waterSafety';this.s.stage='waterSafetyAdvice';this.s.topic='tap-water safety verification';this.s.waterSafetyContext={active:true};
+    const social=/\b(?:facebook|social media|someone|posted|rumou?r)\b/.test(x);
+    return{say:'I cannot verify live water-quality alerts in this practice game. I cannot confirm whether your tap water is safe or unsafe today. '+(social?'A Facebook post alone is not reliable evidence of a contamination advisory. ':'A water-safety claim needs confirmation from current official notices. ')+'Look up alerts from the water provider serving your specific address and from your local public health department. You can call the water provider using a number on your bill or its independently verified website. While verifying a credible contamination concern, use sealed bottled water or another confirmed safe source for drinking, food preparation, and brushing teeth. If an official notice is in effect, follow its specific instructions. A boil-water advisory is different from a do-not-drink advisory; boiling does not reliably remove chemical contamination. This simulation has not checked any current notices.',choices:['Where can I check official alerts?','What if it is a boil-water advisory?','What if the contamination is chemical?']};
+  }
+  waterSafetyFollowup(text){
+    if(this.s.stage!=='waterSafetyAdvice'||!this.s.waterSafetyContext)return null;
+    const x=this.normalize(text);
+    if(/^(?:help me|please|can you|i want to|let's)\b/.test(x)&&/\b(?:plan|cook|recipe|dinner|write|draft|invitation|grocery|printer|trip)\b/.test(x)&&!/\b(?:water|contamination|advisory|alert|notice)\b/.test(x))return null;
+    if(/\b(?:no alerts?|no notices?|no advisories|no warnings|nothing listed|doesn't show|does not show)\b/.test(x)&&/\b(?:official|provider|utility|department|website|site)\b/.test(x))
+      return{say:'If your water provider shows no current alert, check whether it is the provider for your exact address and whether the information is up to date. Contact that provider directly through a verified phone number if uncertain. A Facebook claim by itself is not confirmation, and I still cannot verify live conditions.',choices:['How can I confirm my provider?','What if an alert appears?']};
+    if(/\b(?:chemical|chemicals|toxic|lead|pfas|pesticide|boiling remove|do not drink|don't drink)\b/.test(x))
+      return{say:'Boiling does not reliably remove chemical contaminants and can concentrate some of them. If an official do-not-drink notice applies, follow its instructions and use a confirmed safe alternative such as sealed bottled water for drinking and food preparation. Ask the water provider or health department what the hazard is; this practice game cannot verify an incident.',choices:['Where can I find the official notice?','What if I drank the water?']};
+    if(/\b(?:boil[- ]water|boil the water|boiling|boil it|boil my water|boil your water)\b/.test(x))
+      return{say:'A boil-water advisory often concerns germs. If your water provider or local public health department issues one for your address, follow its current treatment instructions and clearance notice. Do not assume boiling fixes chemicals; a do-not-drink notice requires different precautions. I cannot verify whether an advisory exists today.',choices:['What if the issue is chemical?','Where do I check?']};
+    if(/\b(?:already drank|drank it|drank some|drank the water|drank a glass|feel sick|symptoms|vomiting|diarrhea)\b/.test(x))
+      return{say:'Drinking water does not prove an exposure occurred. Check whether an official advisory applies to your address. If you have concerning symptoms, seek guidance from a healthcare professional or local public health department. For a suspected poisoning, contact an official poison-control service. The game cannot diagnose exposure or verify the water quality.',choices:['Where can I check advisories?','What if it is confirmed?']};
+    if(/\b(?:where|how|check|verify|confirm|official|provider|water bill|website|source|facebook|post|rumou?r|public health)\b/.test(x))
+      return{say:'First identify your water utility, usually listed on your bill. Visit its official alerts page directly and check current notices from your local public health department for your specific service area and date. If you cannot find an answer, call the utility using an independently verified number. A social-media post is not proof that an advisory applies to your home.',choices:['What if an advisory is issued?','What if it involves chemicals?']};
+    if(/\b(?:safe|unsafe|drink|water|contaminat|notice|advisory|alert|now|today)\b/.test(x))
+      return{say:'I still cannot verify current tap-water conditions in this offline practice game. Check the provider serving your exact address and your local public health authority. Follow any active official advisory; if a credible concern remains while verifying, choose sealed bottled water or another confirmed safe supply.',choices:['Where can I verify it?','What do notices mean?']};
+    return null;
+  }
   isPersonalDataToAI(text){
     const x=this.normalize(text);
     const pii=/\b(?:social security(?: number)?|ssn|bank account(?: number)?|routing number|credit card(?: number)?|debit card(?: number)?|driver'?s? licen[cs]e|passport|government (?:id|identification)|state id|tax(?:payer)? id(?:entification)?(?: number)?|medical records?|identification documents?)\b/.test(x);
@@ -2582,6 +2616,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    // Continue an established advisory conversation before treating it as a new claim.
+    if(this.s.stage==='waterSafetyAdvice'){const r=this.waterSafetyFollowup(text);if(r)return r;}
+    if(this.isWaterSafetyClaim(text))return this.startWaterSafety(text);
     // Personal-data safety outranks generic topic and stale conversation routing.
     if(this.isPersonalDataToAI(text))return this.personalDataInitial(text);
     if(this.s.stage==='privacyAdvice'){const p=this.personalDataFollowup(text);if(p)return p;}
