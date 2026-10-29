@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: natural-phrasing-qa-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: natural-phrasing-qa-v2</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2504,15 +2504,15 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   workBreak(text){
     const x=this.normalize(text);
-    if(/\b(?:no unpaid (?:break|lunch)|without an unpaid lunch|paid lunch|paid break)\b/.test(x))return 0;
-    const hour=x.match(/\b(\d+(?:\.\d+)?)\s*(?:hours?|hrs?)\s*(?:of\s+)?(?:unpaid|lunch|meal|break)\b/)||x.match(/\b(?:unpaid|lunch|break)\s*(?:for|of|lasting)?\s*(\d+(?:\.\d+)?)\s*(?:hours?|hrs?)\b/);
+    if(/\b(?:no unpaid (?:breaks?|lunch(?:es)?)|without (?:an?\s+)?unpaid (?:breaks?|lunch(?:es)?)|paid lunch|paid break)\b/.test(x))return 0;
+    const hour=x.match(/\b(\d+(?:\.\d+)?)\s*[-–]?\s*(?:hours?|hrs?)\s*(?:of\s+)?(?:unpaid|lunch|meal|break)\b/)||x.match(/\b(?:unpaid|lunch|break)\s*(?:for|of|lasting)?\s*(\d+(?:\.\d+)?)\s*[-–]?\s*(?:hours?|hrs?)\b/);
     if(hour)return Number(hour[1])*60;
     const sh=x.match(/\b(\d+(?:\.\d+)?)\s*(?:hr|hrs)\b[^.!?\n]{0,30}\b(?:unpaid|lunch|break)\b/);
     if(sh)return Number(sh[1])*60;
-    const minutes=x.match(/\b(\d+)\s*(?:minutes?|mins?)\s*(?:of\s+)?(?:unpaid|lunch|break)\b/)||x.match(/\b(?:unpaid|lunch|break)\s*(?:for|of|lasting)?\s*(\d+)\s*(?:minutes?|mins?)\b/);
+    const minutes=x.match(/\b(\d+)\s*[-–]?\s*(?:minutes?|mins?)\s*(?:of\s+)?(?:unpaid|lunch|break)\b/)||x.match(/\b(?:unpaid|lunch|break)\s*(?:for|of|lasting)?\s*(\d+)\s*[-–]?\s*(?:minutes?|mins?)\b/);
     if(minutes)return Number(minutes[1]);
-    if(/\b(?:an?|one)\s+(?:unpaid\s+)?hour\b[^.!?\n]{0,45}\b(?:lunch|break)\b|\b(?:an?|one)\s+hour\s+(?:unpaid|lunch|break)\b/.test(x))return 60;
     if(/\bhalf\s+(?:an?\s+)?hour\b[^.!?\n]{0,40}\b(?:unpaid|lunch|break)\b/.test(x))return 30;
+    if(/\b(?:an?|one)\s*[- ]\s*(?:unpaid\s+)?hour\b[^.!?\n]{0,45}\b(?:lunch|break)\b|\b(?:an?|one)\s*[- ]\s*hour\s+(?:unpaid|lunch|break)\b/.test(x))return 60;
     return null;
   }
   workRange(text){
@@ -2648,10 +2648,10 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   budgetFunds(text){
     const raw=String(text||'');
     const list=[
-      /\b(?:monthly\s+)?(?:budget|income|take[- ]?home(?: pay)?|paycheck|available (?:money|funds))\s*(?:is\s+now|is|of|:|=|amounts? to|comes? to|now|for|at)?\s*\$?\s*([\d,]+(?:\.\d{1,2})?)/i,
-      /\b(?:i\s+)?(?:have|make|earn|bring in|receive|budget for)\s+\$?\s*([\d,]+(?:\.\d{1,2})?)\s*(?:per|a|each)\s+month\b/i,
-      /\b(?:have|receive|earn|make|bring home)\s+\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:each|per|a)\s*month\b/i,
-      /\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:monthly\s+)?(?:budget|income)\b/i
+      /\b(?:monthly\s+)?(?:budget|income|take[- ]?home(?: pay)?|paycheck|available (?:money|funds))\s*(?:is\s+now|is|of|:|=|amounts? to|comes? to|now|for|at)?\s*\$?\s*(\d[\d,]*(?:\.\d{1,2})?)/i,
+      /\b(?:i\s+)?(?:have|make|earn|bring in|receive|budget for)\s+\$?\s*(\d[\d,]*(?:\.\d{1,2})?)\s*(?:per|a|each)\s+month\b/i,
+      /\b(?:have|receive|earn|make|bring home)\s+\$\s*(\d[\d,]*(?:\.\d{1,2})?)\s*(?:each|per|a)\s*month\b/i,
+      /\$\s*(\d[\d,]*(?:\.\d{1,2})?)\s*(?:monthly\s+)?(?:budget|income)\b/i
     ];for(const re of list){const m=raw.match(re);if(m)return this.budgetAmount(m[1]);}return null;
   }
   isBudgetMath(text){
