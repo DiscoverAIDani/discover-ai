@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: advertised-discount-check-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: grocery-unit-pricing-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1804,7 +1804,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2483,6 +2483,100 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
 
 
+
+  unitValueNumber(v){const n=Number(String(v||'').replace(/[$,]/g,''));return Number.isFinite(n)&&n>=0&&n<=1000000?n:null;}
+  unitNormalize(u){
+    u=this.normalize(u).replace(/\.+$/,'');
+    if(/^(?:oz|ounce|ounces)$/.test(u))return{unit:'oz',base:'oz',factor:1};
+    if(/^(?:lb|lbs|pound|pounds)$/.test(u))return{unit:'lb',base:'oz',factor:16};
+    if(/^(?:g|gram|grams)$/.test(u))return{unit:'g',base:'g',factor:1};
+    if(/^(?:kg|kilogram|kilograms)$/.test(u))return{unit:'kg',base:'g',factor:1000};
+    if(/^(?:ml|milliliter|milliliters|millilitre|millilitres)$/.test(u))return{unit:'mL',base:'mL',factor:1};
+    if(/^(?:l|liter|liters|litre|litres)$/.test(u))return{unit:'L',base:'mL',factor:1000};
+    if(/^(?:fl\s*oz|fluid ounces?|fluid oz)$/.test(u))return{unit:'fl oz',base:'mL',factor:29.5735295625};
+    if(/^(?:each|count|ct|units?|pieces?|pcs)$/.test(u))return{unit:'item',base:'item',factor:1};
+    return null;
+  }
+  unitFormatPrice(v){return '$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  unitFormatRate(v,u){return String(Math.round(v*10000)/100)+'¢/'+u;}
+  unitParseOptions(text){
+    const raw=String(text||''),u='(fluid\\s*ounces?|fl\\.?\\s*oz|ounces?|oz\\.?|pounds?|lbs?\\.?|kilograms?|kg\\.?|grams?|g\\.?|milliliters?|millilitres?|ml\\.?|liters?|litres?|l\\.?|count|ct|units?|pieces?|pcs|each)',num='(\\d+(?:\\.\\d+)?)',dol='\\$\\s*([\\d,]+(?:\\.\\d{1,2})?)',item='(?:box|bag|bottle|pack|package|item|option|brand|container|cereal|rice|coffee|product)';
+    const re=new RegExp('(?:\\b'+item+'\\s+)?\\b([AB])\\b\\s*(?:is|:|=|has|contains|costs?)?\\s*'+num+'\\s*'+u+'\\s*(?:for|at|costs?|priced? at|is|:)\\s*'+dol,'gi'),out=[];
+    for(const z of raw.matchAll(re)){
+      const name=z[1].toUpperCase(),qty=this.unitValueNumber(z[2]),unit=this.unitNormalize(z[3]),price=this.unitValueNumber(z[4]);
+      if(unit&&qty>0&&price!==null&&!out.some(v=>v.name===name))out.push({name,qty,unit:unit.unit,base:unit.base,factor:unit.factor,price,coupon:0});
+    }
+    if(out.length>=2)return out.slice(0,2);
+    const fallback=new RegExp(num+'\\s*'+u+'\\s*(?:for|at|costs?|priced? at|is|:)\\s*'+dol,'gi'),items=[];
+    for(const z of raw.matchAll(fallback)){
+      const qty=this.unitValueNumber(z[1]),unit=this.unitNormalize(z[2]),price=this.unitValueNumber(z[3]);
+      if(unit&&qty>0&&price!==null)items.push({name:'',qty,unit:unit.unit,base:unit.base,factor:unit.factor,price,coupon:0});
+    }
+    return items.length>=2?items.slice(0,2).map((v,i)=>({...v,name:i?'B':'A'})):[];
+  }
+  isUnitPriceQuestion(text){
+    const x=this.normalize(text),items=this.unitParseOptions(text);
+    return items.length>=2&&/\b(?:which|better|cheaper|value|per (?:ounce|oz|pound|lb|gram|g|item)|unit price|price per|cost per|compare|comparison)\b/.test(x);
+  }
+  unitPriceResponse(note=''){
+    const c=this.s.unitPriceCheck;if(!c)return null;
+    const [a,b]=c.options;
+    if(a.base!==b.base)return{say:'I can compare unit prices only after converting the package sizes to compatible units. These options use different measurement types ('+a.unit+' versus '+b.unit+'), so I cannot honestly say which is cheaper per unit without a valid conversion or additional information. Please compare packages by the same type of measurement.',choices:['Use matching size units','Give another comparison']};
+    if(c.options.some(v=>v.coupon>v.price))return{say:'A stated coupon exceeds the package price. I cannot assume the store will pay you the difference, so the final terms need confirmation.',choices:['Check coupon terms','Remove that coupon']};
+    const rate=v=>(v.price-v.coupon)/(v.qty*v.factor),ra=rate(a),rb=rate(b),unit=a.base,same=Math.abs(ra-rb)<0.000001,winner=same?null:ra<rb?a:b;
+    const fmt=v=>this.unitFormatPrice(v);
+    const part=v=>'Box '+v.name+': '+fmt(v.price)+(v.coupon?' − '+fmt(v.coupon)+' coupon = '+fmt(v.price-v.coupon)+'. ':' total. ')+fmt(v.price-v.coupon)+' ÷ '+v.qty+' '+v.unit+(v.factor!==1?' ('+(v.qty*v.factor)+' '+unit+')':'')+' = '+this.unitFormatRate(rate(v),unit)+'. ';
+    let say=(note?note+' ':'')+part(a)+part(b);
+    if(same)say+='They have the same unit price.';
+    else say+='Box '+winner.name+' is the better value per '+unit+' at '+this.unitFormatRate(rate(winner),unit)+', about '+(Math.round(Math.abs(ra-rb)*10000)/100)+'¢/'+unit+' cheaper than Box '+(winner.name==='A'?'B':'A')+'.';
+    say+=' The lower unit price does not necessarily mean the lower total checkout cost; buy only the amount you need. I have not assumed taxes, additional coupons, membership requirements, or store-specific terms.';
+    return{say,choices:['What if I have a coupon for Box A?','What if the coupon expires?','What if Box B costs more?']};
+  }
+  unitPriceStart(text){
+    const options=this.unitParseOptions(text);if(options.length<2)return null;
+    this.clearContext();this.s.category='everyday';this.s.intent='unitPrice';this.s.topic='grocery package unit price';this.s.stage='unitPriceComparison';
+    this.s.unitPriceCheck={options,lastCoupon:null};return this.unitPriceResponse();
+  }
+  unitPriceFollowup(text){
+    if(this.s.stage!=='unitPriceComparison'||!this.s.unitPriceCheck)return null;
+    const x=this.normalize(text),c=this.s.unitPriceCheck;
+    if(/^(?:(?:please|can you|could you)\s+)?(?:summari[sz]e|explain|review)\s+(?:this|an?|the)\s+(?:email|document|message|letter)\b/.test(x)){
+      this.clearContext();return this.sourceUnderstandingStart(text);
+    }
+    const unrelated=/\b(?:recipe|dinner|reminder|pharmacy|password|email|school|workshop|appointment|water contamination|medication|printer|device|electric company)\b/.test(x);
+    if(unrelated&&!/\b(?:unit price|cereal|box [ab]|coupon|better value)\b/.test(x))return null;
+    if(!/\b(?:box|bag|cereal|price|cost|coupon|sale|discount|per ounce|per oz|unit|value|cheaper|better|larger|smaller|expir|valid|redeem|what if|actually|now|change|remove|subtract)\b/.test(x))return null;
+    if(this.isUnitPriceQuestion(text))return this.unitPriceStart(text);
+    const option=(x.match(/\b(?:box|option|brand|item)\s+([ab])\b/)||[])[1];let target=option?c.options.findIndex(v=>v.name===option.toUpperCase()):-1;
+    const hasCoupon=/\b(?:coupon|voucher|rebate|promo|promotion)\b/.test(x);
+    const expired=/\b(?:coupon|voucher|rebate)\b[^.!?\n]{0,55}\b(?:expir(?:ed|es)|invalid|not valid|doesn'?t apply|cannot apply|won'?t apply|no longer valid)\b|\b(?:expir(?:ed|es)|invalid|not valid|doesn'?t apply)\b[^.!?\n]{0,55}\b(?:coupon|voucher|rebate)\b/.test(x);
+    const notUsing=/\b(?:don't|do not|won't|will not|can't|cannot)\s+(?:use|apply|redeem)\b[^.!?\n]{0,40}\b(?:coupon|voucher|rebate)\b/.test(x)||/\b(?:remove|cancel|forget|drop|without|no)\b[^.!?\n]{0,35}\b(?:coupon|voucher|rebate)\b/.test(x);
+    if((expired||notUsing)&&hasCoupon){
+      if(target<0)target=c.lastCoupon===null?-1:c.lastCoupon;
+      if(target>=0){c.options[target].coupon=0;c.lastCoupon=target;return this.unitPriceResponse('Without that coupon:');}
+      return{say:'Which package had the coupon? I need to know whether it applied to Box A or Box B before updating the comparison.',choices:['Box A','Box B']};
+    }
+    const raw=String(text||'');
+    const cm=raw.match(/\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:off\s+)?(?:coupon|voucher|rebate)\b/i)
+      ||raw.match(/\b(?:coupon|voucher|rebate|discount)(?:\s+for\s+(?:box|option|brand|item)\s+[ab])?\s*(?:is|of|for|worth|takes? off|changed to|now|actually|was|:)?\s*\$\s*([\d,]+(?:\.\d{1,2})?)/i);
+    if(cm&&hasCoupon){
+      if(target<0&&c.lastCoupon===null)return{say:'Is the '+this.unitFormatPrice(Number(cm[1].replace(/,/g,'')))+' coupon for Box A or Box B? I need the package before updating the unit price.',choices:['Box A','Box B']};
+      if(target<0)target=c.lastCoupon;
+      const amount=this.unitValueNumber(cm[1]);if(amount===null)return null;
+      c.options[target].coupon=/\b(?:instead|changed|correct|actually|now|was|rather than|not)\b/.test(x)?amount:c.options[target].coupon+amount;
+      c.lastCoupon=target;return this.unitPriceResponse('With the updated coupon:');
+    }
+    const money=raw.match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
+    if(money&&target>=0&&!hasCoupon&&/\b(?:now|instead|price|costs|cost|is|changed|actually|on sale|priced)\b/.test(x)){
+      c.options[target].price=this.unitValueNumber(money[1]);return this.unitPriceResponse('Using the updated price:');
+    }
+    const qty=raw.match(/\b(\d+(?:\.\d+)?)\s*(oz|ounces?|lbs?|pounds?|g|grams?|kg|kilograms?|ml|milliliters?|l|liters?)\b/i);
+    if(qty&&target>=0&&/\b(?:instead|size|now|changed|actually|is|contains)\b/.test(x)){
+      const unit=this.unitNormalize(qty[2]);if(unit){Object.assign(c.options[target],{qty:Number(qty[1]),unit:unit.unit,base:unit.base,factor:unit.factor});return this.unitPriceResponse('Using the updated package size:');}
+    }
+    if(/\b(?:which|cheaper|value|compare|recalculate|what|how|per ounce|per oz|unit price)\b/.test(x))return this.unitPriceResponse();
+    return null;
+  }
   discountParse(text){
     const t=String(text||''),money='\\$\\s*([\\d,]+(?:\\.\\d{1,2})?)',hit=re=>{const v=t.match(new RegExp(re,'i'));return v?Number(v[1].replace(/,/g,'')):null;};
     const amounts=[...t.matchAll(/\$\s*[\d,]+(?:\.\d{1,2})?/g)].map(v=>Number(v[0].replace(/[$,\s]/g,'')));
@@ -3048,6 +3142,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    if(this.s.stage==='unitPriceComparison'){const u=this.unitPriceFollowup(text);if(u)return u;}
+    if(this.isUnitPriceQuestion(text))return this.unitPriceStart(text);
     if(this.s.stage==='discountReview'){const r=this.discountContinue(text);if(r)return r;}
     if(this.isDiscountQuery(text))return this.discountBegin(text);
     if(this.s.stage==='sourceSafetyReview'){const r=this.sourceReviewFollowup(text);if(r)return r;}
