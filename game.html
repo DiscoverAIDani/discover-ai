@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: conversation-continuity-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: ingredient-corrections-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -3664,6 +3664,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(!Number.isFinite(n)||n<1||n>16)return{say:'How many people should this serve? Tell me the number and I can give usable quantities.',choices:['2 people','4 people','6 people']};
     this.s.servings=n;
     const ingredients=this.safeDinnerIngredients();
+    if(this.normalize(this.s.topic)==='scrambled eggs'&&!ingredients.includes('eggs'))return{say:'Scrambled eggs require eggs, which are not in the current plan. I cannot give amounts for a recipe that lacks its main ingredient.',choices:['Add eggs back','Choose another dish']};
     if(!ingredients.length)return{say:'No ingredients remain in this dinner plan. Tell me what you still have so I can size it accurately.',choices:['List my ingredients','Choose another dinner']};
     const quarter=x=>{let q=Math.round(x*4),whole=Math.floor(q/4),fraction=['','¼','½','¾'][q%4];return (whole?String(whole):'')+fraction||'0'};
     const cup=x=>quarter(x)+' '+(x<=1?'cup':'cups');
@@ -3672,6 +3673,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(beans){amounts.push(cup(n/2)+' cooked '+beans);included.add(beans)}
     if(has('tortillas')){amounts.push(n*2+' small tortillas');included.add('tortillas')}
     if(has('spinach')){amounts.push(cup(n)+' loosely packed fresh spinach');included.add('spinach')}
+    if(has('mushrooms')){amounts.push(cup(n/4)+' sliced mushrooms');included.add('mushrooms')}
+    if(has('tomatoes')){amounts.push(Math.max(1,Math.ceil(n/2))+' medium '+(n<=2?'tomato':'tomatoes'));included.add('tomatoes')}
     if(has('eggs')){amounts.push(n*2+' eggs');included.add('eggs')}
     if(has('tofu')){amounts.push(n*4+' oz tofu');included.add('tofu')}
     if(has('rice')){amounts.push(cup(n/2)+' uncooked rice');included.add('rice')}
@@ -3682,7 +3685,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     let preparation='';
     if(beans&&has('tortillas'))preparation='Warm the cooked '+beans+'. '+(has('spinach')?'Wilt the spinach. ':'')+'Fill the warmed tortillas with '+beans+(has('spinach')?' and spinach':'')+'.';
     else if(has('eggs')&&has('tortillas'))preparation='Scramble the eggs until fully cooked, warm the tortillas, and fill them with eggs'+(has('spinach')?' and wilted spinach':'')+'.';
-    else if(has('eggs')&&this.normalize(this.s.topic)==='scrambled eggs')preparation='Heat a little oil over medium-low heat. '+(has('spinach')?'Wilt the spinach first. ':'')+'Add beaten eggs and stir gently until set.';
+    else if(has('eggs')&&this.normalize(this.s.topic)==='scrambled eggs')preparation='Heat a little oil over medium-low heat. '+(has('mushrooms')?'Cook the mushrooms until softened. ':'')+(has('spinach')?'Wilt the spinach first. ':'')+(has('tomatoes')?'Add chopped tomato. ':'')+'Add beaten eggs and stir gently until set.';
     else if(beans&&has('rice'))preparation='Cook the rice, heat the cooked '+beans+', and combine'+(has('spinach')?' with wilted spinach':'')+'.';
     else preparation='Prepare these ingredients appropriately for the same dinner.';
     const dairy=(this.s.facts||[]).includes('no dairy')?' Keep it dairy-free: do not add cheese, butter, or cream.':'';
@@ -3703,15 +3706,24 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const removePatterns=[
       /\b(?:out of|ran out of|don't have|do not have|no longer have|no more|used up|remove|skip|omit|leave out|take out)\s+(?:any\s+|the\s+)?(.+?)(?=\bbut\b|[.!?]|$)/g,
       /\b(?:i|we)\s+have\s+(?:no|zero)\s+([^.!?]+)/g,
-      /\b(?:no)\s+((?:black\s+)?(?:eggs?|beans?|tortillas?|spinach|tofu|rice|pasta))\s+(?:left|remaining|available)\b/g
+      /\b(?:no)\s+((?:black\s+)?(?:eggs?|beans?|tortillas?|spinach|tofu|rice|pasta))\s+(?:left|remaining|available)\b/g,
+      /\b(?:do not|don't|never)\s+(?:use|add|include|want)\s+([^.!?]+)/g,
+      /\b(?:no|without)\s+(?:any\s+|the\s+)?(eggs?|spinach|cheese|mushrooms?|tomatoes?|tortillas?|rice|beans?|pasta|tofu)\b/g
     ];
-    for(const pat of removePatterns)for(const m of low.matchAll(pat))push(removed,m[1].split(/\band\s+(?:add|use|include|i|we)\b|\b(?:but|instead)\b/)[0]);
+    for(const pat of removePatterns)for(const m of low.matchAll(pat))push(removed,m[1].split(/[,;]|\band\s+(?:add|use|include|i|we)\b|\b(?:but|instead)\b/)[0]);
+    for(const m of low.matchAll(/\b(?:use|add|include)\s+([^.!?,]+?)\s+instead of\s+([^.!?,]+)/g)){push(added,m[1]);push(removed,m[2]);}
     for(const m of low.matchAll(/\b(?:swap|replace)\s+(?:the\s+)?([^.!?]+?)\s+(?:with|for)\s+([^.!?]+)/g)){push(removed,m[1]);push(added,m[2].split(/\band\s+(?:remove|skip)\b/)[0])}
     for(const m of low.matchAll(/\b(?:i|we)\s+(?:(?:also|now|still|do)\s+)?have\s+([^.!?]+)/g)){
       const segment=m[1].split(/\b(?:but|instead)\b/)[0];
       if(!/^\s*(?:no|zero|none)\b/.test(segment))push(added,segment);
     }
-    for(const m of low.matchAll(/\b(?:add|include|use)\s+(?:the\s+|some\s+)?([^.!?]+)/g))push(added,m[1].split(/\b(?:but|without|instead of|and remove|and skip)\b/)[0]);
+    for(const m of low.matchAll(/\b(?:add|include|use)\s+(?:the\s+|some\s+)?([^.!?]+)/g)){
+      const prefix=low.slice(Math.max(0,m.index-24),m.index);
+      if(/\b(?:don't|do not|never|not|without|no)\s*$/.test(prefix))continue;
+      push(added,m[1].split(/[,;]|\b(?:but|without|instead of|and remove|and skip)\b/)[0]);
+    }
+    const only=low.match(/\b(?:only|just)\s+(?:(?:use|keep|have|want|with)\s+)?(eggs?|spinach|mushrooms?|tomatoes?|tortillas?|beans?|rice|pasta|tofu)\s*(?:now|left|please)?[.!?]*$/);
+    if(only){const keep=foods(only[1]);for(const v of foods((this.s.ingredients||[]).join(', ')))if(!keep.includes(v))push(removed,v);}
     if(!removed.length&&!added.length)return null;
     const normalizeItem=(v)=>foods(this.normalize(v))[0]||this.normalize(v);
     const unavailable=new Set((this.s.excludedIngredients||[]).map(normalizeItem));
@@ -3729,6 +3741,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       recipe='Updated recipe: 1) Use cooked '+beans+' (drain and rinse if canned). 2) Warm the '+beans+' in a pan until hot. '+(has('spinach')?'3) Wilt the spinach in the same pan. ':'')+(has('spinach')?'4':'3')+') Warm the tortillas and fill them with '+beans+(has('spinach')?' and spinach':'')+'.';
     }else if(has('eggs')&&has('tortillas')){
       recipe='Updated recipe: scramble the eggs until fully cooked, warm the tortillas, and fill them with eggs'+(has('spinach')?' and wilted spinach':'')+'.';
+    }else if(this.normalize(this.s.topic)==='scrambled eggs'&&!has('eggs')){
+      recipe='Scrambled eggs require eggs. I cannot continue this recipe without them; you can choose another dish using '+(items.length?items.join(' and '):'other available ingredients')+'.';
+    }else if(this.normalize(this.s.topic)==='scrambled eggs'&&has('eggs')){
+      const steps=[];if(has('mushrooms'))steps.push('Cook sliced mushrooms in a little oil until softened.');if(has('spinach'))steps.push('Wilt the spinach briefly.');if(has('tomatoes'))steps.push('Add diced tomatoes.');steps.push('Pour in beaten eggs and stir gently until set.');
+      recipe='Updated recipe: '+steps.join(' ');
     }else if(has('eggs')&&has('spinach')){
       recipe='Updated recipe: wilt spinach briefly, add beaten eggs, and stir gently until the eggs are set.';
     }else if(beans&&has('rice')){
@@ -3739,15 +3756,16 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       recipe='No ingredients remain for the previous recipe. Tell me what you have and I will rebuild it.';
     }
     const plural=removed.length>1||removed.length===1&&/s$/.test(removed[0]);
-    const change=removed.length?'Got it — '+removed.join(' and ')+' '+(plural?'are':'is')+' no longer available. ':'Got it — I updated the ingredients. ';
+    const change=removed.length?'Got it — I removed '+removed.join(' and ')+' from the recipe. ':'Got it — I updated the ingredients. ';
     const newItems=added.length?'I added '+added.join(' and ')+'. ':'';
     return{say:change+newItems+recipe+(noDairy?' Keep it dairy-free: no butter, cheese, or cream.':''),choices:['Give me exact steps','Make it quicker','Change another ingredient']};
   }
 
   handleDinnerPlan(x){
     const low=this.normalize(x);
-    if(this.normalize(this.s.topic)==='scrambled eggs'&&/\b(?:quick|quicker|faster|fast)\b/.test(low)){const withSpinach=this.safeDinnerIngredients().includes('spinach');return{say:'Quick version: beat the eggs while a little oil heats over medium-low heat. '+(withSpinach?'Wilt the spinach briefly first, then add the eggs. ':'')+'Stir gently until the eggs are set.',choices:['Give me exact amounts','Change an ingredient']};}
-    if(this.normalize(this.s.topic)==='scrambled eggs'&&/\b(?:exact amounts|for two|recipe|ingredients)\b/.test(low))return{say:'For two servings, use 4 eggs and about a teaspoon of oil or butter'+(this.safeDinnerIngredients().includes('spinach')?', plus a handful of washed spinach':'')+'. Cook over medium-low heat and stir until set.',choices:['Make it quicker','Change an ingredient']};
+    if(this.normalize(this.s.topic)==='scrambled eggs'&&!this.safeDinnerIngredients().includes('eggs'))return{say:'I cannot make scrambled eggs without eggs. You can add eggs back or switch to a recipe using the ingredients you have.',choices:['Add eggs back','Choose another dish']};
+    if(this.normalize(this.s.topic)==='scrambled eggs'&&/\b(?:quick|quicker|faster|fast)\b/.test(low)){const have=this.safeDinnerIngredients();return{say:'Quick version: beat the eggs while a little oil heats over medium-low heat. '+(have.includes('mushrooms')?'Cook sliced mushrooms until softened. ':'')+(have.includes('spinach')?'Wilt the spinach briefly. ':'')+(have.includes('tomatoes')?'Add diced tomato. ':'')+'Add the eggs and stir gently until set.',choices:['Give me exact amounts','Change an ingredient']};}
+    if(this.normalize(this.s.topic)==='scrambled eggs'&&/\b(?:exact amounts|for two|recipe|ingredients)\b/.test(low)){const have=this.safeDinnerIngredients();return{say:'For two servings, use 4 eggs and about a teaspoon of oil or butter'+(have.includes('spinach')?', plus a handful of washed spinach':'')+(have.includes('mushrooms')?', plus half a cup of sliced mushrooms':'')+(have.includes('tomatoes')?', plus one diced tomato':'')+'. Heat the oil over medium-low heat. '+(have.includes('mushrooms')?'Cook the mushrooms until softened. ':'')+(have.includes('spinach')?'Wilt the spinach briefly. ':'')+(have.includes('tomatoes')?'Add tomato. ':'')+'Stir in the eggs gently until set.',choices:['Make it quicker','Change an ingredient']};}
     const listText=(items)=>items.length<=1?(items[0]||'what you have'):(items.length===2?items.join(' and '):items.slice(0,-1).join(', ')+', and '+items[items.length-1]);
 
     if(/\bvegan\b/.test(low)){
