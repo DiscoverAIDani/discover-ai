@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: updated-laptop-decision-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: complete-repair-costs-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1121,9 +1121,14 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12};
     const ageMatch=low.match(/\b(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)(?:\s*[- ]\s*|\s+)(?:year|years|yr|yrs)(?:[- ]old|\s+old)?\b/);
     if(ageMatch)c.ageYears=words[ageMatch[1]]||Number(ageMatch[1]);
-    const repairQuote=raw.match(/\b(?:repair|fix|battery replacement)\b[^.!?]{0,85}?\$\s*([0-9,]+(?:\.\d{1,2})?)/i);
+    // A separate component quote must not overwrite the battery estimate.
+    const extraMatch=raw.match(/\b(screen|motherboard|keyboard|hard drive|ssd|charging port|fan)\b(?:\s+(?:repair|replacement))?[^.!?]{0,85}?\$\s*([0-9,]+(?:\.\d{1,2})?)/i)||
+      raw.match(/\b(?:repair|replace|replacing|fix)\s+(?:the\s+)?(screen|motherboard|keyboard|hard drive|ssd|charging port|fan)\b[^.!?]{0,85}?\$\s*([0-9,]+(?:\.\d{1,2})?)/i);
+    const extraQuote=extraMatch?{part:extraMatch[1].toLowerCase(),cost:Number(extraMatch[2].replace(/,/g,''))}:null;
+    const batteryPrice=raw.match(/\b(?:battery\s+(?:replacement|repair|quote|estimate)|repair\s+(?:shop|quote|estimate))\b[^.!?]{0,85}?\$\s*([0-9,]+(?:\.\d{1,2})?)/i);
+    const repairQuote=batteryPrice||raw.match(/\b(?:repair|fix|battery replacement)\b[^.!?]{0,85}?\$\s*([0-9,]+(?:\.\d{1,2})?)/i);
     const replaceQuote=raw.match(/\b(?:new\s+(?:one|laptop|computer|phone|washer)|buy|replacement (?:laptop|device|model)|replacing\s+(?:the\s+)?(?:laptop|computer|device))\b[^.!?]{0,85}?\$\s*([0-9,]+(?:\.\d{1,2})?)/i);
-    if(repairQuote)c.repair=Number(repairQuote[1].replace(/,/g,''));
+    if(repairQuote&&!(extraQuote&&Number(repairQuote[1].replace(/,/g,''))===extraQuote.cost&&!batteryPrice))c.repair=Number(repairQuote[1].replace(/,/g,''));
     if(replaceQuote)c.buy=Number(replaceQuote[1].replace(/,/g,''));
     if(/\b(?:budget is tight|tight budget|money is tight|limited budget)\b/.test(low))c.budget=true;
     if(/\b(?:reliable|reliability|dependable)\b/.test(low))c.reliable=true;
@@ -1131,9 +1136,15 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       c.fault='battery';c.batteryRepair=true;
     }
     const otherPart=low.match(/\b(?:screen|motherboard|keyboard|hard drive|ssd|charging port|fan)\b/);
-    if(otherPart&&/\b(?:fail|failing|broken|damaged|also|another|problem|issue|need|needs)\b/.test(low)){
+    const fixedPart=otherPart&&/\b(?:screen|motherboard|keyboard|hard drive|ssd|charging port|fan)\b[^.!?]{0,60}\b(?:works fine|works normally|is fine|is fixed|has been fixed|does not need repair|doesn't need repair|not broken)\b/.test(low);
+    if(fixedPart&&c.additionalFault===otherPart[0]){
+      c.additionalFault='';c.additionalRepairCost=null;c.otherWorks=true;
+    }else if(otherPart&&!fixedPart&&(/\b(?:fail|failing|broken|damaged|also|another|problem|issue|need|needs)\b/.test(low)||extraQuote)){
+      if(c.additionalFault!==otherPart[0])c.additionalRepairCost=null;
       c.additionalFault=otherPart[0];c.otherWorks=false;
     }
+    if(extraQuote&&c.additionalFault===extraQuote.part)c.additionalRepairCost=extraQuote.cost;
+    if(/\b(?:only|just)\s+(?:covers?|includes?|for)\s+(?:the\s+)?battery\b|\b(?:does not|doesn't|not)\s+(?:cover|include)\s+(?:the\s+)?(?:screen|other repair)\b|\bbattery\s+(?:only|alone)\b/.test(low))c.batteryOnlyQuote=true;
     if(/\b(?:everything else|the rest|rest of (?:it|the laptop|the computer)|otherwise)\s+(?:still\s+)?(?:works?|runs?|is|seems)\s+(?:fine|well|great|normally|perfectly|okay|ok)\b/.test(low)){
       c.otherWorks=true;c.additionalFault='';
     }
@@ -1142,17 +1153,25 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const repair=c.repair!==null?fmt(c.repair):'price not yet given';
     const replacement=c.buy!==null?fmt(c.buy):'price not yet given';
     const gap=Number.isFinite(c.repair)&&Number.isFinite(c.buy)?c.buy-c.repair:null;
-    const difference=gap===null?'':gap>0?' Buying new is still '+fmt(gap)+' more upfront.':gap<0?' Repairing is '+fmt(-gap)+' more upfront than buying new.':' Both options now have the same upfront cost.';
+    const extra=Number.isFinite(c.additionalRepairCost)?c.additionalRepairCost:null;
+    const totalRepair=c.additionalFault&&extra!==null&&Number.isFinite(c.repair)?c.repair+extra:null;
+    const totalGap=totalRepair!==null&&Number.isFinite(c.buy)?c.buy-totalRepair:null;
+    const totalDifference=totalGap===null?'':totalGap>0?' The replacement is '+fmt(totalGap)+' more than both quoted repairs.':totalGap<0?' Both quoted repairs would exceed replacement by '+fmt(-totalGap)+'.':' The combined quotes and replacement price are equal.';
+    const priceDifference=gap===null?'':gap>0?' Buying new is still '+fmt(gap)+' more upfront.':gap<0?' Repairing is '+fmt(-gap)+' more upfront than buying new.':' Both options now have the same upfront cost.';
+    const difference=c.additionalFault?'':priceDifference;
     const hasAge=Number.isFinite(c.ageYears);
     const age=hasAge?' At '+c.ageYears+' years old, the '+c.item+' may have other age-related failures later, so a battery repair does not guarantee years of trouble-free use.':'';
     const budget=c.budget?' Your tight budget makes the lower upfront cost meaningful.':'';
     const reliability=c.reliable?' Your need for reliability means the remaining components and repair coverage still matter.':'';
     const justBattery=c.batteryRepair&&c.otherWorks===true&&!c.additionalFault;
-    const noChangedFacts=!ageMatch&&!repairQuote&&!replaceQuote&&!/\b(?:battery|screen|motherboard|keyboard|hard drive|ssd|charging port|fan|everything else|otherwise)\b/.test(low);
+    const noChangedFacts=!ageMatch&&!repairQuote&&!replaceQuote&&!extraQuote&&!/\b(?:battery|screen|motherboard|keyboard|hard drive|ssd|charging port|fan|everything else|otherwise)\b/.test(low);
     const riskRequest=/\b(?:risks?|downsides?|what could go wrong)\b/.test(low);
     if(riskRequest&&noChangedFacts){
       const repairRisk=justBattery?'A battery replacement may fix the known failure, but it does not prevent other age-related problems.':'The repair could fail to solve the underlying problem or other parts could fail later.';
-      return{say:'Here are the risks for both paths, using our existing comparison. Repair for '+repair+': '+repairRisk+' Buying new for '+replacement+': higher upfront spending and no guarantee the replacement will be trouble-free.'+difference+(hasAge?' Your '+c.ageYears+'-year-old '+c.item+' has more age-related uncertainty than a brand-new one, but we cannot quantify its remaining lifespan from age alone.':'')+' Check repair and replacement warranty terms and how costly another failure would be. The decision remains yours.',choices:['What should I verify?','Compare the costs','Add another detail']};
+      const riskPrice=c.additionalFault?
+        (' Known repair quote: '+repair+'. '+(extra===null?'The '+c.additionalFault+' repair cost is unknown, so the total repair-versus-replace cost difference cannot yet be determined.':'The separate '+c.additionalFault+' repair quote is '+fmt(extra)+', so both quoted repairs would total '+fmt(totalRepair)+'.'+totalDifference)+' Replacement: '+replacement+'.'):
+        (' Repair for '+repair+'. Buying new for '+replacement+'.'+difference);
+      return{say:'Here are the risks for both paths, using our existing comparison.'+riskPrice+' '+repairRisk+' A replacement also carries a cost and is not guaranteed to be trouble-free.'+(hasAge?' Your '+c.ageYears+'-year-old '+c.item+' has more age-related uncertainty than a brand-new one, but we cannot quantify its remaining lifespan from age alone.':'')+' Check repair and replacement warranty terms and how costly another failure would be. The decision remains yours.',choices:['What should I verify?','Compare the costs','Add another detail']};
     }
     let judgment='',next='';
     if(justBattery){
@@ -1160,7 +1179,14 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       next=' Before deciding, check whether the repair includes a battery warranty, whether the '+c.item+' still performs the tasks you need, and whether there are signs of other problems.';
     }else if(c.additionalFault){
       judgment='This changes the comparison: the '+c.additionalFault+' is another reported problem, so a battery repair alone may not restore the reliability you need.';
-      next=' Clarify the full repair scope, total cost, and warranty before comparing it with a replacement.';
+      if(extra===null){
+        judgment+=' The '+repair+' quote '+(c.batteryOnlyQuote?'covers the battery only':'is for the known repair')+'; the '+c.additionalFault+' repair cost is unknown.'+
+          (gap!==null?' The '+fmt(Math.abs(gap))+' price difference compares the known repair quote against replacement, NOT the cost of fixing both problems.':'');
+        next=' Request a separate '+c.additionalFault+' repair quote before calculating the total repair-versus-replace difference. Confirm scope and warranty coverage.';
+      }else{
+        judgment+=' The known repair quote is '+repair+' and the separate '+c.additionalFault+' repair quote is '+fmt(extra)+'. If both quotes are additive and cover the needed work, repairs would total '+fmt(totalRepair)+'.'+totalDifference;
+        next=' Confirm the quotes are additive, cover all needed work, and include any relevant warranty before deciding.';
+      }
     }else if(c.batteryRepair){
       judgment='A battery replacement could fix the identified battery problem, but we do not yet know whether the rest of the '+c.item+' is working well.';
       next=' Check whether other functions work normally and what the repair warranty covers.';
@@ -1168,7 +1194,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       judgment='These details help refine the comparison, but the repair scope and remaining condition still matter.';
       next=hasAge?' The most useful next detail is what specifically needs repair, and whether everything else works normally.':' The most useful next detail is the item’s age and what would be repaired.';
     }
-    return{say:judgment+' Repair: '+repair+' upfront. Replace: '+replacement+' upfront.'+difference+age+budget+reliability+next+' I’m not choosing for you; these factors change the risk and cost trade-offs.',choices:hasAge&&justBattery?['Check the repair warranty','Compare a two-year cost scenario','What else should I verify?']:['Add a condition detail','Review the risks','Compare the costs']};
+    const costs=c.additionalFault?' Known repair quote: '+repair+' (not a confirmed total repair cost). Replacement price: '+replacement+'.':' Repair: '+repair+' upfront. Replace: '+replacement+' upfront.'+difference;
+    return{say:judgment+costs+age+budget+reliability+next+' I’m not choosing for you; these factors change the risk and cost trade-offs.',choices:c.additionalFault?['Get the other repair quote','Check repair coverage','Compare both options']:hasAge&&justBattery?['Check the repair warranty','Compare a two-year cost scenario','What else should I verify?']:['Add a condition detail','Review the risks','Compare the costs']};
   }
 
   handleGeneralTask(text){
