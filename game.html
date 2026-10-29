@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: weekly-work-hours-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: natural-phrasing-qa-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -511,6 +511,8 @@ class DiscoverConversation {
     // second paste. Prefer explicit quoted text, then text after an explanation colon.
     const quoted=[...raw.matchAll(/["“]([^"”]{8,})["”]/g)].map(m=>m[1].trim()).filter(Boolean);
     if(quoted.length)return quoted[quoted.length-1];
+    const message=raw.match(/\b(?:summari[sz]e|explain|review)\s+(?:this|the|an?)\s+(?:email|message|letter|note|text)\s*[?:]\s*([\s\S]{14,})$/i);
+    if(message)return message[1].trim();
     const m=raw.match(/\b(?:explain|translate|put|rewrite|summari[sz]e|tell me what)\b[\s\S]{0,80}?(?:plain english|plain language|simple terms|means?)?[\s\S]{0,40}?[:：]\s*([\s\S]{8,})$/i);
     if(m)return m[1].replace(/^[\s'"“”]+|[\s'"“”]+$/g,'').trim();
     return'';
@@ -2495,6 +2497,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   workClock(n){n=(n+1440)%1440;const h=Math.floor(n/60),m=n%60;return String(h%12||12)+(m?':'+String(m).padStart(2,'0'):'')+' '+(h>=12?'PM':'AM');}
   workDays(text){
     const x=this.normalize(text),days=['monday','tuesday','wednesday','thursday','friday','saturday','sunday'],short=['mon','tue','wed','thu','fri','sat','sun'];
+    if(/\bm\s*[-–]\s*f\b|\b(?:mon|monday)\s*[-–]\s*(?:fri|friday)\b/.test(x))return days.slice(0,5);
     const r=x.match(/\b(mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)\s*(?:through|thru|to|-)\s*(mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)\b/);
     if(r){const a=short.findIndex(k=>r[1].startsWith(k)),b=short.findIndex(k=>r[2].startsWith(k));if(a>=0&&b>=a)return days.slice(a,b+1);}
     return days.filter((d,i)=>new RegExp('\\b(?:'+d+'|'+short[i]+')\\b').test(x));
@@ -2504,6 +2507,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/\b(?:no unpaid (?:break|lunch)|without an unpaid lunch|paid lunch|paid break)\b/.test(x))return 0;
     const hour=x.match(/\b(\d+(?:\.\d+)?)\s*(?:hours?|hrs?)\s*(?:of\s+)?(?:unpaid|lunch|meal|break)\b/)||x.match(/\b(?:unpaid|lunch|break)\s*(?:for|of|lasting)?\s*(\d+(?:\.\d+)?)\s*(?:hours?|hrs?)\b/);
     if(hour)return Number(hour[1])*60;
+    const sh=x.match(/\b(\d+(?:\.\d+)?)\s*(?:hr|hrs)\b[^.!?\n]{0,30}\b(?:unpaid|lunch|break)\b/);
+    if(sh)return Number(sh[1])*60;
     const minutes=x.match(/\b(\d+)\s*(?:minutes?|mins?)\s*(?:of\s+)?(?:unpaid|lunch|break)\b/)||x.match(/\b(?:unpaid|lunch|break)\s*(?:for|of|lasting)?\s*(\d+)\s*(?:minutes?|mins?)\b/);
     if(minutes)return Number(minutes[1]);
     if(/\b(?:an?|one)\s+(?:unpaid\s+)?hour\b[^.!?\n]{0,45}\b(?:lunch|break)\b|\b(?:an?|one)\s+hour\s+(?:unpaid|lunch|break)\b/.test(x))return 60;
@@ -2513,7 +2518,12 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   workRange(text){
     const t='(\\d{1,2}(?::\\d{2})?\\s*(?:a\\.?m\\.?|p\\.?m\\.?))';
     const re=new RegExp('\\b(?:from|working from|work from|shift from|work|working|shift)\\s*'+t+'\\s*(?:to|until|through|[-–])\\s*'+t,'i'),m=String(text||'').match(re);
-    if(!m)return null;const a=this.workParseTime(m[1]),b=this.workParseTime(m[2]);return a===null||b===null?null:{start:a,end:b};
+    if(!m){
+      const shorthand=String(text||'').match(/\b(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?))\s*[-–]\s*(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?))\b/i);
+      if(shorthand&&/\b(?:work|shift|weekly|m-f)\b/i.test(String(text||''))){const start=this.workParseTime(shorthand[1]),end=this.workParseTime(shorthand[2]);return start===null||end===null?null:{start,end};}
+      return null;
+    }
+    const a=this.workParseTime(m[1]),b=this.workParseTime(m[2]);return a===null||b===null?null:{start:a,end:b};
   }
   workRate(text){
     const m=String(text||'').match(/\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:per|an?|each|\/)\s*(?:hour|hr)\b/i)||String(text||'').match(/\b(?:hourly\s+(?:rate|pay|wage)|pay(?:ing)?|earn(?:ing)?|make|wage|rate)\s*(?:is|of|at|now|changed to|increased to|:)?\s*\$\s*([\d,]+(?:\.\d{1,2})?)/i);
@@ -2572,16 +2582,18 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   sharedBillParse(text){
     const raw=String(text||''),money='\\$\\s*([\\d,]+(?:\\.\\d{1,2})?)',num=x=>Number(String(x).replace(/,/g,''));
-    const pats=[new RegExp('\\b(?:restaurant\\s+|dinner\\s+|meal\\s+)?(?:bill|tab|check|total|amount)\\s*(?:is now|was|is|of|comes? to|at|:|=)?\\s*'+money,'i'),new RegExp('\\b(?:spend|spent|owe|paid|pay)\\s*'+money+'\\s*(?:for|on)\\s*(?:dinner|restaurant|lunch|meal|food)','i')];
+    const pats=[new RegExp('\\b(?:restaurant\\s+|dinner\\s+|meal\\s+)?(?:bill|tab|check|total|amount)\\s*(?:is now|was|is|of|comes? to|at|:|=)?\\s*'+money,'i'),new RegExp('\\b(?:spend|spent|owe|paid|pay)\\s*'+money+'\\s*(?:for|on)\\s*(?:dinner|restaurant|lunch|meal|food)','i'),new RegExp('\\b(?:had|have|got|received)\\s+(?:an?\\s+)?'+money+'\\s*(?:restaurant\\s+|dinner\\s+|lunch\\s+|meal\\s+)?(?:bill|tab|check)','i'),new RegExp('\\b(?:dinner|lunch|meal|food|restaurant)\\s+(?:came to|costs?|was|totaled|totalled)\\s*'+money,'i')];
     let bill=null;for(const p of pats){const m=raw.match(p);if(m){bill=num(m[1]);break;}}
     const tm=raw.match(/\b(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)\s*(?:tip|gratuity)\b/i)||raw.match(/\b(?:tip|gratuity)\s*(?:(?:is|was|now|to|at|of|changed to|from)\s*)?(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)/i)||raw.match(/\b(?:tip|gratuity)\s*[:=]\s*(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)/i);
+    const counts={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10};
+    const words=raw.match(/\b(?:there were|we were|there are|we are|with)\s+(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:of us|people|friends|diners)\b/i)||raw.match(/\b(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:of us|people|friends|diners)\b/i);
     const pm=raw.match(/\b(?:among|between|with|for)\s+(\d{1,2})\s*(?:people|persons?|friends?|diners?|guests?|of us|ways?)\b/i)||raw.match(/\b(?:split|splitting|divide|dividing|share|sharing)\b[^.!?\n]{0,55}?\b(\d{1,2})\s*(?:people|persons?|friends?|diners?|guests?|of us|ways?)\b/i)||raw.match(/\b(\d{1,2})\s*(?:people|persons?|friends?|diners?|guests?|of us|ways?)\s*(?:are|will be|splitting|split|sharing|paying)\b/i);
-    return{bill,tip:tm?num(tm[1]):null,people:pm?num(pm[1]):null};
+    return{bill,tip:tm?num(tm[1]):null,people:pm?num(pm[1]):words?(counts[words[1].toLowerCase()]||num(words[1])):null};
   }
   sharedBillQuestion(text){
     const x=this.normalize(text),v=this.sharedBillParse(text);
     if(/^(?:please\s+)?(?:write|draft|compose|create)\b[^.!?\n]{0,60}\b(?:story|fiction|email|invitation|post)\b/.test(x))return false;
-    return v.bill!==null&&v.people!==null&&/\b(?:split|divide|share|per person|each person|each of us|how much (?:does|should|will)|how much each|each pay|pay each|what does each|per head|equally)\b/.test(x)&&/\b(?:bill|tab|restaurant|dinner|lunch|meal|tip|gratuity|check|total|cost)\b/.test(x);
+    return v.bill!==null&&v.people!==null&&/\b(?:split|divide|share|shares|per person|each person|each of us|how much (?:does|should|will)|how much each|each pay|pay each|what does each|per head|equally)\b/.test(x)&&/\b(?:bill|tab|restaurant|dinner|lunch|meal|tip|gratuity|check|total|cost)\b/.test(x);
   }
   sharedBillMoney(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
   sharedBillAnswer(){
@@ -2628,13 +2640,16 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   budgetExpenses(text){
     const out={},cats='(rent|housing|utilities|utility bills?|electricity|electric bill|power bill|water bill|groceries|grocery|food shopping|transportation|transport|commuting|commute|bus fare|phone bill|cell phone|phone|internet|wifi|insurance bill|insurance|entertainment|subscriptions|subscription|childcare|child care|gasoline|gas|fuel|dining out|restaurants|restaurant|miscellaneous|misc|unexpected expenses?|other)';
-    const re=new RegExp('\\b'+cats+'\\b\\s*(?:spending|expense|expenses|bill|cost|costs|is|are|of|for|was|now|:|=|at)?\\s*\\$\\s*([\\d,]+(?:\\.\\d{1,2})?)\\b','gi');
+    const re=new RegExp('\\b'+cats+'\\b\\s*(?:spending|expense|expenses|bill|cost|costs|is|are|of|for|was|now|:|=|at)?\\s*\\$?\\s*([\\d,]+(?:\\.\\d{1,2})?)\\b','gi');
+    const reverse=new RegExp('\\b([\\d,]+(?:\\.\\d{1,2})?)\\s+(?:on|for|in|toward|towards)\\s+(?:my\\s+|the\\s+)?'+cats+'\\b','gi');
+    for(const m of String(text||'').matchAll(reverse)){const k=this.budgetKey(m[2]),v=this.budgetAmount(m[1]);if(k&&v!==null)out[k]=v;}
     for(const m of String(text||'').matchAll(re)){const k=this.budgetKey(m[1]),v=this.budgetAmount(m[2]);if(k&&v!==null)out[k]=v;}return out;
   }
   budgetFunds(text){
     const raw=String(text||'');
     const list=[
-      /\b(?:monthly\s+)?(?:budget|income|take[- ]?home(?: pay)?|paycheck|available (?:money|funds))\s*(?:is\s+now|is|of|:|=|amounts? to|comes? to|now|for|at)?\s*\$\s*([\d,]+(?:\.\d{1,2})?)/i,
+      /\b(?:monthly\s+)?(?:budget|income|take[- ]?home(?: pay)?|paycheck|available (?:money|funds))\s*(?:is\s+now|is|of|:|=|amounts? to|comes? to|now|for|at)?\s*\$?\s*([\d,]+(?:\.\d{1,2})?)/i,
+      /\b(?:i\s+)?(?:have|make|earn|bring in|receive|budget for)\s+\$?\s*([\d,]+(?:\.\d{1,2})?)\s*(?:per|a|each)\s+month\b/i,
       /\b(?:have|receive|earn|make|bring home)\s+\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:each|per|a)\s*month\b/i,
       /\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:monthly\s+)?(?:budget|income)\b/i
     ];for(const re of list){const m=raw.match(re);if(m)return this.budgetAmount(m[1]);}return null;
@@ -2715,6 +2730,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     if(out.length>=2)return out.slice(0,2);
     const fallback=new RegExp(num+'\\s*'+u+'\\s*(?:for|at|costs?|priced? at|is|:)\\s*'+dol,'gi'),items=[];
+    const reversed=new RegExp(dol+'\\s*(?:for|per|/)\\s*(?:a\\s+|an\\s+|the\\s+)?'+num+'\\s*'+u,'gi');
+    for(const z of raw.matchAll(reversed)){const qty=this.unitValueNumber(z[2]),unit=this.unitNormalize(z[3]),price=this.unitValueNumber(z[1]);if(unit&&qty>0&&price!==null)items.push({name:'',qty,unit:unit.unit,base:unit.base,factor:unit.factor,price,coupon:0});}
+    if(items.length>=2)return items.slice(0,2).map((v,i)=>({...v,name:i?'B':'A'}));
     for(const z of raw.matchAll(fallback)){
       const qty=this.unitValueNumber(z[1]),unit=this.unitNormalize(z[2]),price=this.unitValueNumber(z[3]);
       if(unit&&qty>0&&price!==null)items.push({name:'',qty,unit:unit.unit,base:unit.base,factor:unit.factor,price,coupon:0});
@@ -2793,6 +2811,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     let sale=hit('(?:sale|advertised|final|discounted|checkout)\\s+price\\b[^$]{0,35}?'+money);
     if(sale===null)sale=hit('(?:now\\s+(?:on\\s+)?sale\\s+for|selling\\s+for|sells\\s+for|sale\\s+for|advertised\\s+at|now\\s+(?:costs?|is|at))\\s*'+money);
     const percentage=t.match(/\b(?:percentage?\s+discount|discount\s+(?:rate|percentage)|discount)\b[^.!?\n]{0,45}?\b(?:to|now|is|of|at)\s*(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)/i)||t.match(/\b(?:changed?|changes?|adjusted?|reduced?|increased?)\b[^.!?\n]{0,55}?\bto\s*(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)/i)||t.match(/\b(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)\s*(?:off|discount(?:ed)?|sale|markdown)\b/i)||t.match(/\bdiscount\s+(?:is|of|at)?\s*(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)/i);
+    const reversed=t.match(/\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:actually\s+)?\d{1,3}(?:\.\d+)?\s*(?:%|percent)\s*off\s+(?:an?\s+|the\s+)?\$\s*([\d,]+(?:\.\d{1,2})?)/i);
+    if(reversed){sale=Number(reversed[1].replace(/,/g,''));original=Number(reversed[2].replace(/,/g,''));}
     if(original===null&&amounts.length)original=amounts[0];
     if(sale===null&&amounts.length>1)sale=amounts[amounts.length-1];
     const coupon=t.match(/\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:extra\s+)?(?:coupon|voucher|rebate|off)\b/i)||t.match(/\b(?:coupon|voucher|rebate|extra savings)\s*(?:is|of|worth|for|takes off)?\s*\$\s*([\d,]+(?:\.\d{1,2})?)/i);
@@ -2802,7 +2822,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   isDiscountQuery(text){
     const t=this.normalize(text);
     if(/^(?:please\s+)?(?:draft|write|compose|create)\b/.test(t)&&/\b(?:email|story|advertisement|ad copy|flyer|letter|text message)\b/.test(t))return false;
-    return /\b(?:sale|discount|off|advertis(?:ement|ed)|markdown|jacket|price|coupon)\b/.test(t)&&/\b\d{1,3}(?:\.\d+)?\s*(?:%|percent\b)/.test(t)&&/\$\s*[\d,]+(?:\.\d{1,2})?/.test(t)&&/\b(?:correct|check|math|explain|calculate|verify|compare|right|true|should|what|how|price)\b/.test(t);
+    return /\b(?:sale|discount|off|advertis(?:ement|ed)|markdown|jacket|price|coupon)\b/.test(t)&&/\b\d{1,3}(?:\.\d+)?\s*(?:%|percent\b)/.test(t)&&/\$\s*[\d,]+(?:\.\d{1,2})?/.test(t)&&/\b(?:correct|check|math|explain|calculate|verify|compare|right|true|should|what|how|price|actually|is)\b/.test(t);
   }
   discountMoney(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
   discountPct(n){return String(Math.round(n*100)/100)+'%';}
@@ -2857,7 +2877,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const raw=String(text||'');
     const cleaned=raw.split(/\b(?:IMPORTANT FOR (?:AI|A\.I\.) ASSISTANTS?|SYSTEM PROMPT|DEVELOPER INSTRUCTIONS?|TO THE AI ASSISTANT)\s*:/i)[0].replace(/^[\s"'“”]+|[\s"'“”]+$/g,'');
     const event=(cleaned.match(/\b(?:community class|class|workshop|meeting|appointment|session|event|course)\b/i)||[])[0]||'';
-    const changed=/\b(?:moved|rescheduled|changed|shifted|postponed)\b/i.test(cleaned);
+    const changed=/\b(?:moved|moves?|rescheduled|changed|shifted|postponed)\b/i.test(cleaned);
     const weekday=(cleaned.match(/\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i)||[])[0]||'';
     const clock=(cleaned.match(/\b\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)\b/i)||[])[0]||'';
     const bring=(cleaned.match(/\b(?:please\s+)?bring\s+(a\s+|an\s+|the\s+)?([^.!?\n]{2,85})/i)||[]);
@@ -2875,7 +2895,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const d=this.s.emailReviewContext;if(!d)return null;
     let say='Based on the email text (not independently verified): ';
     if(d.day||d.time){
-      say+='Your '+d.event+(d.changed?' has been moved':' is listed')+(d.day?' to '+d.day:'')+(d.time?' at '+d.time:'')+'. ';
+      say+='Your '+d.event+(d.changed?' is reported as moved':' is scheduled')+(d.day?' to '+d.day:'')+(d.time?' at '+d.time:'')+'. ';
     }else say+='I cannot identify a confirmed schedule from the excerpt. ';
     if(d.bring)say+='It asks you to bring '+d.bring+'. ';
     say+='The email also includes instructions addressed to an AI assistant, telling it to ignore your request. That is a prompt-injection attempt, not a command I should obey. ';
