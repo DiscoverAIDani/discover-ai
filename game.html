@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: contextual-repair-dialogue-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: retained-priority-summary-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1257,12 +1257,18 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       if(c.replaceWarranty)known+='New '+c.item+' warranty '+term(c.replaceWarranty)+'. ';
       if(Number.isFinite(c.ageYears))known+='Existing '+c.item+' age '+c.ageYears+' years. ';
       if(c.repairLaborOnly)known+='Repair guarantee covers labor only, not replacement parts, as reported. ';
+      if(c.decisionPriority==='reliability')known+='Your stated priority is avoiding another failure and minimizing disruption ahead of small cost differences. ';
+      else if(c.decisionPriority==='cost')known+='Your stated priority is keeping costs down, while still considering reliability risks. ';
+      else if(c.reliable)known+='You said reliability matters, but you have not ranked it against cost. ';
       return{say:known+'Still to verify: full repair scope, the warranty terms and exclusions, and the remaining reliability of the '+c.item+'. These details do not establish a certain lifespan or a decision for you.',
         choices:['Compare risks','Check warranty terms','Add a detail']};
     }
     if(/\b(?:care more|matters? more|more important|highest priority|prioriti[sz]e|reweight|weigh the comparison|focus more)\b/.test(low)){
-      if(/\b(?:reliable|reliability|failure|failing|break|breakdown|dependab|last|working)\b/.test(low))c.reliable=true;
-      const factor=c.reliable?'reliability and avoiding disruption':'your stated priority';
+      const wantsReliability=/\b(?:reliable|reliability|failure|failing|break|breakdown|dependab|last|working)\b/.test(low);
+      const costFirst=/\b(?:cost|price|budget|money|saving|spending)\b[^.!?]{0,70}\b(?:than|over|ahead of)\s+(?:\w+\s+){0,3}\b(?:reliability|reliable|avoiding failure|breakdowns?|another failure)\b/.test(low);
+      if(costFirst)c.decisionPriority='cost';
+      else if(wantsReliability){c.reliable=true;c.decisionPriority='reliability';}
+      const factor=c.decisionPriority==='cost'?'keeping costs down while considering reliability':c.decisionPriority==='reliability'?'reliability and avoiding disruption':'your stated priority';
       const cost=total!==null&&Number.isFinite(c.buy)?' Repairs are quoted at '+money(total)+' compared with '+buy+' to replace, assuming both repair quotes are complete.':' The full price comparison is not yet known.';
       const periods=c.repairWarranty&&c.replaceWarranty?' The repair guarantee is '+term(c.repairWarranty)+' versus '+term(c.replaceWarranty)+' for the new '+c.item+', but neither warranty duration guarantees reliability.':'';
       return{say:'You are placing greater weight on '+factor+'. That changes the importance of the factors, not the known facts.'+cost+periods+' Consider the existing '+c.item+' condition, actual coverage, and how disruptive another failure would be. I can weigh the trade-offs, but the choice remains yours.',
@@ -2281,7 +2287,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     // Keep a requested summary anchored to the current repair-versus-buy task.
     if(this.s.intent==='compare'&&this.s.decisionContext&&
        /\b(?:summari[sz]e|summary|recap|side[- ]by[- ]side)\b/.test(low)&&
-       /\b(?:repair|replace|replacement|options|comparison|laptop|what we know|known facts|unknowns)\b/.test(low)){
+       (/\b(?:repair|replace|replacement|options|comparison|laptop|what we know|known facts|unknowns)\b/.test(low)||
+        /^\s*(?:(?:please|can you|could you)\s+)*(?:give me\s+(?:a\s+)?)?(?:summari[sz]e|summary|recap)\s+(?:everything|our conversation|our discussion|the conversation|the discussion|all of it)\b/.test(low))){
       const current=this.repairComparisonFollowup(x);
       if(current)return current;
     }
