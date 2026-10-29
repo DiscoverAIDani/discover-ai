@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: reminder-action-honesty-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: missing-utility-notice-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1795,7 +1795,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2436,6 +2436,58 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
 
 
+
+  isUtilityNoticeQuestion(text){
+    const x=this.normalize(text);
+    const document=/\b(?:notice|letter|bill|invoice|statement|payment request|late notice)\b/.test(x);
+    const company=/\b(?:electric|electricity|power company|power utility|utility|utilities|water company|gas company|energy provider)\b/.test(x);
+    const amount=/\b(?:owe|owed|amount|balance|payment|charge|due|deadline|date)\b/.test(x);
+    const ask=/\b(?:tell me|how much|what(?:'s| is)|when is|exact|give me|find|check|explain|verify|haven't shown|have not shown|can't show|cannot show|could you|can you|should i)\b/.test(x);
+    const fiction=/^(?:please\s+)?(?:write|draft|create|invent|compose|generate)\s+(?:(?:a|an|some)\s+)?(?:fictional|fake|sample|example|practice)\b/.test(x);
+    return document&&company&&amount&&ask&&!fiction;
+  }
+  utilityNoticeFacts(text){
+    const raw=String(text||'');
+    const claimant=/\b(?:the (?:notice|letter|bill|statement|invoice) (?:says|reads|shows|lists)|it says|it reads|i (?:see|read|can see)|amount due\s*[:\-]|(?:total|balance) due\s*[:\-]|due date\s*[:\-]|the (?:amount|balance|total) (?:due|owed|is)|i owe|i (?:have to|need to) pay)\b/i.test(raw);
+    if(!claimant)return{amount:'',dueDate:''};
+    const value=((raw.match(/\b(?:amount due|balance due|total due|amount owed|balance owed|total owed|i owe|i (?:have to|need to) pay|the (?:amount|balance|total) (?:due|owed|is))\s*(?:is|of|:|-)?\s*(\$\s*\d{1,7}(?:,\d{3})*(?:\.\d{2})?)/i)||[])[1]
+      ||(raw.match(/\b(?:the (?:notice|letter|bill|statement|invoice) (?:says|reads|shows|lists)|it says|it reads|i (?:see|read|can see))\s*[^.!?\n]{0,60}?(\$\s*\d{1,7}(?:,\d{3})*(?:\.\d{2})?)/i)||[])[1]||'').replace(/\s+/g,'');
+    const dateMatch=raw.match(/\b(?:due date|payment (?:is )?due|due on|due by|due:)\s*(?:is|on|by|:|-)?\s*((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:,\s*\d{4})?|\d{1,2}\/\d{1,2}\/\d{2,4})/i);
+    return{amount:value,dueDate:dateMatch?dateMatch[1].trim():''};
+  }
+  utilityNoticeReply(text,initial){
+    const x=this.normalize(text);
+    if(initial){
+      this.clearContext();this.s.category='problem';this.s.intent='utilityNotice';this.s.stage='utilityNoticeAdvice';this.s.topic='an electric or utility company payment notice';this.s.utilityNoticeContext={amount:'',dueDate:''};
+    }
+    const ctx=this.s.utilityNoticeContext||{amount:'',dueDate:''};
+    const supplied=this.utilityNoticeFacts(text);
+    if(supplied.amount)ctx.amount=supplied.amount;
+    if(supplied.dueDate)ctx.dueDate=supplied.dueDate;
+    const askExact=/\b(?:how much|exact|amount|owe|owed|balance|due date|when|date|deadline|give me|numbers|what does it say)\b/.test(x);
+    if(ctx.amount||ctx.dueDate){
+      const a=ctx.amount?'You reported an amount of '+ctx.amount+'. ':'I still have no amount to report. ';
+      const d=ctx.dueDate?'You reported a due date of '+ctx.dueDate+'. ':'I still have no due date to report. ';
+      return{say:a+d+'Those are details supplied in this conversation, not figures I independently verified on the original notice or your utility account. Check the actual document or the electric company’s official account website to confirm. You can share only non-sensitive wording from the notice if you want help understanding it; leave out account numbers and personal identifiers.',choices:['How can I verify the balance?','What if the due date is missing?','How do I check safely?']};
+    }
+    if(/(?:just|please)\s+(?:guess|make up|invent)|\b(?:estimate|pretend|pick (?:a|any) number|give me (?:a|any) number)\b/.test(x))
+      return{say:'I cannot honestly give you an exact amount owed or due date by guessing. I have not seen the notice or accessed the utility account, so any numbers would be invented. Check the real notice or the electric company’s official website or support line for the actual balance and due date. This game cannot open your email, bills, or customer account.',choices:['Where should I look on the bill?','How do I use the official portal?','Can you help with redacted text?']};
+    return{say:'I cannot tell you the exact amount owed or payment due date because I have not seen the notice and cannot access your electric company account, email, or bills. I will not make up numbers or pretend I checked the document. To find the real figures without copying the letter here, check the notice itself, log in to your electric company’s official website or app directly, or call customer service using a number from a verified bill or website. Look for “Amount Due” and “Due Date.” If you later want help understanding the wording, you can share a version with account numbers, addresses, and other identifying information removed.',choices:['How do I find the due date?','Can you explain a redacted notice?','What if there is no amount listed?']};
+  }
+  utilityNoticeFollowup(text){
+    if(this.s.stage!=='utilityNoticeAdvice'||!this.s.utilityNoticeContext)return null;
+    const x=this.normalize(text);
+    if(/^(?:please|can you|could you|help me|let's)\s+/.test(x)&&/\b(?:recipe|dinner|trip|workshop|invitation|birthday|printer|phishing|password|reminder|medication)\b/.test(x)&&!/\b(?:bill|notice|utility|amount|due date|electric)\b/.test(x))return null;
+    if(/\b(?:i found|the notice says|the letter says|the bill says|it says|it reads|amount due|balance due|total due|due date|i owe)\b/.test(x)){
+      const supplied=this.utilityNoticeFacts(text);
+      if(supplied.amount||supplied.dueDate)return this.utilityNoticeReply(text,false);
+    }
+    if(/\b(?:guess|invent|make up|pretend|just tell me|give me (?:the|a) numbers|no explanation)\b/.test(x))return this.utilityNoticeReply(text,false);
+    if(/\b(?:check|verify|where|portal|website|how|find|call|look|what if|no amount|no due date|missing)\b/.test(x))
+      return{say:'Use the official electric company website or app, or call a customer-service number listed on an independently verified bill or website. Look for your current balance or “Amount Due” and the “Due Date.” I cannot inspect the notice or account myself. If either field is absent, do not guess: ask the provider to confirm it. Do not share your account number or other personal identifiers in this practice game.',choices:['Can I show you redacted text?','What if I only know the amount?','What if I still cannot find it?']};
+    if(/\b(?:owe|owed|amount|due|date|payment|numbers|bill|notice|letter)\b/.test(x))return this.utilityNoticeReply(text,false);
+    return null;
+  }
   isReminderActionRequest(text){
     const x=this.normalize(text);
     if(/^(?:(?:please|can you|could you)\s+)?(?:write|draft|create|compose|invent|generate)\s+(?:(?:a|an|some)\s+)?(?:fictional|fake|sample|example|practice)\b/.test(x))return false;
@@ -2698,6 +2750,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    // Never invent amounts or dates from a utility notice this game has not seen.
+    if(this.s.stage==='utilityNoticeAdvice'){const r=this.utilityNoticeFollowup(text);if(r)return r;}
+    if(this.isUtilityNoticeQuestion(text))return this.utilityNoticeReply(text,true);
     // This static simulator can explain reminders, not create or verify them.
     if(this.s.stage==='reminderActionAdvice'){const f=this.reminderActionFollowup(text);if(f)return f;}
     if(this.isReminderActionRequest(text))return this.reminderActionStart(text);
