@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: corrected-device-network-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: multi-dinner-plans-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -266,6 +266,70 @@ class DiscoverConversation {
   }
   isAck(t){return /^(?:ok|okay|sure|yes|yeah|yep|sounds good|good|great|fine|perfect|that works|that makes sense|do that|do it|go ahead|let's do it|lets do it)\.?$/i.test(String(t||''))}
   amount(t){const x=String(t||'');const money=x.match(/\$\s*([0-9]{1,4}(?:,[0-9]{3})?(?:\.\d{1,2})?)/);if(money)return money[1].replace(/,/g,'');const contextual=x.match(/\b(?:budget|spend|cost|under|around|about)\s*\$?\s*([0-9]{1,4}(?:,[0-9]{3})?(?:\.\d{1,2})?)/i);if(contextual)return contextual[1].replace(/,/g,'');return''}
+  multiMealCount(t){
+    const m=this.normalize(t).match(/\b(\d+|one|two|three|four|five|six)\s+(?:(?:quick|easy|cheap|inexpensive|healthy|vegan|vegetarian|dairy[- ]?free)\s+){0,3}(?:dinners?|meals?)\b/);
+    return m?({one:1,two:2,three:3,four:4,five:5,six:6}[m[1]]||Number(m[1])):0;
+  }
+  startMealPlan(t){
+    const count=this.multiMealCount(t),low=this.normalize(t);
+    if(count<2||count>6||!/\b(?:plan|make|give|suggest|ideas?|dinners?|meals?|shopping|list)\b/.test(low))return null;
+    const alias={'egg':'eggs','tortilla':'tortillas','bean':'beans','black beans':'beans','canned beans':'beans','pinto beans':'beans','kidney beans':'beans','potato':'potatoes'};
+    const have=[...new Set(this.extractDinnerIngredients(t).include.map(x=>alias[x]||x))];
+    const vegan=/\bvegan\b/.test(low),vegetarian=vegan||/\bvegetarian\b/.test(low),dairyFree=vegan||/\b(?:dairy[- ]?free|no dairy|without dairy|avoid dairy)\b/.test(low);
+    this.s.multiMeal={count,have,excluded:[],vegan,vegetarian,dairyFree,glutenFree:/\bgluten[- ]?free\b/.test(low),shopping:[]};
+    this.s.category='everyday';this.s.intent='dinner';this.s.stage='dinnerPlan';this.s.taskType='plan';this.s.topic=count+' dinners';this.s.mealCount=count;this.s.ingredients=have.slice();
+    if(dairyFree)this.noteFact('no dairy');
+    return this.renderMealPlan();
+  }
+  renderMealPlan(){
+    const c=this.s.multiMeal;if(!c)return null;
+    const have=new Set(c.have),excluded=new Set(c.excluded);
+    const recipes=[
+      {name:'Spinach-and-egg tacos',kind:'taco',ingredients:['eggs','tortillas','spinach'],steps:'Wilt spinach, scramble eggs until cooked, and fill warm tortillas.',animal:'eggs',wheat:true},
+      {name:'Bean-and-spinach rice bowls',kind:'bowl',ingredients:['beans','spinach','rice'],steps:'Cook rice, heat beans, add wilted spinach, and season to taste.'},
+      {name:'Tomato, bean, and spinach soup',kind:'soup',ingredients:['beans','spinach','canned tomatoes'],steps:'Simmer beans and canned tomatoes in water; add spinach until tender.'},
+      {name:'Crispy mashed-bean tortilla pockets',kind:'taco',ingredients:['beans','tortillas','spinach'],steps:'Mash beans, fold with spinach into tortillas, and toast in a skillet.',wheat:true},
+      {name:'Spinach-and-bean egg skillet',kind:'skillet',ingredients:['eggs','beans','spinach'],steps:'Warm beans and spinach, add eggs, and cook until set.',animal:'eggs'},
+      {name:'Spinach and garlic pasta',kind:'pasta',ingredients:['pasta','spinach','garlic'],steps:'Boil pasta; toss with wilted spinach, minced garlic, and pasta water.',wheat:true},
+      {name:'Bean-and-potato hash',kind:'hash',ingredients:['beans','potatoes','spinach'],steps:'Cook diced potatoes until tender; add beans and spinach.'},
+      {name:'Chicken-and-spinach rice skillet',kind:'skillet',ingredients:['chicken','rice','spinach'],steps:'Cook chicken thoroughly; serve with rice and wilted spinach.',animal:'chicken'},
+      {name:'Bean and tomato rice bowls',kind:'bowl',ingredients:['beans','canned tomatoes','rice'],steps:'Simmer beans in tomatoes and serve over cooked rice.'},
+      {name:'Egg-and-potato hash',kind:'hash',ingredients:['eggs','potatoes','spinach'],steps:'Cook potatoes until tender, add spinach, and top with fully cooked eggs.',animal:'eggs'}
+    ];
+    const eligible=recipes.filter(r=>!r.ingredients.some(x=>excluded.has(x))&&!(c.vegan&&r.animal)&&!(c.vegetarian&&r.animal==='chicken')&&!(c.glutenFree&&r.wheat));
+    const picked=[],groups=new Set();
+    const score=r=>r.ingredients.filter(x=>have.has(x)).length*5-r.ingredients.filter(x=>!have.has(x)).length*3-(groups.has(r.kind)?10:0)-picked.reduce((s,v)=>s+(r.ingredients.filter(x=>v.ingredients.includes(x)).length>=2?8:0),0);
+    while(picked.length<c.count){
+      const pool=eligible.filter(r=>!picked.includes(r)).sort((a,b)=>score(b)-score(a)||recipes.indexOf(a)-recipes.indexOf(b));
+      if(!pool.length)break;
+      picked.push(pool[0]);groups.add(pool[0].kind);
+    }
+    if(picked.length<c.count)return{say:'I cannot make '+c.count+' distinct meals with these restrictions. Consider changing the number or allowing another ingredient.',choices:['Change the count','Change an ingredient']};
+    c.shopping=[...new Set(picked.flatMap(r=>r.ingredients.filter(x=>!have.has(x))))];
+    const lines=picked.map((r,i)=>{const missing=r.ingredients.filter(x=>!have.has(x));return (i+1)+'. '+r.name+' — '+r.steps+(missing.length?' Buy: '+missing.join(', ')+'.':' No essential extras.');});
+    const shopping=c.shopping.length?'Shopping extras (only if you do not have them): '+c.shopping.join(', ')+'.':'Shopping extras: none needed.';
+    return{say:'Here are '+c.count+' inexpensive'+(c.dairyFree?' dairy-free':'')+' dinners using the foods you listed:\n\n'+lines.join('\n')+'\n\n'+shopping+' Oil and seasonings are optional, not assumed to be in your pantry. Check packaged ingredients for any dietary restrictions.',choices:['Show the shopping list','Change an ingredient','Make it vegan']};
+  }
+  reviseMealPlan(t){
+    const c=this.s.multiMeal;if(!c)return null;
+    const low=this.normalize(t);
+    if(/^(?:show|give|tell|what|list)\b.*\b(?:shopping|groceries|extras|to buy)\b/.test(low))
+      return{say:c.shopping.length?'For '+c.count+' dinners, additional groceries: '+c.shopping.join(', ')+'. Check your pantry first.':'No extra groceries are required for the current meals.',choices:['Change an ingredient','Show plan again']};
+    let changed=false;const count=this.multiMealCount(t);
+    if(count&&/\b(?:make|only|instead|change|plan)\b/.test(low)){c.count=count;changed=true}
+    if(/\b(?:make (?:it|them)|keep (?:it|them))\s+vegan\b/.test(low)){c.vegan=true;c.vegetarian=true;c.dairyFree=true;changed=true}
+    const foodRe=/\b(?:eggs?|tortillas?|beans?|spinach|rice|pasta|potatoes?|garlic|chicken|canned tomatoes)\b/g;
+    const alias={'egg':'eggs','tortilla':'tortillas','bean':'beans','potato':'potatoes'};
+    for(const m of low.matchAll(/\b(?:out of|don't have|do not have|no longer have|ran out of|remove|leave out|skip)\s+(?:any\s+|the\s+)?([^.!?]+)/g)){
+      for(const v of m[1].match(foodRe)||[]){const x=alias[v]||v;c.have=c.have.filter(a=>a!==x);if(!c.excluded.includes(x))c.excluded.push(x);changed=true;}
+    }
+    for(const m of low.matchAll(/\b(?:i|we)\s+(?:also\s+|already\s+|now\s+)?have\s+([^.!?]+)/g)){
+      for(const v of m[1].match(foodRe)||[]){const x=alias[v]||v;if(!c.have.includes(x))c.have.push(x);c.excluded=c.excluded.filter(a=>a!==x);changed=true;}
+    }
+    if(changed){this.s.mealCount=c.count;this.s.ingredients=c.have.slice();return this.renderMealPlan()}
+    if(/show (?:the|my) (?:plan|meals?) again/.test(low))return this.renderMealPlan();
+    return null;
+  }
   extractDinnerIngredients(t){
     const low=this.normalize(t);
     const splitList=(v)=>String(v||'').split(/\s*,\s*|\s+and\s+/).map(x=>x.replace(/^and\s+/,'').replace(/^(?:some|a|an|the)\s+/,'').replace(/\s+for\s+(?:dinner|lunch|breakfast)\b.*$/,'').replace(/\s+(?:too|also|either)$/,'').trim()).filter(Boolean);
@@ -1731,7 +1795,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2209,6 +2273,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
   directAnswer(x,intent=''){
     const low=this.normalize(x);
+    const multi=this.startMealPlan(x);if(multi)return multi;
     const answer=(say,choices=[])=>({say,choices});
     const sourceStart=this.sourceUnderstandingStart(x);if(sourceStart)return sourceStart;
     if(/\b(?:help me )?(?:make sense of|understand|explain)\s+(?:this|the)\s+(?:email|message|letter|notice|document)\b/.test(low)){
@@ -2415,6 +2480,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       /\b(?:repair|repairing|fix|fixing)\b/.test(low)&&/\b(?:buy|buying|replace|replacing|purchase)\b/.test(low)&&
       /\b(?:or|versus|vs|compare|decide)\b/.test(low);
     if(newDecision){this.clearContext();return this.generalTaskStart(x,'compare');}
+    if(this.s.multiMeal){const revision=this.reviseMealPlan(x);if(revision)return revision;}
     this.updateUniversalMemory(text);
     const inventoryChange=this.dinnerInventoryChange(text);
     if(inventoryChange)return inventoryChange;
