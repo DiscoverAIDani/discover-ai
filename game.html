@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: invitation-revision-context-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: invitation-additional-details-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -685,14 +685,21 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const places=[...raw.matchAll(/\bat\s+([A-Za-z][^.!?;,]{2,80})/gi)].map(x=>x[1].trim()).filter(x=>!/^(?:\d|night\b|home\b)/i.test(x));
     const place=places.length?places[places.length-1].replace(/\s+(?:and|but|because)\s+.*$/i,'').trim():'';
     const title=/\bAI\b/i.test(raw)?'AI workshop':/\bworkshop\b/i.test(raw)?'workshop':(/\b(?:class|session|seminar|training)\b/i.exec(raw)||[])[0]||'workshop';
-    return{date,time,location:place,title,free:/\bfree\b/.test(low),beginner:/\b(?:beginner|beginners|first timers|first-time|new to ai)\b/.test(low),noExperience:/\b(?:no (?:prior )?(?:ai )?experience|don't need (?:ai )?experience)\b/.test(low),concise:false,casual:false};
+    return{date,time,location:place,title,free:/\bfree\b/.test(low),beginner:/\b(?:beginner|beginners|first timers|first-time|new to ai)\b/.test(low),noExperience:/\b(?:no (?:prior )?(?:ai )?experience|don't need (?:ai )?experience)\b/.test(low),concise:false,casual:false,extraDetails:[]};
   }
   renderWorkshopInvitation(f){
     const kind=(f.free?'free ':'')+(f.beginner?'beginner-friendly ':'')+(f.title||'workshop');
     const when=(f.date?' on '+f.date:'')+(f.time?', '+f.time:'');
     const where=f.location?' at '+f.location:'';
-    return f.concise||f.casual?'Hey! There’s a '+kind+when+where+'.'+(f.noExperience?' No experience needed.':'')+' Want to come?':
-      'Hi! I wanted to invite you to a '+kind+when+where+'.'+(f.noExperience?' No experience needed.':'')+' I’d love for you to come!';
+    // Keep explicitly added details in structured state, so future tone
+    // changes do not silently erase the user's revisions.
+    const extra=(Array.isArray(f.extraDetails)?f.extraDetails:[])
+      .map(value=>String(value||'').trim().replace(/[.!?]+$/,'').trim())
+      .filter(Boolean)
+      .map(value=>value.charAt(0).toUpperCase()+value.slice(1)+'.').join(' ');
+    const details=(f.noExperience?' No experience needed.':'')+(extra?' '+extra:'');
+    return f.concise||f.casual?'Hey! There’s a '+kind+when+where+'.'+details+' Want to come?':
+      'Hi! I wanted to invite you to a '+kind+when+where+'.'+details+' I’d love for you to come!';
   }
 
   communicationDraft(text){
@@ -781,6 +788,20 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       this.s.draftAwaitingDetail=false;
       return{say:'That detail is already in the draft, so I left it as-is.',choices:['Make it shorter','Try another tone','Add another detail']};
     }
+    if(kind==='invitation'&&this.s.invitationFacts){
+      const f=this.s.invitationFacts;
+      const detail=clean.replace(/\s*,?\s+and\s+(?:keep|leave)\s+(?:everything|the rest)\b.*$/i,'').replace(/[.!?]+$/,'').trim();
+      if(!detail)return{say:'What detail would you like me to add to the invitation?',choices:[]};
+      if(!Array.isArray(f.extraDetails))f.extraDetails=[];
+      if(f.extraDetails.some(v=>this.normalize(v)===this.normalize(detail))){
+        this.s.draftAwaitingDetail=false;
+        return{say:'That detail is already in the invitation, so I left it as-is.',choices:['Make it shorter','Add another detail']};
+      }
+      f.extraDetails.push(detail);
+      this.s.draftText=this.renderWorkshopInvitation(f);
+      this.s.draftAwaitingDetail=false;
+      return{say:'Here’s the revised version with that detail added:\n\n“'+this.s.draftText+'”',choices:['Make it shorter','Try another tone','Add another detail']};
+    }
     if(kind==='email'){
       const greeting=(d.match(/^(?:Hi|Hello),?/)||[])[0]||'Hi,';
       const signature=(d.match(/(?:Thank you|Thanks),?\s*\n\[Your name\]\s*$/i)||[])[0]||'Thank you,\n[Your name]';
@@ -849,6 +870,18 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     let d=this.s.draftText;
     if(kind==='invitation'&&this.s.invitationFacts){
       const f=this.s.invitationFacts;
+      // Capture a new sentence rather than merely re-rendering the old draft.
+      // Strip editing instructions (such as "and keep everything else the same")
+      // without removing the actual detail the visitor supplied.
+      const added=String(text||'').match(/\b(?:add|include|mention)\s+(?:(?:the\s+)?(?:detail|information)\s+)?that\s+(.+)$/i);
+      if(added){
+        const detail=added[1].replace(/\s*,?\s+and\s+(?:keep|leave)\s+(?:everything|the rest)\b.*$/i,'').trim();
+        if(detail)return this.addDraftDetail(detail);
+      }
+      if(/\b(?:add|include|mention)\s+(?:a\s+|another\s+)?(?:personal\s+)?detail\b/.test(low)){
+        this.s.draftAwaitingDetail=true;
+        return{say:'Sure. What detail would you like me to add to the invitation? I’ll keep the existing information.',choices:['Keep it as is']};
+      }
       if(/\b(?:beginner|beginners|first[- ]timers?|new to ai)\b/.test(low))f.beginner=true;
       if(/\b(?:no (?:prior )?(?:ai )?experience|don't need (?:ai )?experience|do not need (?:ai )?experience)\b/.test(low))f.noExperience=true;
       if(/\bfree\b/.test(low))f.free=true;
