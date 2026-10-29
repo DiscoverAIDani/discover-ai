@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: water-safety-fact-check-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: medication-safety-guidance-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1795,7 +1795,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2434,6 +2434,45 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
 
 
+
+  isMedicationSafetyQuestion(text){
+    const x=this.normalize(text);
+    const rx=/\b(?:blood pressure (?:medications?|medicines?|pills?|tablets?|drugs?)|hypertension (?:medications?|medicines?|pills?)|prescribed (?:medications?|medicines?|pills?)|prescription (?:medications?|medicines?|pills?)|(?:my|the|a|this) (?:medication|medicine|prescription|pills?|tablets?))\b/.test(x);
+    const decision=/\b(?:stop(?:ped|ping)?(?: taking)?|quit|discontinue|come off|go off|skip(?:ped|ping)?|missed (?:a|my|the|one|yesterday's|today's)?\s*dose|double(?: up)?|change (?:my|the) dose|cut (?:my|the) dose|halve (?:my|the) dose|stop (?:my|the)|still need|no longer need|take (?:it|them) (?:anymore|today))\b/.test(x);
+    const question=/\b(?:should i|do i need|can i|is it (?:okay|ok|safe)|is that (?:okay|ok|safe)|what should i|what do i|doctor|pharmacist|video|neighbor|online|told me|recommended|advised|because)\b/.test(x);
+    const hypothetical=/^(?:(?:please|can you|could you)\s+)?(?:write|draft|create|compose|invent|generate)\s+(?:a\s+|an\s+)?(?:fictional|fake|sample|example|story|scene|email|letter)\b/.test(x);
+    return rx&&decision&&question&&!hypothetical;
+  }
+  medicationSafetyInitial(text){
+    const x=this.normalize(text);
+    this.clearContext();this.s.category='problem';this.s.intent='medicationSafety';this.s.stage='medicationSafetyAdvice';this.s.topic='whether to change a prescribed medication';this.s.medicationSafetyContext={active:true};
+    if(/\b(?:doctor|prescriber|clinician|nurse practitioner)\s+(?:told|instructed|directed|advised)\s+me\s+to\s+stop\b/.test(x))
+      return{say:'If the clinician who prescribed your medicine specifically instructed you to stop it, follow their individualized directions, rather than a general statement from an AI practice game. If the instructions are unclear or conflict with your medication label, contact the prescriber or pharmacist to confirm. I cannot review your prescription or determine an individualized dose.',choices:['What should I confirm with them?','What if I missed a dose?','How can I track questions?']};
+    if(/\b(?:missed|skipped|forgot)\b/.test(x)&&/\b(?:dose|taking|pill|medicine|medication)\b/.test(x))return this.medicationMissedDose();
+    return{say:'Do not stop or change a prescribed blood pressure medication just because a neighbor or online video says it is dangerous. Feeling fine does not necessarily mean your blood pressure is controlled without treatment; high blood pressure often has no noticeable symptoms, and medicine may be helping keep it controlled. Ask your prescribing clinician or pharmacist before stopping, skipping doses, or changing the amount you take. If you are worried about side effects, tell them what you noticed and ask about safer alternatives or a supervised change. This practice game cannot assess your medical history, blood pressure readings, or specific prescription, and the video is not proof that your medication is unsafe. If you develop severe symptoms such as chest pain, trouble breathing, fainting, or signs of a stroke, seek emergency medical care instead of waiting for a routine appointment.',choices:['But I feel fine and my readings are normal','What if I missed a dose?','What should I ask my doctor?']};
+  }
+  medicationMissedDose(){
+    return{say:'Do not double up on a missed blood pressure medication dose unless your own prescriber or pharmacist explicitly instructs you to do so. The correct missed-dose instructions depend on the specific medicine and how long it has been since the scheduled dose, so check your prescription instructions and contact your pharmacist or prescribing clinician promptly for individualized guidance. I cannot safely tell you which dose to take or when without reviewing your prescription.',choices:['What should I tell the pharmacist?','What if I feel unwell?','How can I avoid missing doses?']};
+  }
+  medicationSafetyFollowup(text){
+    if(this.s.stage!=='medicationSafetyAdvice'||!this.s.medicationSafetyContext)return null;
+    const x=this.normalize(text),unrelated=/\b(?:dinner|recipe|grocery|trip|invitation|poster|printer|wifi|wi-fi|movie|restaurant|birthday)\b/.test(x),med=/\b(?:blood pressure|medication|medicine|prescription|pills?|doses?|doctor|pharmacist|side effects?|readings?|bp|stopping|skipped)\b/.test(x);
+    if(unrelated&&!med)return null;
+    if(/\b(?:chest pain|trouble breathing|difficulty breathing|severe shortness of breath|stroke|fainted|fainting|swelling of (?:my|the) (?:face|tongue|throat)|can't breathe)\b/.test(x))
+      return{say:'Severe symptoms such as chest pain, difficulty breathing, fainting, signs of a stroke, or swelling of the face or throat can require emergency medical care. Call your local emergency number now if these are happening. Do not rely on a practice game to assess a serious reaction or decide whether to take another dose.',choices:['I can contact emergency services','I want to understand my prescription later']};
+    if(/\b(?:doctor|prescriber|clinician)\s+(?:told|instructed|directed|advised)\s+me\s+to\s+stop\b/.test(x))
+      return{say:'If your prescribing clinician personally instructed you to stop, follow their specific directions. If the timing or reason is unclear, verify with that clinician or a pharmacist; I cannot replace your individualized treatment plan.',choices:['What should I confirm?','How do I note the instructions?']};
+    if(/\b(?:missed|skipped|forgot|double(?: up)?|two (?:doses|pills)|extra dose|make up (?:the|a) dose)\b/.test(x))return this.medicationMissedDose();
+    if(/\b(?:side effects?|dizzy|dizziness|lightheaded|feeling sick|reaction|makes me sick)\b/.test(x))
+      return{say:'Medication side effects deserve attention, but I cannot tell which medicine or reaction you are experiencing. Contact the prescriber or pharmacist promptly to describe the symptom and ask whether you need a change or an urgent evaluation. Do not stop or alter a prescribed medicine solely on advice from a video. For severe symptoms such as chest pain, trouble breathing, fainting, or signs of stroke, seek emergency care.',choices:['What details should I report?','What should I ask the pharmacist?']};
+    if(/\b(?:feel fine|normal|good readings|no symptoms|symptom free|don't need|do not need|no longer need|controlled|weeks)\b/.test(x))
+      return{say:'Feeling fine or seeing normal blood pressure readings does not prove that medication is no longer needed. Blood pressure can be high without symptoms, and normal readings may be the result of the treatment working. Keep a record of your readings and discuss with the prescriber whether any supervised adjustment makes sense. Do not change or discontinue the prescription based only on how you feel or an online video.',choices:['What readings should I track?','What should I ask the prescriber?','What if I miss a dose?']};
+    if(/\b(?:ask|questions?|say to|tell (?:my|the) doctor|appointment|pharmacist|check with)\b/.test(x))
+      return{say:'You could ask your prescriber or pharmacist: “What is this medicine treating? What benefits and side effects should I watch for? Are my current readings where you want them? What should I do if I miss a dose? Is there any reason to change it, and if so, what is the safe plan?” Bring your medicine name and actual blood pressure log directly to the clinician, not to this game.',choices:['Help me make a question list','What if my readings are normal?','What if I miss a dose?']};
+    if(/\b(?:stop|quit|cut|reduce|halve|change|dangerous|video|neighbor|online|safe|should i|need to|take it|take them)\b/.test(x))
+      return{say:'An online video or a neighbor cannot determine whether your prescription is appropriate for you. Avoid stopping, skipping, or adjusting a prescribed blood pressure medicine based solely on that claim. Review your concerns with the prescriber or pharmacist, who can check the specific medicine, side effects, and your medical situation. I cannot make an individualized medication decision.',choices:['What should I ask?','What if I feel fine?','What if I missed a dose?']};
+    return null;
+  }
   isWaterSafetyClaim(text){
     const x=this.normalize(text);
     const water=/\b(?:tap water|drinking water|water supply|municipal water|water quality|water contamination|boil[- ]water|water advisory|water (?:is|isn't|was|might be) (?:safe|unsafe|contaminated))\b/.test(x);
@@ -2616,6 +2655,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    // Medication decision safety takes priority over generic intent or stale topics.
+    if(this.isMedicationSafetyQuestion(text))return this.medicationSafetyInitial(text);
+    if(this.s.stage==='medicationSafetyAdvice'){const m=this.medicationSafetyFollowup(text);if(m)return m;}
     // Continue an established advisory conversation before treating it as a new claim.
     if(this.s.stage==='waterSafetyAdvice'){const r=this.waterSafetyFollowup(text);if(r)return r;}
     if(this.isWaterSafetyClaim(text))return this.startWaterSafety(text);
