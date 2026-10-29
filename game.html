@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: invitation-additional-details-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: invitation-warmth-context-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -685,7 +685,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const places=[...raw.matchAll(/\bat\s+([A-Za-z][^.!?;,]{2,80})/gi)].map(x=>x[1].trim()).filter(x=>!/^(?:\d|night\b|home\b)/i.test(x));
     const place=places.length?places[places.length-1].replace(/\s+(?:and|but|because)\s+.*$/i,'').trim():'';
     const title=/\bAI\b/i.test(raw)?'AI workshop':/\bworkshop\b/i.test(raw)?'workshop':(/\b(?:class|session|seminar|training)\b/i.exec(raw)||[])[0]||'workshop';
-    return{date,time,location:place,title,free:/\bfree\b/.test(low),beginner:/\b(?:beginner|beginners|first timers|first-time|new to ai)\b/.test(low),noExperience:/\b(?:no (?:prior )?(?:ai )?experience|don't need (?:ai )?experience)\b/.test(low),concise:false,casual:false,extraDetails:[]};
+    return{date,time,location:place,title,free:/\bfree\b/.test(low),beginner:/\b(?:beginner|beginners|first timers|first-time|new to ai)\b/.test(low),noExperience:/\b(?:no (?:prior )?(?:ai )?experience|don't need (?:ai )?experience)\b/.test(low),concise:false,casual:false,warm:false,extraDetails:[]};
   }
   renderWorkshopInvitation(f){
     const kind=(f.free?'free ':'')+(f.beginner?'beginner-friendly ':'')+(f.title||'workshop');
@@ -698,6 +698,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       .filter(Boolean)
       .map(value=>value.charAt(0).toUpperCase()+value.slice(1)+'.').join(' ');
     const details=(f.noExperience?' No experience needed.':'')+(extra?' '+extra:'');
+    // A warmer request should visibly change wording while retaining details.
+    if(f.warm)return 'Hey! I’d love for you to come to a '+kind+when+where+'.'+details+
+      (f.concise?' Hope you can make it!':' It would be wonderful to see you there!');
     return f.concise||f.casual?'Hey! There’s a '+kind+when+where+'.'+details+' Want to come?':
       'Hi! I wanted to invite you to a '+kind+when+where+'.'+details+' I’d love for you to come!';
   }
@@ -710,7 +713,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const relation=(low.match(/\b(?:to|for)\s+(?:my\s+)?(sister|brother|mom|mother|dad|father|friend|neighbor|boss|manager|coworker|co-worker|daughter|son|husband|wife|partner|landlord|tenant|client|customer)\b/)||[])[1]||'';
     const kind=/\b(?:invite|invites?|invited|inviting|invitation|potluck|party)\b/.test(low)?'invitation':/\bbirthday\b/.test(low)?'birthday':/\bthank(?:s| you)?\b|\bthank-you\b/.test(low)?'thank-you':/\bapolog(?:y|ize|ise)\b|\bsorry\b/.test(low)?'apology':/\bcongrat(?:s|ulations)\b/.test(low)?'congratulations':/\b(?:facebook|social|instagram|nextdoor)\b.*\bpost\b|\bpost\b.*\b(?:facebook|social|instagram|nextdoor)\b/.test(low)?'social post':/\bemail\b/.test(low)?'email':/\b(?:text|message)\b/.test(low)?'message':/\bnote\b/.test(low)?'note':'draft';
     this.s.category='create';this.s.intent='create';this.s.taskType='create';this.s.stage='createPlan';this.s.createKind=kind;this.s.createRecipient=relation;this.s.topic=kind==='draft'?'your draft':`${kind}${relation?` to your ${relation}`:''}`;this.updateUniversalMemory(raw);
-    const short=/\b(?:short|brief|quick|concise)\b/.test(low), warm=/\b(?:warm|friendly|kind|heartfelt)\b/.test(low), funny=/\b(?:funny|playful|humor|humorous)\b/.test(low), professional=/\b(?:professional|polished|work)\b/.test(low), casual=/\b(?:casual|not too formal|not stiff|less formal)\b/.test(low), restrained=/\b(?:not too mushy|not mushy|not too sentimental|less sentimental|not sappy)\b/.test(low);
+    const short=/\b(?:short|brief|quick|concise)\b/.test(low), warm=/\b(?:warm|friendly|kind|heartfelt)\b/.test(low.replace(/\bbeginner-friendly\b/g,'')), funny=/\b(?:funny|playful|humor|humorous)\b/.test(low), professional=/\b(?:professional|polished|work)\b/.test(low), casual=/\b(?:casual|not too formal|not stiff|less formal)\b/.test(low), restrained=/\b(?:not too mushy|not mushy|not too sentimental|less sentimental|not sappy)\b/.test(low);
     let draft='';
     if(kind==='birthday'){
       if(funny) draft=`Happy birthday! Hope your day has good food, good laughs, and as few responsibilities as possible. I hope this year brings you plenty of reasons to smile.`;
@@ -728,7 +731,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     } else if(kind==='invitation'){
       const workshop=this.workshopInvitationDetails(raw);
       if(workshop){
-        workshop.concise=short;workshop.casual=casual;this.s.invitationFacts=workshop;
+        workshop.concise=short;workshop.casual=casual;workshop.warm=warm;this.s.invitationFacts=workshop;
         draft=this.renderWorkshopInvitation(workshop);
       }else{
       const when=(raw.match(/\b(?:on\s+)?((?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:\s+at\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)?)?|\d{1,2}(?::\d{2})?\s*(?:am|pm))/i)||[])[1]||'[day/time]';
@@ -886,8 +889,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       if(/\b(?:no (?:prior )?(?:ai )?experience|don't need (?:ai )?experience|do not need (?:ai )?experience)\b/.test(low))f.noExperience=true;
       if(/\bfree\b/.test(low))f.free=true;
       if(/\b(?:shorter|shorten|brief|concise)\b/.test(low))f.concise=true;
-      if(/\b(?:casual|less formal|not stiff)\b/.test(low))f.casual=true;
-      if(/\b(?:warmer|more personal|friendlier)\b/.test(low))f.casual=false;
+      if(/\b(?:casual|less formal|not stiff)\b/.test(low)){f.casual=true;f.warm=false;}
+      if(/\b(?:warmer|more personal|friendlier)\b/.test(low)){f.casual=false;f.warm=true;}
       d=this.renderWorkshopInvitation(f);this.s.draftText=d;
       return{say:'Here’s the revised version:\n\n“'+d+'”',choices:['Make it shorter','Make it warmer','Add another detail']};
     }
