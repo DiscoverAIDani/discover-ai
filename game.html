@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: medication-safety-guidance-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: reminder-action-honesty-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1795,7 +1795,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2435,6 +2435,49 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
 
 
+
+  isReminderActionRequest(text){
+    const x=this.normalize(text);
+    if(/^(?:(?:please|can you|could you)\s+)?(?:write|draft|create|compose|invent|generate)\s+(?:(?:a|an|some)\s+)?(?:fictional|fake|sample|example|practice)\b/.test(x))return false;
+    const reminder=/\b(?:reminders?|remind me|phone alarm|alarm on (?:my|the) phone)\b/.test(x);
+    const action=/\b(?:set|create|schedule|add|make|put|remind me)\b/.test(x);
+    const status=/\b(?:did you|have you|is it|was it|have (?:you|we))\b.{0,65}\b(?:set|saved|created|scheduled|done|working)\b/.test(x);
+    return reminder&&(action||status);
+  }
+  reminderDetails(text){
+    const x=this.normalize(text);
+    const day=(x.match(/\b(?:tomorrow|today|tonight|next (?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|week)|on (?:monday|tuesday|wednesday|thursday|friday|saturday|sunday))\b/)||[])[0]||'';
+    const clock=(String(text||'').match(/\b(?:at\s+)?(?:1[0-2]|0?[1-9])(?::[0-5]\d)?\s*(?:a\.?m\.?|p\.?m\.?)\b/i)||[])[0]||'';
+    const time=clock.replace(/^at\s+/i,'').replace(/\s+/g,' ').replace(/a\.m\./i,'AM').replace(/p\.m\./i,'PM').replace(/\b(am|pm)\b/i,m=>m.toUpperCase()).trim();
+    const tail=clock?String(text).slice(String(text).toLowerCase().indexOf(clock.toLowerCase())+clock.length):'';
+    let task=((tail.match(/\bto\s+([^.!?\n]{3,90})/i)||[])[1]||(String(text).match(/\bremind me to\s+([^.!?\n]{3,110})/i)||[])[1]||(String(text).match(/\breminder\s+(?:for|to)\s+([^.!?\n]{3,110})/i)||[])[1]||'').replace(/\s+(?:tomorrow|today|tonight|on (?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)|at \d{1,2}(?::\d{2})?\s*(?:am|pm))\b.*$/i,'').replace(/\s+/g,' ').trim();
+    if(/^(?:do it myself|set it|set it up|create it|the (?:reminder|alarm)|tell me when)/i.test(task))task='';
+    return{day,time,task};
+  }
+  reminderActionStart(text){
+    const x=this.normalize(text),isStatus=/\b(?:did you|have you|is it|was it)\b.{0,65}\b(?:set|saved|created|scheduled|done|working)\b/.test(x);
+    const details=this.reminderDetails(text);
+    this.clearContext();this.s.category='problem';this.s.intent='reminderAction';this.s.stage='reminderActionAdvice';this.s.topic='setting a phone reminder';this.s.reminderContext=details;
+    const task=details.task||'your reminder',day=details.day||'the requested day',time=details.time||'the requested time';
+    if(isStatus)return{say:'No. I have not created or saved a reminder. This Discover AI practice game cannot access your phone, reminders app, or calendar, and it cannot confirm a notification was scheduled. You need to set it using your phone’s reminder app or voice assistant and check the saved entry there. I will not claim an action was completed when it was not.',choices:['Give me a voice command','Show me how to check','Make the text copyable']};
+    return{say:'I cannot directly access your phone or its reminder app, so I have not created or saved a reminder. Your requested reminder is “'+task+'” for '+day+' at '+time+'. To set it with minimal effort, say to your phone’s built-in voice assistant: “Remind me to '+task+' '+day+' at '+time+'.” Then check the reminder in your phone’s app to confirm it was saved. I cannot make that confirmation for you, and I will not say it is done when it is not.',choices:['Can you confirm it is set?','Give me just the voice command','How do I check the reminder?']};
+  }
+  reminderActionFollowup(text){
+    if(this.s.stage!=='reminderActionAdvice'||!this.s.reminderContext)return null;
+    const x=this.normalize(text),d=this.s.reminderContext,task=d.task||'the task',day=d.day||'the requested day',time=d.time||'the requested time';
+    const unrelated=/\b(?:recipe|dinner|grocery|trip|printer|wifi|wi-fi|water contamination|blood pressure|medication|phishing|banking|story|resume)\b/.test(x);
+    const reminder=/\b(?:reminder|remind|alarm|scheduled|saved|app|phone|voice command|siri|google assistant|notification|set it|did you|done|check it|calendar)\b/.test(x);
+    if(unrelated&&!reminder)return null;
+    if(/\b(?:how|check|where|verify|see it|find it|notifications?)\b/.test(x))
+      return{say:'Open the reminders or alarms app on your phone and look for “'+task+'” on '+day+' at '+time+'. If it is missing, the reminder is not confirmed as scheduled. You can create it there or tell your phone’s built-in assistant to remind you. I cannot read your phone or check this for you.',choices:['Give me the voice command','What exact details should I enter?']};
+    if(/\b(?:can't|cannot|without|manual|steps?|instructions|instead|another way)\b/.test(x))
+      return{say:'If you do not use a voice assistant, open the reminders app on your phone and add an entry for “'+task+'” on '+day+' at '+time+'. Save it, then check that the reminder appears in the app. I cannot save it on your behalf.',choices:['Give me just the text','How do I verify it?']};
+    if(/\b(?:did you|have you|is it|was it|already|really|actually|confirm|done|finished|saved|set it|go ahead|just do it|you promised|i thought you)\b/.test(x))
+      return{say:'No reminder has been created by this game, and I cannot confirm a phone notification is scheduled. I can prepare the exact wording, but you must use your phone’s reminder app or built-in assistant to save it. Only a visible saved reminder or confirmation from your phone can show it is set. I am not connected to your device.',choices:['Give me the voice command','How do I check it?','Make the reminder text']};
+    if(/\b(?:voice|command|siri|google assistant|copy|wording|text|say)\b/.test(x))
+      return{say:'Use this voice command with your phone’s built-in assistant: “Remind me to '+task+' '+day+' at '+time+'.” This is suggested wording only; it has not been sent to your phone or scheduled.',choices:['How can I check it saved?','What if voice commands do not work?']};
+    return null;
+  }
   isMedicationSafetyQuestion(text){
     const x=this.normalize(text);
     const rx=/\b(?:blood pressure (?:medications?|medicines?|pills?|tablets?|drugs?)|hypertension (?:medications?|medicines?|pills?)|prescribed (?:medications?|medicines?|pills?)|prescription (?:medications?|medicines?|pills?)|(?:my|the|a|this) (?:medication|medicine|prescription|pills?|tablets?))\b/.test(x);
@@ -2655,6 +2698,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    // This static simulator can explain reminders, not create or verify them.
+    if(this.s.stage==='reminderActionAdvice'){const f=this.reminderActionFollowup(text);if(f)return f;}
+    if(this.isReminderActionRequest(text))return this.reminderActionStart(text);
     // Medication decision safety takes priority over generic intent or stale topics.
     if(this.isMedicationSafetyQuestion(text))return this.medicationSafetyInitial(text);
     if(this.s.stage==='medicationSafetyAdvice'){const m=this.medicationSafetyFollowup(text);if(m)return m;}
