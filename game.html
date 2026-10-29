@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: phishing-safety-routing-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: credential-reuse-continuity-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2432,6 +2432,23 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
 
 
+  isCredentialReuseQuestion(text){
+    const low=this.normalize(text);
+    const password=/\b(?:passwords?|passcodes?|login credentials)\b/.test(low);
+    const reuse=/\b(?:same password|same one|reuse(?:d|s|ing)?\s+(?:the|my|a|that|same)?\s*password|password\s+(?:for|on|with)\s+(?:my|the)?\s*(?:email|bank|another)|password\s+(?:i|we)\s+(?:also\s+)?use|use\s+(?:that|the|my)\s+(?:same\s+)?password\s+(?:for|on|with))\b/.test(low);
+    const other=/\b(?:email account|email password|email|another account|other accounts?|same account|bank(?:ing)? account|bank password|more than one account)\b/.test(low);
+    const asks=/\b(?:should i|do i need|need to|what should|is (?:it|that|changing)|enough|safe|also|too|reused|same password|another account|other accounts?)\b/.test(low);
+    return password&&reuse&&other&&asks;
+  }
+  credentialReuseAdvice(text){
+    const low=this.normalize(text);
+    const ctx=this.s.securityContext||{};
+    const exposed=ctx.credentialsShared===true;
+    const email=/\b(?:email|mailbox|gmail|outlook|yahoo)\b/.test(low);
+    const extra=email?'email account':'other accounts using that password';
+    const first=exposed?'Because you entered the bank password into the suspicious link,':'If the same password was entered on a suspicious banking link,';
+    return{say:first+' changing only your banking password is not enough when you reused it. Change your '+(email?'email password':'password on each other affected account')+' too, using the provider’s official app or website—not a link in the suspicious message. Choose a new, unique password for every account; never reuse the old one. Turn on multifactor authentication for your email and bank accounts, preferably a passkey or authenticator app where supported. Review recent sign-ins, account-recovery information, and email forwarding rules, and sign out any unfamiliar sessions if possible. Continue following your bank’s fraud team instructions and monitor account activity. Your email is especially important because it may be used to reset other passwords. Do not share any actual passwords or verification codes with this game.',choices:['How do I secure my email?','What should I check in email settings?','What about other accounts?']};
+  }
   looksLikeBankPhishing(text){
     const x=this.normalize(text);
     const financial=/\b(?:bank|credit union|credit card|debit card|financial account|banking|payment account)\b/.test(x);
@@ -2441,6 +2458,13 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const personal=/\b(?:i (?:received|got|just got|was sent|clicked|tapped|entered)|my (?:bank|credit union)|they (?:sent|texted|emailed)|it says|saying it'?s from|says? (?:my|the) account|is this real|should i|what should i do|could this be)\b/.test(x);
     const explicitQuestion=/\b(?:is this (?:a )?(?:scam|real|legitimate)|is it safe|should i click|should i trust|looks? like phishing|could it be phishing|possible scam)\b/.test(x);
     if(!financial||!suspicious||!notification||!actionable||!(personal||explicitQuestion))return false;
+    // A question about reusing an existing password is not a new fraudulent email.
+    if(this.isCredentialReuseQuestion(text))return false;
+    // Mentions of an email *account* alone do not establish a received message.
+    const incoming=/\b(?:received|got|sent|emailed|texted|called|came from|from my bank|from the bank|bank sent|bank says|bank said|the message says|the text says|the email says|it says|they say|they ask|asks me|telling me|told me|claimed|claims)\b/.test(x);
+    const impersonation=/\b(?:text|sms|message|email|alert|notification|link|website|caller|call)\b/.test(x);
+    if(!incoming&&!/\b(?:phishing|scam|fake bank text|fake bank email)\b/.test(x))return false;
+    if(!impersonation)return false;
     // Don't interrupt a user explicitly asking to draft fictional examples.
     if(/^(?:(?:please|can you|could you)\s+)?(?:write|draft|create|compose|invent|generate)\s+(?:an? |some )?(?:example|fake|fictional|sample|practice)\b/.test(x))return false;
     return true;
@@ -2469,7 +2493,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const low=this.normalize(text);
     // A new, clearly unrelated task should be handled by normal topic switching.
     if(/\b(?:plan|recipe|dinner|trip|grocery|workshop|printer|wifi|wi-fi)\b/.test(low)&&!/\b(?:bank|scam|phishing|link|text|account|password|message)\b/.test(low))return null;
-    const entered=/\b(?:(?:i|and|then)\s+(?:(?:already|just)\s+)?(?:entered|shared|gave|typed|submitted)\s+(?:(?:my|the|a)\s+)?(?:banking\s+)?(?:password|passcode|verification code|security code)|i gave (?:them|it) (?:my|a) (?:password|code)|i reused (?:the|my) password)\b/.test(low);
+    const entered=/\b(?:(?:i|and|then)\s+(?:(?:already|just)\s+)?(?:entered|shared|gave|typed|submitted)\s+(?:(?:my|the|a)\s+)?(?:banking\s+)?(?:password|passcode|verification code|security code)|i gave (?:them|it) (?:my|a) (?:password|code))\b/.test(low);
     if(entered){this.s.securityContext.credentialsShared=true;return this.bankPhishingAfterAction(true,this.s.securityContext.clicked)}
     const clicked=/\b(?:i (?:already |just )?(?:clicked|tapped|opened)(?: (?:the|that|a))? (?:link|website)|clicked (?:it|the link)|opened (?:it|the link))\b/.test(low);
     if(clicked){this.s.securityContext.clicked=true;return this.bankPhishingAfterAction(false,true)}
@@ -2489,6 +2513,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    // Answer password-reuse follow-ups without inventing a new phishing email.
+    if(this.isCredentialReuseQuestion(text))return this.credentialReuseAdvice(text);
     // Safety-critical banking impersonation outranks stale intent and generic routing.
     if(this.looksLikeBankPhishing(text))return this.bankPhishingInitial(text);
     if(this.s.stage==='securityAdvice'){const follow=this.bankPhishingFollowup(text);if(follow)return follow;}
