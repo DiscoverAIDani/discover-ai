@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: repair-quote-association-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: warranty-context-awareness-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1147,14 +1147,72 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       choices:['I know the replacement price','I have the screen repair quote','Compare the repair risks']};
   }
 
+
+  updatedRepairWarranty(text){
+    // Warranty periods are not device ages. Preserve existing cost and
+    // condition facts and compare only the protections the user reports.
+    const c=this.s.decisionContext;
+    if(this.s.intent!=='compare'||!c)return null;
+    const raw=String(text||''),low=raw.toLowerCase();
+    if(!/\b(?:warrant(?:y|ies)|guarantee(?:s|d)?|coverage|covered)\b/.test(low))return null;
+    const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12};
+    const ageMatch=low.match(/\b(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)(?:[\s-]+)(?:years?|yrs?)(?:[\s-]+)old\b/);
+    if(ageMatch)c.ageYears=words[ageMatch[1]]||Number(ageMatch[1]);
+    const durations=[...low.matchAll(/\b(\d{1,3}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)(?:[\s-]+)(days?|months?|years?)\b/g)];
+    let supplied=0;
+    for(const d of durations){
+      const after=low.slice(d.index+d[0].length,d.index+d[0].length+15);
+      if(/^\s*[- ]?old\b/.test(after))continue;
+      const before=low.slice(Math.max(0,d.index-135),d.index);
+      const near=low.slice(Math.max(0,d.index-100),Math.min(low.length,d.index+d[0].length+65));
+      if(!/\b(?:warrant(?:y|ies)|guarantee(?:s|d)?|coverage|covered)\b/.test(near))continue;
+      const sources=[...before.matchAll(/\b(?:repair shop|repair work|repair warranty|screen repair|battery repair|repair|new laptop|new computer|new phone|replacement laptop|replacement|new one|manufacturer)\b/g)];
+      let source=sources.length?sources[sources.length-1][0]:'';
+      if(!source){
+        const ahead=low.slice(d.index+d[0].length,d.index+d[0].length+65);
+        if(/\b(?:repair shop|repair work|repair warranty|repair)\b/.test(ahead))source='repair';
+        else if(/\b(?:new laptop|new computer|new phone|replacement|new one|manufacturer)\b/.test(ahead))source='replacement';
+      }
+      if(!source)continue;
+      const period={count:words[d[1]]||Number(d[1]),unit:d[2].replace(/s$/,'')};
+      if(/^(?:new |replacement|manufacturer)/.test(source))c.replaceWarranty=period;
+      else c.repairWarranty=period;
+      supplied++;
+    }
+    if(!supplied&&!c.repairWarranty&&!c.replaceWarranty)return null;
+    const fmt=n=>'$'+n.toLocaleString('en-US',{maximumFractionDigits:2});
+    const term=p=>p?(p.count+' '+p.unit+(p.count===1?'':'s')):'not specified';
+    const r=Number.isFinite(c.repair)?fmt(c.repair):'unknown';
+    const e=Number.isFinite(c.additionalRepairCost)?fmt(c.additionalRepairCost):null;
+    const b=Number.isFinite(c.buy)?fmt(c.buy):'unknown';
+    let costs='';
+    if(c.additionalFault){
+      if(e!==null&&Number.isFinite(c.repair)){
+        const total=c.repair+c.additionalRepairCost;
+        costs=' The known repair quotes are '+r+' for the battery plus '+e+' for the '+c.additionalFault+', totaling '+fmt(total)+' if both quotes cover all needed work.';
+        if(Number.isFinite(c.buy)){
+          costs+=' A new '+c.item+' is '+b+', '+(total>c.buy?fmt(total-c.buy)+' less than the quoted repairs.':total<c.buy?fmt(c.buy-total)+' more than the quoted repairs.':'the same as the quoted repairs.');
+        }
+      }else costs=' The battery quote is '+r+', the '+c.additionalFault+' repair price is unknown, and a replacement is '+b+'; the complete repair cost comparison remains open.';
+    }else if(Number.isFinite(c.repair)&&Number.isFinite(c.buy)){
+      costs=' The repair is quoted at '+r+' and a replacement at '+b+'.';
+    }
+    const age=Number.isFinite(c.ageYears)?' The '+c.item+' is '+c.ageYears+' years old, and neither warranty automatically protects against every age-related failure.':'';
+    return{say:'The warranty details change the risk side of the comparison without changing the prices. The repair shop offers '+term(c.repairWarranty)+' of stated protection for its work; the new '+c.item+' has a stated '+term(c.replaceWarranty)+' warranty.'+costs+age+' These are different types of protection, so compare what is actually covered, exclusions, whether parts and labor are included, and what happens if a different component fails. A longer stated period does not guarantee zero problems. I can explain the trade-offs, but the decision is yours.',
+      choices:['What does each warranty cover?','Compare risk and cost','Add another detail']};
+  }
+
   updatedRepairComparison(text){
     // Keep the original choices, prices and priorities; update only facts the
     // user actually changes. No invented warranties, lifespan or final choice.
     const c=this.s.decisionContext;
     if(this.s.intent!=='compare'||!c||c.repair===undefined||c.buy===undefined)return null;
     const raw=String(text||'').trim(),low=this.normalize(raw);
+    const warranty=this.updatedRepairWarranty(raw);
+    if(warranty)return warranty;
     const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12};
-    const ageMatch=low.match(/\b(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)(?:\s*[- ]\s*|\s+)(?:year|years|yr|yrs)(?:[- ]old|\s+old)?\b/);
+    // Require "old": "one-year warranty" is a coverage period, not laptop age.
+    const ageMatch=low.match(/\b(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)(?:\s*[- ]\s*|\s+)(?:year|years|yr|yrs)(?:[- ]old|\s+old)\b/);
     if(ageMatch)c.ageYears=words[ageMatch[1]]||Number(ageMatch[1]);
     // A separate component quote must not overwrite the battery estimate.
     const extraMatch=raw.match(/\b(screen|motherboard|keyboard|hard drive|ssd|charging port|fan)\b(?:\s+(?:repair|replacement))?[^.!?]{0,85}?\$\s*([0-9,]+(?:\.\d{1,2})?)/i)||
