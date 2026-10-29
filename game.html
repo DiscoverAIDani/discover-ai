@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: warranty-context-awareness-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: warranty-correction-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1161,9 +1161,14 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const durations=[...low.matchAll(/\b(\d{1,3}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)(?:[\s-]+)(days?|months?|years?)\b/g)];
     let supplied=0;
     for(const d of durations){
-      const after=low.slice(d.index+d[0].length,d.index+d[0].length+15);
+      const after=low.slice(d.index+d[0].length,d.index+d[0].length+55);
       if(/^\s*[- ]?old\b/.test(after))continue;
       const before=low.slice(Math.max(0,d.index-135),d.index);
+      // A period after "instead of" or "rather than" is superseded, not current.
+      // Allow determiners as in "rather than a one-year warranty".
+      const recent=before.slice(-65);
+      if(/\b(?:instead of|rather than|previously|formerly|used to be|not|no longer)(?:\s+(?:a|an|the|old|previous|former|original)){0,3}\s*$/.test(recent))continue;
+      if(/\bfrom\s*$/.test(recent)&&/^\s+to\s+(?:\d{1,3}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s*[- ]\s*(?:day|month|year)/.test(after))continue;
       const near=low.slice(Math.max(0,d.index-100),Math.min(low.length,d.index+d[0].length+65));
       if(!/\b(?:warrant(?:y|ies)|guarantee(?:s|d)?|coverage|covered)\b/.test(near))continue;
       const sources=[...before.matchAll(/\b(?:repair shop|repair work|repair warranty|screen repair|battery repair|repair|new laptop|new computer|new phone|replacement laptop|replacement|new one|manufacturer)\b/g)];
