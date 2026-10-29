@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: natural-phrasing-qa-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: conversation-continuity-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2534,7 +2534,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/^(?:please\s+)?(?:write|draft|compose|create)\b[^.!?\n]{0,60}\b(?:story|fiction|email|letter|post)\b/.test(x))return false;
     return !!this.workRange(text)&&this.workDays(text).length>0&&this.workRate(text)!==null
       &&/\b(?:weekly|week|gross pay|paid hours|show the math|how many paid hours|how much pay)\b/.test(x)
-      &&/\b(?:work|shift|paid|pay|hourly|job|lunch|break|wage)\b/.test(x);
+      &&/\b(?:work|shift|paid|pay|hourly|job|lunch|break|wage|gross|hr)\b/.test(x);
   }
   workMoney(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
   workSummary(){
@@ -2945,7 +2945,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const animalCheese=/\b(?:regular|real|ordinary|traditional|cow'?s?[- ]milk|dairy|milk[- ]based)\s+(?:(?:cow'?s?[- ]milk)\s+)?(?:cheese|cheddar|mozzarella|parmesan|gouda)\b|\b(?:cheese|cheddar|mozzarella|parmesan|gouda)\s+(?:made (?:from|with)|from)\s+(?:cow'?s?[- ]milk|dairy)\b/.test(x);
     const mustInclude=/\b(?:must|has to|have to|requires?|absolutely|insist|cannot omit|can't omit|do not omit|don't omit|include|includes?|contain|containing|with|add|use|using|keep|need)\b[^.!?]{0,95}\b(?:cheese|cheddar|mozzarella|parmesan|gouda)\b/.test(x);
     const excluded=/\b(?:do not|don't|no|without|avoid|exclude|never|must not|cannot|can't)\s+(?:use |add |include |contain |have |any |the )?(?:(?:regular|cow'?s?[- ]milk|dairy)\s+)?(?:cheese|cheddar|mozzarella|parmesan|gouda)\b/.test(x);
-    return dairyFree&&recipe&&animalCheese&&mustInclude&&!excluded;
+    return dairyFree&&recipe&&animalCheese&&(mustInclude||/\bbut\s+(?:also\s+)?(?:regular|real|ordinary)\s+cheese\b/.test(x))&&!excluded;
   }
   isStandaloneDairyFreeRecipe(text){
     const x=this.normalize(text);
@@ -3424,6 +3424,10 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       if(current)return current;
     }
     if(this.s.stage!=='start' && this.isRecallRequest(x))return this.recallConversation(x);
+    if(/\b(?:scrambled? eggs?|scramble eggs?)\b/.test(low)&&/\b(?:how to|how do i|tell me how|help me|recipe|make|cook|scramble)\b/.test(low)&&!/\b(?:write|draft|summari[sz]e|translate)\b/.test(low)){
+      const spinach=/\bspinach\b/.test(low);this.clearContext();this.s.category='everyday';this.s.intent='dinner';this.s.stage='dinnerPlan';this.s.topic='scrambled eggs';this.s.ingredients=spinach?['eggs','spinach']:['eggs'];
+      return{say:'For two servings, beat 4 eggs. Heat a little oil or butter in a nonstick pan over medium-low heat. '+(spinach?'Wilt a handful of spinach first. ':'')+'Pour in the eggs, stir gently until set, then season to taste.',choices:['Add spinach','Make it quicker','Give me exact amounts']};
+    }
     const detected=this.detectIntent(x);
     // Explicit requests to change subjects outrank the previous topic's
     // continuity rules. Route the new task before saving its facts to memory.
@@ -3724,6 +3728,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       recipe='Updated recipe: 1) Use cooked '+beans+' (drain and rinse if canned). 2) Warm the '+beans+' in a pan until hot. '+(has('spinach')?'3) Wilt the spinach in the same pan. ':'')+(has('spinach')?'4':'3')+') Warm the tortillas and fill them with '+beans+(has('spinach')?' and spinach':'')+'.';
     }else if(has('eggs')&&has('tortillas')){
       recipe='Updated recipe: scramble the eggs until fully cooked, warm the tortillas, and fill them with eggs'+(has('spinach')?' and wilted spinach':'')+'.';
+    }else if(has('eggs')&&has('spinach')){
+      recipe='Updated recipe: wilt spinach briefly, add beaten eggs, and stir gently until the eggs are set.';
     }else if(beans&&has('rice')){
       recipe='Updated recipe: warm the cooked '+beans+' and cooked rice; '+(has('spinach')?'wilt the spinach, ':'')+'mix together, and season to taste.';
     }else if(items.length){
@@ -3739,6 +3745,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
   handleDinnerPlan(x){
     const low=this.normalize(x);
+    if(this.normalize(this.s.topic)==='scrambled eggs'&&/\b(?:quick|quicker|faster|fast)\b/.test(low))return{say:'Scrambled eggs take only a few minutes: beat the eggs while the pan heats, then stir gently over medium-low heat until set.',choices:['Give me exact amounts','Change an ingredient']};
+    if(this.normalize(this.s.topic)==='scrambled eggs'&&/\b(?:exact amounts|for two|recipe|ingredients)\b/.test(low))return{say:'For two servings, use 4 eggs and about a teaspoon of oil or butter'+(this.safeDinnerIngredients().includes('spinach')?', plus a handful of washed spinach':'')+'. Cook over medium-low heat and stir until set.',choices:['Make it quicker','Change an ingredient']};
     const listText=(items)=>items.length<=1?(items[0]||'what you have'):(items.length===2?items.join(' and '):items.slice(0,-1).join(', ')+', and '+items[items.length-1]);
 
     if(/\bvegan\b/.test(low)){
