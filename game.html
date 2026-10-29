@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: missing-utility-notice-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: appointment-departure-calculator-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1795,7 +1795,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2437,6 +2437,100 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
 
 
+
+  departureClockValue(source){
+    const m=String(source||'').match(/\b(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*(a\.?m\.?|p\.?m\.?)\b/i);
+    if(!m)return null;
+    const hour=Number(m[1]),minute=Number(m[2]||0),pm=/p/i.test(m[3]);
+    return (hour%12)*60+minute+(pm?720:0);
+  }
+  departureClockLabel(minutes){
+    const absolute=((minutes%1440)+1440)%1440,hour24=Math.floor(absolute/60),mins=absolute%60;
+    const day=minutes<0?' (previous day)':minutes>=1440?' (next day)':'';
+    return String(hour24%12||12)+':'+String(mins).padStart(2,'0')+' '+(hour24>=12?'PM':'AM')+day;
+  }
+  departureDuration(text){
+    const m=String(text||'').match(/\b(\d{1,3})\s*(minutes?|mins?|hours?|hrs?)\b/i);
+    if(!m)return null;
+    const n=Number(m[1])*(/^h/i.test(m[2])?60:1);
+    return n>=0&&n<=720?n:null;
+  }
+  departureExtract(text){
+    const raw=String(text||''),x=this.normalize(raw);
+    const clock='(1[0-2]|0?[1-9])(?::[0-5]\\d)?\\s*(?:a\\.?m\\.?|p\\.?m\\.?)';
+    const apptRegex=new RegExp('\\b(?:appointment|meeting|checkup|check-up|class|session)\\b[^.!?\\n]{0,85}?\\b(?:at|to|for|is|starts? at|moved to|changed to|now at)\\s*'+clock,'i');
+    const apptMatch=raw.match(apptRegex),appointment=apptMatch?this.departureClockValue(apptMatch[0]):null;
+    const driveMatch=raw.match(/\b(?:takes?|drive|driving|drive time|travel(?:ling)?|commute|journey)\b[^.!?\n]{0,65}?\b(\d{1,3})\s*(?:minutes?|mins?|hours?|hrs?)\b/i)
+      ||raw.match(/\b(\d{1,3})\s*(?:minute|min|hour|hr)s?\s+(?:drive|driving|travel time|commute)\b/i);
+    const drive=driveMatch?this.departureDuration(driveMatch[0]):null;
+    const earlyMatch=raw.match(/\b(?:arrive|arrival|be there|check in|show up)\b[^.!?\n]{0,45}?\b(\d{1,3})\s*(?:minutes?|mins?|hours?|hrs?)\s+early\b/i)
+      ||raw.match(/\b(\d{1,3})\s*(?:minutes?|mins?|hours?|hrs?)\s+early\b/i);
+    const early=earlyMatch?this.departureDuration(earlyMatch[0]):null;
+    const extraMatch=raw.match(/\b(?:traffic|parking|extra|additional|add|buffer|delay)\b[^.!?\n]{0,40}?\b(\d{1,3})\s*(?:minutes?|mins?|hours?|hrs?)\b/i);
+    const extra=extraMatch?this.departureDuration(extraMatch[0]):null;
+    const earlyUnspecified=/\b(?:arrive|be there|check in)\b[^.!?\n]{0,45}?\bearly\b/.test(x)&&early===null;
+    return{appointment,drive,early,extra,earlyUnspecified};
+  }
+  isDepartureTimeQuestion(text){
+    const x=this.normalize(text);
+    const event=/\b(?:appointment|meeting|checkup|check-up|class|session)\b/.test(x);
+    const travel=/\b(?:leave|depart|head out|drive|driving|travel|arrival|arrive|early|getting there)\b/.test(x);
+    const request=/\b(?:what time|when (?:should|do|must|would|can) i|calculate|work out|how early|when to|leave home)\b/.test(x);
+    const fiction=/^(?:please\s+)?(?:write|draft|create|compose)\s+(?:(?:a|an|some)\s+)?(?:fictional|fake|sample|story|invitation)\b/.test(x);
+    return event&&travel&&request&&!fiction;
+  }
+  departureAnswer(note){
+    const c=this.s.departureContext;
+    if(!c)return null;
+    if(c.appointment===null||c.drive===null||c.earlyUnspecified){
+      const missing=[];
+      if(c.appointment===null)missing.push('the appointment time (including AM or PM)');
+      if(c.drive===null)missing.push('how many minutes the drive takes');
+      if(c.earlyUnspecified)missing.push('how many minutes early you need to arrive');
+      return{say:'I can calculate a departure time, but I still need '+missing.join(' and ')+'. I will not invent a missing travel duration or appointment time. Tell me those details and I will show the arithmetic.',choices:['I have the missing details','How is the time calculated?']};
+    }
+    const arrival=c.appointment-c.early,leave=arrival-c.drive-c.extra;
+    const parts=['Appointment: '+this.departureClockLabel(c.appointment)+'.',
+      'Arrive '+c.early+' minutes early: '+this.departureClockLabel(c.appointment)+' − '+c.early+' minutes = '+this.departureClockLabel(arrival)+'.',
+      'Subtract '+c.drive+' minutes of driving: '+this.departureClockLabel(arrival)+' − '+c.drive+' minutes = '+this.departureClockLabel(arrival-c.drive)+'.'];
+    if(c.extra)parts.push('Subtract '+c.extra+' extra minutes for the buffer or delay: '+this.departureClockLabel(arrival-c.drive)+' − '+c.extra+' minutes = '+this.departureClockLabel(leave)+'.');
+    const conclusion='Leave home at '+this.departureClockLabel(leave)+'.';
+    return{say:(note?note+' ':'')+conclusion+' Calculation: '+parts.join(' ')+' This uses only the times you provided; it does not account for other traffic, parking, or walking delays unless included in your estimates.',choices:['What if traffic adds 15 minutes?','What if I need to arrive earlier?','What if my appointment time changes?']};
+  }
+  departureStart(text){
+    const facts=this.departureExtract(text);
+    this.clearContext();this.s.category='everyday';this.s.intent='departure';this.s.stage='departureCalculation';this.s.topic='appointment departure time';
+    this.s.departureContext={appointment:facts.appointment,drive:facts.drive,early:facts.early===null?0:facts.early,extra:facts.extra||0,earlyUnspecified:facts.earlyUnspecified};
+    return this.departureAnswer('');
+  }
+  departureFollowup(text){
+    if(this.s.stage!=='departureCalculation'||!this.s.departureContext)return null;
+    const raw=String(text||''),x=this.normalize(raw),c=this.s.departureContext;
+    const related=/\b(?:appointment|meeting|checkup|class|session|leave|depart|drive|driving|traffic|parking|early|arrival|arrive|buffer|minutes?|hours?|time|late|delay)\b/.test(x);
+    const unrelated=/\b(?:dinner|recipe|birthday|invitation|utility bill|electric company|reminder|medication|phishing|password|water contamination|email draft)\b/.test(x);
+    if(unrelated&&!/\b(?:appointment|leave|drive|arrival)\b/.test(x))return null;
+    if(!related)return null;
+    const facts=this.departureExtract(raw);
+    let changed=false,update='';
+    if(facts.appointment!==null){c.appointment=facts.appointment;changed=true;update='Using your updated appointment time.';}
+    const driveMention=/\b(?:drive|driving|takes?|travel|commute)\b/.test(x);
+    const extraMention=/\b(?:traffic|parking|extra|additional|add|buffer|delay)\b/.test(x);
+    if(facts.drive!==null&&driveMention&&!extraMention){c.drive=facts.drive;changed=true;update='Using the updated travel time.';}
+    if(facts.early!==null){c.early=facts.early;c.earlyUnspecified=false;changed=true;update='Using your updated early-arrival requirement.';}
+    if(facts.extra!==null&&extraMention){
+      const replaceBuffer=/\b(?:instead|now (?:need|allow)|total|make (?:the|it)|reduce (?:the|it)|change (?:the|it) to)\b/.test(x);
+      c.extra=replaceBuffer?facts.extra:c.extra+facts.extra;
+      changed=true;update='Including the additional buffer or delay.';
+    }
+    if(facts.earlyUnspecified&&!changed){c.earlyUnspecified=true;changed=true;}
+    const proposed=raw.match(/\b(?:leave|depart|head out)\s+(?:at\s+)?(1[0-2]|0?[1-9])(?::[0-5]\d)?\s*(?:a\.?m\.?|p\.?m\.?)\b/i);
+    if(proposed&&c.appointment!==null&&c.drive!==null&&!changed){
+      const proposedM=this.departureClockValue(proposed[0]),required=c.appointment-c.early-c.drive-c.extra,delta=proposedM-required;
+      return{say:'Based on your stated timings, the calculated departure is '+this.departureClockLabel(required)+'. Leaving at '+this.departureClockLabel(proposedM)+' would be '+Math.abs(delta)+' minutes '+(delta>0?'later':delta<0?'earlier':'exactly on time')+' than that.'+(delta>0?' You would no longer have the full arrival buffer you requested.':'')+' This assumes your travel estimate is accurate.',choices:['Recalculate with extra traffic','Change the appointment time']};
+    }
+    if(changed||/\b(?:what time|when|recalculate|calculation|explain|show|how)\b/.test(x))return this.departureAnswer(update);
+    return null;
+  }
   isUtilityNoticeQuestion(text){
     const x=this.normalize(text);
     const document=/\b(?:notice|letter|bill|invoice|statement|payment request|late notice)\b/.test(x);
@@ -2750,6 +2844,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    if(this.s.stage==='departureCalculation'){const d=this.departureFollowup(text);if(d)return d;}
+    if(this.isDepartureTimeQuestion(text))return this.departureStart(text);
     // Never invent amounts or dates from a utility notice this game has not seen.
     if(this.s.stage==='utilityNoticeAdvice'){const r=this.utilityNoticeFollowup(text);if(r)return r;}
     if(this.isUtilityNoticeQuestion(text))return this.utilityNoticeReply(text,true);
