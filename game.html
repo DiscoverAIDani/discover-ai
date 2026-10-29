@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: warranty-correction-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: contextual-repair-dialogue-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1207,12 +1207,78 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       choices:['What does each warranty cover?','Compare risk and cost','Add another detail']};
   }
 
+
+  repairComparisonFollowup(text){
+    // Address scope, summary and preference follow-ups without losing the
+    // comparison or presuming what a warranty covers.
+    const c=this.s.decisionContext;
+    if(this.s.intent!=='compare'||!c)return null;
+    const raw=String(text||''),low=this.normalize(raw),money=n=>'$'+n.toLocaleString('en-US',{maximumFractionDigits:2});
+    const other=Number.isFinite(c.additionalRepairCost)?money(c.additionalRepairCost):null;
+    const total=Number.isFinite(c.repair)&&other!==null&&c.additionalFault?c.repair+c.additionalRepairCost:null;
+    const buy=Number.isFinite(c.buy)?money(c.buy):'unknown';
+    const term=p=>p?(p.count+' '+p.unit+(p.count===1?'':'s')):'unknown';
+    const partWords=/\b(?:parts?|labor|labour|exclusions?)\b/;
+    const scopeQuestion=/\b(?:what|which|how)\b.*\b(?:warrant(?:y|ies)|guarantee|coverage)\b/.test(low);
+    // "Includes a one-year warranty" is not a question about included parts.
+    const scope=partWords.test(low)||
+      /\b(?:covers?|includes?|excludes?)\b[^.!?]{0,60}\b(?:battery|screen|parts?|labor|labour|failure|damage)\b/.test(low)||
+      scopeQuestion||
+      (/\bcoverage\b/.test(low)&&/\b(?:what|which|does|do|is|are|whether|details|scope|exactly)\b/.test(low));
+    const warrantyWord=/\b(?:warrant(?:y|ies)|guarantee(?:s|d)?|coverage|covered)\b/.test(low);
+    const followupReference=/^(?:does|do|is|will|are|can|could|what|which|how)\b/.test(low)&&/\b(?:it|this|that|they|those)\b/.test(low);
+    const warranty=warrantyWord||(scope&&followupReference&&(c.repairWarranty||c.replaceWarranty));
+    const first=low.split(/[.!?]/)[0].trim();
+    const question=/^(?:does|do|did|can|could|would|is|are|will|what|which|how|whether)\b/.test(first);
+    const laborOnly=!question&&warrantyWord&&/\b(?:labor|labour)\b/.test(first)&&
+      (/\b(?:labor|labour)\s+only\b/.test(first)||
+       /\b(?:only|just)\s+(?:covers?|includes?)\s+(?:the\s+)?(?:labor|labour)\b/.test(first)||
+       /\b(?:not|does not|doesn't)\s+(?:cover|include)\s+(?:the\s+)?(?:replacement\s+)?parts\b/.test(first));
+    if(laborOnly)c.repairLaborOnly=true;
+    if(warranty&&scope){
+      const statement=c.repairLaborOnly?
+        'You said the repair guarantee covers labor only, not replacement parts. A replacement part could still cost extra; we cannot tell which labor or failures qualify without the written terms.':
+        'The '+term(c.repairWarranty)+' repair guarantee states a duration, not its coverage. We do not yet know whether battery or screen parts, labor, or repeat failures are included. Do not assume they are covered.';
+      const replacement=c.replaceWarranty?' The new '+c.item+' has a '+term(c.replaceWarranty)+' warranty, but its actual coverage and exclusions remain unconfirmed.':'';
+      const cost=total!==null?' Existing prices are '+money(total)+' for both repairs if the quotes are complete, compared with '+buy+' for a replacement.':' The total repair cost is not established.';
+      return{say:statement+replacement+cost+' Ask for written terms covering parts, labor, exclusions, qualifying failures, and service fees. A longer warranty is not proof of trouble-free reliability.',
+        choices:['Summarize the comparison','Compare risks','Add a detail']};
+    }
+    if(/\b(?:summari[sz]e|summary|recap|side[- ]by[- ]side|known facts|unknowns|what we know|facts versus unknowns|facts vs unknowns)\b/.test(low)){
+      let known='Known facts: ';
+      if(Number.isFinite(c.repair))known+='battery repair quote '+money(c.repair)+'. ';
+      if(c.additionalFault)known+=c.additionalFault+' is reported as failing. '+(other===null?'Its repair price is not yet known.':c.additionalFault+' repair quote '+other+'.')+' ';
+      if(Number.isFinite(c.buy))known+='New '+c.item+' price '+buy+'. ';
+      if(total!==null){
+        known+='If both quotes are additive and complete, combined repairs cost '+money(total)+'. ';
+        if(Number.isFinite(c.buy)){const delta=total-c.buy;known+=delta>0?'That is '+money(delta)+' more than replacement. ':delta<0?'That is '+money(-delta)+' less than replacement. ':'That matches the replacement price. ';}
+      }
+      if(c.repairWarranty)known+='Repair guarantee '+term(c.repairWarranty)+'. ';
+      if(c.replaceWarranty)known+='New '+c.item+' warranty '+term(c.replaceWarranty)+'. ';
+      if(Number.isFinite(c.ageYears))known+='Existing '+c.item+' age '+c.ageYears+' years. ';
+      if(c.repairLaborOnly)known+='Repair guarantee covers labor only, not replacement parts, as reported. ';
+      return{say:known+'Still to verify: full repair scope, the warranty terms and exclusions, and the remaining reliability of the '+c.item+'. These details do not establish a certain lifespan or a decision for you.',
+        choices:['Compare risks','Check warranty terms','Add a detail']};
+    }
+    if(/\b(?:care more|matters? more|more important|highest priority|prioriti[sz]e|reweight|weigh the comparison|focus more)\b/.test(low)){
+      if(/\b(?:reliable|reliability|failure|failing|break|breakdown|dependab|last|working)\b/.test(low))c.reliable=true;
+      const factor=c.reliable?'reliability and avoiding disruption':'your stated priority';
+      const cost=total!==null&&Number.isFinite(c.buy)?' Repairs are quoted at '+money(total)+' compared with '+buy+' to replace, assuming both repair quotes are complete.':' The full price comparison is not yet known.';
+      const periods=c.repairWarranty&&c.replaceWarranty?' The repair guarantee is '+term(c.repairWarranty)+' versus '+term(c.replaceWarranty)+' for the new '+c.item+', but neither warranty duration guarantees reliability.':'';
+      return{say:'You are placing greater weight on '+factor+'. That changes the importance of the factors, not the known facts.'+cost+periods+' Consider the existing '+c.item+' condition, actual coverage, and how disruptive another failure would be. I can weigh the trade-offs, but the choice remains yours.',
+        choices:['Summarize trade-offs','Check warranty terms','Add another detail']};
+    }
+    return null;
+  }
+
   updatedRepairComparison(text){
     // Keep the original choices, prices and priorities; update only facts the
     // user actually changes. No invented warranties, lifespan or final choice.
     const c=this.s.decisionContext;
     if(this.s.intent!=='compare'||!c||c.repair===undefined||c.buy===undefined)return null;
     const raw=String(text||'').trim(),low=this.normalize(raw);
+    const contextual=this.repairComparisonFollowup(raw);
+    if(contextual)return contextual;
     const warranty=this.updatedRepairWarranty(raw);
     if(warranty)return warranty;
     const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12};
@@ -2212,6 +2278,13 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(missingDraft)return missingDraft;
     const missingComparison=this.incompleteRepairScopeStart(x);
     if(missingComparison)return missingComparison;
+    // Keep a requested summary anchored to the current repair-versus-buy task.
+    if(this.s.intent==='compare'&&this.s.decisionContext&&
+       /\b(?:summari[sz]e|summary|recap|side[- ]by[- ]side)\b/.test(low)&&
+       /\b(?:repair|replace|replacement|options|comparison|laptop|what we know|known facts|unknowns)\b/.test(low)){
+      const current=this.repairComparisonFollowup(x);
+      if(current)return current;
+    }
     if(this.s.stage!=='start' && this.isRecallRequest(x))return this.recallConversation(x);
     const detected=this.detectIntent(x);
     // Pronouns such as 'the risks' refer to the active comparison, not a new lesson.
