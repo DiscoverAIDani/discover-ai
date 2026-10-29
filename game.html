@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: complete-repair-costs-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: standalone-repair-context-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1110,6 +1110,41 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:`Absolutely. I can help plan ${this.s.topic}. I’ll keep the details you give me as ongoing constraints instead of asking you to repeat them${known?`. So far I have ${known}`:''}.`,choices:['Build a simple plan','Add a constraint','What do you need from me?']};
     }
     return{say:`Absolutely. I can help with ${this.s.topic}. I’ll keep track of what you tell me and build on it instead of restarting the conversation.`,choices:['Give me the first step','Add a detail','Show me an example']};
+  }
+
+
+  incompleteRepairScopeStart(text){
+    // Standalone multi-component repair questions must not become generic
+    // troubleshooting. Never invent facts from an earlier game session.
+    if(this.s.intent==='compare'&&this.s.decisionContext)return null;
+    const raw=String(text||'').trim(),low=this.normalize(raw);
+    const item=(low.match(/\b(?:laptop|computer|macbook)\b/)||[])[0];
+    const part=(low.match(/\b(?:screen|motherboard|keyboard|hard drive|ssd|charging port|fan)\b/)||[])[0];
+    const quote=/\b(?:repair|quote|estimate|fix|replacement)\b/.test(low);
+    const fault=/\b(?:also|another|failing|failed|broken|damaged|problem)\b/.test(low);
+    const batteryOnly=/\b(?:battery|batteries)\b/.test(low)&&
+      (/\b(?:only|just)\s+(?:covers?|includes?|for)\s+(?:the\s+)?batter(?:y|ies)\b/.test(low)||
+       /\b(?:does not|doesn't|not)\s+(?:cover|include)\b/.test(low)||
+       /\bbatter(?:y|ies)\s+(?:only|alone)\b/.test(low));
+    if(!item||!part||!quote||!fault||!batteryOnly)return null;
+    const price=(raw.match(/\b(?:repair|quote|estimate|replacement)\b[^.!?]{0,85}?\$\s*([0-9,]+(?:\.\d{1,2})?)/i)||[])[1]||
+      (raw.match(/\$\s*([0-9,]+(?:\.\d{1,2})?)/)||[])[1];
+    const repair=price?Number(price.replace(/,/g,'')):null;
+    const money=n=>'$'+n.toLocaleString('en-US',{maximumFractionDigits:2});
+    this.clearContext();
+    this.s.intent='compare';this.s.taskType='compare';this.s.category='open';
+    this.s.stage='generalTask';this.s.topic='repair versus replace '+item;
+    this.s.decisionContext={item,repair,buy:null,budget:false,reliable:false,
+      fault:'battery',batteryRepair:true,otherWorks:false,additionalFault:part,
+      additionalRepairCost:null,batteryOnlyQuote:true};
+    return{say:'Based on this message, '+(repair!==null?'the '+money(repair)+' quote':'the quoted repair')+
+      ' covers the battery only, and the '+part+' is also failing. The '+part+
+      ' repair cost is unknown, so the full cost of fixing both problems cannot yet be calculated. '+
+      'I do not have an earlier replacement price available in this conversation, so I cannot calculate the repair-versus-buy difference without guessing. '+
+      'A battery-only repair would leave the known '+part+' issue unresolved. '+
+      'What is the replacement price, and do you have a separate repair quote for the '+part+
+      '? I can update the comparison without choosing for you.',
+      choices:['I know the replacement price','I have the screen repair quote','Compare the repair risks']};
   }
 
   updatedRepairComparison(text){
@@ -2109,6 +2144,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(pendingDraft)return pendingDraft;
     const missingDraft=this.handleUnanchoredDraftRevision(text);
     if(missingDraft)return missingDraft;
+    const missingComparison=this.incompleteRepairScopeStart(x);
+    if(missingComparison)return missingComparison;
     if(this.s.stage!=='start' && this.isRecallRequest(x))return this.recallConversation(x);
     const detected=this.detectIntent(x);
     // Pronouns such as 'the risks' refer to the active comparison, not a new lesson.
