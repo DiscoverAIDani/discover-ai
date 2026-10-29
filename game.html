@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: multi-dinner-plans-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: phishing-safety-routing-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1795,7 +1795,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2431,8 +2431,62 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     return null;
   }
 
+
+  looksLikeBankPhishing(text){
+    const x=this.normalize(text);
+    const financial=/\b(?:bank|credit union|credit card|debit card|financial account|banking|payment account)\b/.test(x);
+    const suspicious=/\b(?:phish(?:ing)?|scam|fraudulent|suspicious|fake|frozen|freeze|locked|lock(?:ed)? out|suspend(?:ed)?|verify|urgent|within (?:an?|\d+|one|two)\s+hours?|one hour|right now|immediately|password|passcode|verification code|security code|click|tap|link)\b/.test(x);
+    const notification=/\b(?:text|sms|message|email|alert|notification|link|website|call|called|phish(?:ing)?|scam)\b/.test(x);
+    const actionable=/\b(?:password|passcode|code|click|tap|link|verify|frozen|freeze|locked|suspend|phish|scam)\b/.test(x);
+    const personal=/\b(?:i (?:received|got|just got|was sent|clicked|tapped|entered)|my (?:bank|credit union)|they (?:sent|texted|emailed)|it says|saying it'?s from|says? (?:my|the) account|is this real|should i|what should i do|could this be)\b/.test(x);
+    const explicitQuestion=/\b(?:is this (?:a )?(?:scam|real|legitimate)|is it safe|should i click|should i trust|looks? like phishing|could it be phishing|possible scam)\b/.test(x);
+    if(!financial||!suspicious||!notification||!actionable||!(personal||explicitQuestion))return false;
+    // Don't interrupt a user explicitly asking to draft fictional examples.
+    if(/^(?:(?:please|can you|could you)\s+)?(?:write|draft|create|compose|invent|generate)\s+(?:an? |some )?(?:example|fake|fictional|sample|practice)\b/.test(x))return false;
+    return true;
+  }
+  bankPhishingInitial(text){
+    const low=this.normalize(text);
+    this.clearContext();this.s.category='problem';this.s.intent='problem';this.s.stage='securityAdvice';this.s.taskType='safety';this.s.topic='suspicious bank message';
+    this.s.securityContext={kind:'bank-phishing',clicked:false,credentialsShared:false};
+    const clicked=/\b(?:i (?:already |just )?(?:clicked|tapped|opened)(?: (?:the|that|a))? (?:link|website)|i entered (?:my |the )?(?:password|passcode|code))\b/.test(low);
+    const entered=/\b(?:i (?:already |just )?(?:entered|shared|gave|typed|submitted)(?: (?:my|the))? (?:password|passcode|verification code|security code))\b/.test(low);
+    if(clicked||entered){this.s.securityContext.clicked=clicked;this.s.securityContext.credentialsShared=entered;return this.bankPhishingAfterAction(entered,clicked)}
+    return{say:'That text has strong phishing warning signs: it threatens to freeze your bank account within an hour and asks you to follow a link to enter your password. I cannot verify whether the message really came from your bank, so treat the link as unsafe until you independently confirm it. Do not click the link, enter a password or verification code, or reply to the message. Instead, open your bank’s app directly or call the number on the back of your bank card or an official statement (not a number in the text) to ask whether there is a real account problem. You can also report the suspicious message to your bank. There is no need to act on the text’s one-hour deadline.',choices:['I already clicked the link','I entered my password','I did not click it']};
+  }
+  bankPhishingAfterAction(entered,clicked){
+    if(entered)return{say:'If you entered your banking password or a verification code into that link, contact your bank’s fraud or security team immediately using its official app, the number on your bank card, or another independently verified channel—not the link or phone number in the text. Change your banking password through the real bank app or website, tell the bank what you entered, and ask them to secure the account, review transactions, and advise whether additional action is needed. If you reused the password elsewhere, change it there too. Do not share any further codes with the sender. I cannot see or secure your accounts from this practice game.',choices:['I have contacted the bank','What if I reused the password?','What should I check?']};
+    if(clicked)return{say:'If you opened the link but did not enter any information, close the page and do not download anything or grant permissions. Contact your bank independently using its official app or the number on your bank card to verify the alert. If you downloaded a file, installed an app, or entered any details, tell the bank and consider device-security checks; the next steps depend on what happened. Clicking alone does not prove your account was compromised.',choices:['I did not enter anything','I entered a password','I downloaded something']};
+    return null;
+  }
+  bankPhishingFollowup(text){
+    if(!this.s.securityContext||this.s.securityContext.kind!=='bank-phishing')return null;
+    const low=this.normalize(text);
+    // A new, clearly unrelated task should be handled by normal topic switching.
+    if(/\b(?:plan|recipe|dinner|trip|grocery|workshop|printer|wifi|wi-fi)\b/.test(low)&&!/\b(?:bank|scam|phishing|link|text|account|password|message)\b/.test(low))return null;
+    const entered=/\b(?:i (?:already |just )?(?:entered|shared|gave|typed|submitted)(?: (?:my|the))? (?:password|passcode|verification code|security code)|i gave (?:them|it) (?:my|a) (?:password|code)|i reused (?:the|my) password)\b/.test(low);
+    if(entered){this.s.securityContext.credentialsShared=true;return this.bankPhishingAfterAction(true,this.s.securityContext.clicked)}
+    const clicked=/\b(?:i (?:already |just )?(?:clicked|tapped|opened)(?: (?:the|that|a))? (?:link|website)|clicked (?:it|the link)|opened (?:it|the link))\b/.test(low);
+    if(clicked){this.s.securityContext.clicked=true;return this.bankPhishingAfterAction(false,true)}
+    if(/\b(?:i did(?: not|n't) click|did(?: not|n't) click|i ignored|deleted (?:it|the text)|i haven'?t clicked)\b/.test(low))
+      return{say:'Good—the safest next step is to verify the bank alert independently, using the bank’s official app or a phone number from your card or statement. Do not use the text’s link or phone number, even if the message sounds urgent. You can report or delete the suspicious text after verifying.',choices:['How do I report it?','What if the bank confirms an issue?','Another question']};
+    if(/\b(?:i (?:didn'?t|did not) enter|no details|nothing entered|did(?: not|n't) type|only clicked)\b/.test(low))
+      return{say:'If you only opened the page and did not enter information, download anything, or grant access, close it and verify the alert through your bank’s official app or number on your card. If anything was downloaded or installed, additional device checks may be useful. Opening a link alone does not tell us whether any information was taken.',choices:['I downloaded something','How do I report it?','Another question']};
+    if(/\b(?:downloaded|installed|app permission|allowed access)\b/.test(low))
+      return{say:'If the link led you to download or install something, stop using that download and avoid granting it permissions. Contact your bank through its verified channel if financial details may be at risk, and use your device’s trusted security tools to check for unwanted software. The steps depend on the device and what you installed; the text itself cannot tell us that.',choices:['It was on my phone','It was on my computer','What if I entered my password?']};
+    if(/\b(?:how (?:do|can) i report|report (?:the|it)|block|delete)\b/.test(low))
+      return{say:'Report the suspicious message using the bank’s official fraud-reporting instructions found in its app or website, not by replying to the text. You can also use your phone’s report-junk feature where available, then block the sender. Do not forward passwords or other sensitive details.',choices:['What if I clicked it?','What if the bank says it is genuine?','Another question']};
+    if(/\b(?:bank (?:confirmed|said|told)|real|genuine|legitimate|verified|called (?:the|my) bank)\b/.test(low))
+      return{say:'If you contacted the bank using an independently verified channel, follow the instructions they provide there. A legitimate bank alert should be handled in the official app or through the bank’s direct support, not by entering a password through an unsolicited text link. I still cannot verify the message myself.',choices:['What should I ask the bank?','How do I report the text?','Another question']};
+    if(/\b(?:what (?:should|do) i|safe|next|scam|phish|password|code|account|bank|link|text|message|frozen|freeze)\b/.test(low))
+      return{say:'The safest course remains not to use the text’s link or share a password or code. Verify the account status by opening the bank’s official app yourself or calling the phone number on your card. I cannot authenticate the sender from this practice game.',choices:['I clicked the link','I entered my password','How do I report it?']};
+    return null;
+  }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    // Safety-critical banking impersonation outranks stale intent and generic routing.
+    if(this.looksLikeBankPhishing(text))return this.bankPhishingInitial(text);
+    if(this.s.stage==='securityAdvice'){const follow=this.bankPhishingFollowup(text);if(follow)return follow;}
     const pendingDraft=this.continueUnanchoredDraft(text);
     if(pendingDraft)return pendingDraft;
     const missingDraft=this.handleUnanchoredDraftRevision(text);
