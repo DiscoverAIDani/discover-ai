@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: phishing-incident-recall-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: personal-data-privacy-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1795,7 +1795,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2432,6 +2432,41 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
 
 
+
+  isPersonalDataToAI(text){
+    const x=this.normalize(text);
+    const pii=/\b(?:social security(?: number)?|ssn|bank account(?: number)?|routing number|credit card(?: number)?|debit card(?: number)?|driver'?s? licen[cs]e|passport|government (?:id|identification)|state id|tax(?:payer)? id(?:entification)?(?: number)?|medical records?|identification documents?)\b/.test(x);
+    const ai=/\b(?:ai|a\.i\.|chatbot|chatgpt|claude|gemini|copilot|assistant|language model|this chat|in this chat|to you|with you)\b/.test(x);
+    const share=/\b(?:paste|pasting|pasted|upload|uploading|uploaded|share|sharing|shared|send|sending|sent|enter|entering|entered|type|typing|typed|give|giving|gave|provide|providing|provided|put|putting|submit|submitting|submitted)\b/.test(x);
+    return pii&&ai&&share;
+  }
+  personalDataInitial(text){
+    const x=this.normalize(text);this.clearContext();
+    this.s.category='problem';this.s.intent='privacy';this.s.stage='privacyAdvice';this.s.topic='sharing personal information with an AI chatbot';
+    const shared=/\b(?:i|we)\s+(?:(?:have|had|already|just|previously)\s+)*(?:pasted|uploaded|shared|sent|entered|typed|gave|provided|submitted)\b/.test(x);
+    this.s.privacyContext={shared};
+    if(shared)return this.personalDataAlreadyShared();
+    return {say:'I would not paste a Social Security number, bank account number, or photo of an identity document into an unverified free AI chatbot. These details are sensitive, and AI services can differ in their privacy policies, retention, training settings, and who can access content. You can still ask AI to explain a form without sharing real identifiers: use the field labels or a blank copy and replace names, numbers, addresses, signatures, and identification photos with fictional placeholders such as [SSN], [ACCOUNT NUMBER], and [ID PHOTO]. Enter the real information yourself only through the issuing organization’s verified, appropriate secure form or portal. Check a service’s privacy policy before uploading personal data. This practice game does not need your real numbers or an ID photo.',choices:['Show me how to use placeholders','What if I already shared it?','How do I fill the form safely?']};
+  }
+  personalDataAlreadyShared(){
+    this.s.privacyContext={shared:true};
+    return {say:'If you already shared sensitive information with an AI chatbot, do not send more. Use that provider’s official privacy settings to see whether you can delete the conversation and uploaded files, and contact its support about retention and removal. Deletion may not erase every retained copy, so do not assume the risk is gone. If financial information was exposed, contact the relevant institution through an independently verified channel and discuss account protection. For government ID information, review official identity-theft resources if misuse is suspected. You do not need to paste any real numbers or photos here. For form help in the future, use placeholders and submit real details only through the verified organization’s secure process.',choices:['How can I delete it?','What should I secure?','Show me placeholders']};
+  }
+  personalDataFollowup(text){
+    if(this.s.stage!=='privacyAdvice'||!this.s.privacyContext)return null;
+    const x=this.normalize(text);
+    if(/\b(?:already|just|previously)\s+(?:pasted|uploaded|shared|sent|entered|submitted)\b|\b(?:i|we)\s+(?:pasted|uploaded|shared|sent|entered|submitted)\b/.test(x))return this.personalDataAlreadyShared();
+    if(/\b(?:placeholders?|fake (?:data|information|values)|fictional|sample|examples?|remove identifying|redact|hide (?:my|the) (?:number|details))\b/.test(x))
+      return{say:'Use only the form’s labels with fictional placeholders. For example: “Explain how to fill in fields labeled [NAME], [SSN], [BANK ACCOUNT NUMBER], and [ID PHOTO], but do not ask me for my real information.” Remove actual numbers, names, addresses, signatures, and photos before sharing any form excerpt with AI. If the instructions are unclear, contact the organization that issued the form.',choices:['How do I verify the website?','What if I already shared it?','Give me another example']};
+    if(/\b(?:official|bank's|bank chatbot|trusted|privacy policy|safe if|secure chatbot)\b/.test(x))
+      return{say:'An official chatbot is not automatically the right place for every sensitive document. Verify the service, review its data-use and retention policies, and use the organization’s designated secure form or document-upload process when real identifiers are required. Ask general AI questions with fictional placeholders instead.',choices:['Show me placeholders','How do I check a form?','What if I already shared it?']};
+    if(/\b(?:delete|remove|after|already shared|exposed|uploaded)\b/.test(x))return this.personalDataAlreadyShared();
+    if(/\b(?:verify|website|form|submit|fill|field|help me)\b/.test(x))
+      return{say:'For safe form help: 1) Visit the issuing organization’s verified website directly. 2) Ask AI about the field names and nonsensitive instructions, not the completed form. 3) Replace identifiers with placeholders. 4) Use AI to explain the fields or prepare a blank checklist. 5) Enter actual information only in the organization’s designated secure form. If a request seems unusual, call the organization using contact details you verified independently.',choices:['Show me placeholders','What should I leave out?','What if I already shared it?']};
+    if(/\b(?:safe|should|risk|ssn|social security|bank|account|license|licence|photo|personal|privacy)\b/.test(x))
+      return{say:'Do not send real Social Security numbers, financial account numbers, or identification photos to unverified AI chatbots. Use a blank form or placeholders and ask AI about the instructions. Submit real details only through an appropriate verified secure process.',choices:['Show me placeholders','What if I already shared it?','How can AI help with the form?']};
+    return null;
+  }
   recallBankIncident(t){
     const x=this.normalize(t);
     // This must be a question about earlier conversation, not a disclosure.
@@ -2547,6 +2582,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    // Personal-data safety outranks generic topic and stale conversation routing.
+    if(this.isPersonalDataToAI(text))return this.personalDataInitial(text);
+    if(this.s.stage==='privacyAdvice'){const p=this.personalDataFollowup(text);if(p)return p;}
     // Answer reported-action recall before generic context or safety routing.
     const incidentRecall=this.recallBankIncident(text);if(incidentRecall)return incidentRecall;
     // Answer password-reuse follow-ups without inventing a new phishing email.
