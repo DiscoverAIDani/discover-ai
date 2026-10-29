@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: monthly-budget-math-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: shared-bill-calculator-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1804,7 +1804,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -2485,6 +2485,56 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
 
 
+
+  sharedBillParse(text){
+    const raw=String(text||''),money='\\$\\s*([\\d,]+(?:\\.\\d{1,2})?)',num=x=>Number(String(x).replace(/,/g,''));
+    const pats=[new RegExp('\\b(?:restaurant\\s+|dinner\\s+|meal\\s+)?(?:bill|tab|check|total|amount)\\s*(?:is now|was|is|of|comes? to|at|:|=)?\\s*'+money,'i'),new RegExp('\\b(?:spend|spent|owe|paid|pay)\\s*'+money+'\\s*(?:for|on)\\s*(?:dinner|restaurant|lunch|meal|food)','i')];
+    let bill=null;for(const p of pats){const m=raw.match(p);if(m){bill=num(m[1]);break;}}
+    const tm=raw.match(/\b(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)\s*(?:tip|gratuity)\b/i)||raw.match(/\b(?:tip|gratuity)\s*(?:(?:is|was|now|to|at|of|changed to|from)\s*)?(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)/i)||raw.match(/\b(?:tip|gratuity)\s*[:=]\s*(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)/i);
+    const pm=raw.match(/\b(?:among|between|with|for)\s+(\d{1,2})\s*(?:people|persons?|friends?|diners?|guests?|of us|ways?)\b/i)||raw.match(/\b(?:split|splitting|divide|dividing|share|sharing)\b[^.!?\n]{0,55}?\b(\d{1,2})\s*(?:people|persons?|friends?|diners?|guests?|of us|ways?)\b/i)||raw.match(/\b(\d{1,2})\s*(?:people|persons?|friends?|diners?|guests?|of us|ways?)\s*(?:are|will be|splitting|split|sharing|paying)\b/i);
+    return{bill,tip:tm?num(tm[1]):null,people:pm?num(pm[1]):null};
+  }
+  sharedBillQuestion(text){
+    const x=this.normalize(text),v=this.sharedBillParse(text);
+    if(/^(?:please\s+)?(?:write|draft|compose|create)\b[^.!?\n]{0,60}\b(?:story|fiction|email|invitation|post)\b/.test(x))return false;
+    return v.bill!==null&&v.people!==null&&/\b(?:split|divide|share|per person|each person|each of us|how much (?:does|should|will)|how much each|each pay|pay each|what does each|per head|equally)\b/.test(x)&&/\b(?:bill|tab|restaurant|dinner|lunch|meal|tip|gratuity|check|total|cost)\b/.test(x);
+  }
+  sharedBillMoney(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  sharedBillAnswer(){
+    const c=this.s.sharedBillCalc;if(!c)return null;
+    if(!Number.isFinite(c.bill)||c.bill<0||!Number.isInteger(c.people)||c.people<1||c.people>100)return{say:'I need a valid nonnegative bill total and a whole number of people from 1 to 100 to divide this fairly.',choices:['Provide the bill','Provide number of diners']};
+    if(c.tip!==null&&(c.tip<0||c.tip>100))return{say:'The tip percentage needs confirmation. Please specify a rate between 0% and 100%.',choices:['Use a 15% tip','Use a 20% tip','No tip']};
+    const fmt=n=>this.sharedBillMoney(n),base=Math.round(c.bill*100),rate=c.tip||0,tip=Math.round(base*rate/100),total=base+tip,low=Math.floor(total/c.people),rem=total%c.people;
+    let say='Bill: '+fmt(base/100)+'. ';
+    say+=c.tip===null?'No tip rate was supplied, so no tip is included.':'Tip: '+rate+'% × '+fmt(base/100)+' = '+fmt(tip/100)+'.';
+    say+=' Total: '+fmt(base/100)+' + '+fmt(tip/100)+' = '+fmt(total/100)+'. Split among '+c.people+' people: '+fmt(total/100)+' ÷ '+c.people+' = '+fmt(total/(100*c.people))+' per person';
+    if(!rem)say+=' exactly.';
+    else say+=' approximately. For exact cents, '+(c.people-rem)+' '+(c.people-rem===1?'person pays':'people pay')+' '+fmt(low/100)+' and '+rem+' '+(rem===1?'person pays':'people pay')+' '+fmt((low+1)/100)+'.';
+    say+=' This assumes equal shares and a tip calculated from the stated bill. No unstated taxes, delivery fees, or other charges are added.';
+    return{say,choices:['What if we split among five people?','What if the tip changes?','What if we skip the tip?']};
+  }
+  sharedBillStart(text){
+    const v=this.sharedBillParse(text);this.clearContext();this.s.category='everyday';this.s.intent='sharedBill';this.s.stage='sharedBillMath';this.s.topic='splitting a bill';this.s.sharedBillCalc={bill:v.bill,tip:v.tip,people:v.people};return this.sharedBillAnswer();
+  }
+  sharedBillFollowup(text){
+    if(this.s.stage!=='sharedBillMath'||!this.s.sharedBillCalc)return null;
+    const raw=String(text||''),x=this.normalize(raw),c=this.s.sharedBillCalc;
+    if(/\b(?:recipe|groceries|email|phishing|password|doctor|medication|water contamination|appointment|travel|drive|weather|restaurant recommendations?)\b/.test(x)&&!/\b(?:bill|split|tip|gratuity|per person|each person|people pay)\b/.test(x))return null;
+    if(!/\b(?:bill|tab|restaurant|lunch|meal|tip|gratuity|split|divide|share|total|price|pay|people|person|diners?|guests?|of us|what if|actually|now|instead|recalculate|each|cost|percent|%)\b/.test(x))return null;
+    if(this.sharedBillQuestion(raw)&&/\b(?:new bill|different bill|another bill|separate bill|new restaurant|start over)\b/.test(x))return this.sharedBillStart(raw);
+    const v=this.sharedBillParse(raw);let changed=false;
+    if(v.bill!==null&&/\b(?:bill|tab|total|check|amount)\b/.test(x)){c.bill=v.bill;changed=true;}
+    if(v.tip!==null){c.tip=v.tip;changed=true;}
+    const pm=raw.match(/\b(?:now|actually|instead|only|just|changed to|splitting|split|among|between|with|for|there are|we have|we're|we are)\b[^.!?\n]{0,70}?\b(\d{1,2})\s*(?:people|persons?|friends?|diners?|of us|ways?|guests?)\b/i)||raw.match(/\b(?:split|divide)\s+(?:it|this|the bill|the total)?\s*(?:among|between|with|into|by)\s*(\d{1,2})\b/i);
+    if(v.people!==null||pm){
+      const n=v.people!==null?v.people:Number(pm[1]);
+      if(n<1||n>100)return{say:'Please provide a valid number of people from 1 to 100.',choices:['Split among 3 people','Split among 4 people']};
+      c.people=n;changed=true;
+    }
+    if(/\b(?:no tip|without a tip|skip the tip|don't tip|do not tip|don't leave a tip|do not leave a tip|tip is zero|no gratuity)\b/.test(x)){c.tip=0;changed=true;}
+    if(changed||/\b(?:what|how much|per person|each|recalculate|split|explain|check)\b/.test(x))return this.sharedBillAnswer();
+    return null;
+  }
   budgetAmount(v){const n=Number(String(v||'').replace(/[$,\s]/g,''));return Number.isFinite(n)&&n>=0&&n<=10000000?n:null;}
   budgetPrice(v){return '$'+Number(Math.abs(v)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
   budgetKey(x){
@@ -3215,6 +3265,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    if(this.s.stage==='sharedBillMath'){const a=this.sharedBillFollowup(text);if(a)return a;}
+    if(this.sharedBillQuestion(text))return this.sharedBillStart(text);
     if(this.s.stage==='monthlyBudgetMath'){const b=this.budgetContinue(text);if(b)return b;}
     if(this.isBudgetMath(text))return this.budgetBegin(text);
     if(this.s.stage==='unitPriceComparison'){const u=this.unitPriceFollowup(text);if(u)return u;}
