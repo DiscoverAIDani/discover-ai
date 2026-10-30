@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: practical-projects-v12</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: project-step-quality-v13</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -4597,7 +4597,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       birdhouse:{
         topic:'building a birdhouse',
         first:'First, decide which local bird you want to attract. Different species need different entrance-hole sizes and interior dimensions. Choose a simple birdhouse design appropriate for that species before cutting wood.',
-        next:'Next, mark the front, back, sides, roof and floor on untreated wood using a bird-specific plan. Cut and sand the pieces; leave drainage holes in the floor and ventilation near the top. Assemble with exterior screws and mount away from predators.',
+        next:'Using the species-specific nesting-box plan you selected, mark the front, back, sides, floor, roof and entrance hole on untreated wood. Measure the panels before cutting. Cut the pieces with appropriate tool safety precautions, then set them aside; assembly and mounting come later.',
         steps:'1) Pick a local cavity-nesting bird and find a correctly sized birdhouse plan. 2) Mark and cut untreated wooden panels and the species-appropriate entrance hole. 3) Sand sharp edges and add drainage and ventilation. 4) Fasten panels securely and make one side openable for cleaning. 5) Mount in a suitable protected location, following local wildlife guidance.',
         materials:'Untreated exterior-suitable lumber, a birdhouse plan, measuring tape, pencil, saw, exterior screws, drill, sandpaper and eye protection. Avoid treated interior surfaces and decorative perches that can aid predators.',
         stuck:'If the dimensions are confusing, start by choosing a bird species. Use a nesting-box plan for that species rather than guessing the hole diameter.',
@@ -4606,7 +4606,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       bookshelf:{
         topic:'building a bookshelf',
         first:'First, measure the available wall space: width, height and depth. Decide how many shelves you need and whether they will hold heavy books. Sketch the dimensions before cutting material.',
-        next:'Next, choose suitable board thickness and shelf supports for the span and load. Cut and smooth the side panels and shelves. Assemble square and level; secure a freestanding bookcase to wall studs or suitable rated anchors so it cannot tip.',
+        next:'Draw the shelf positions on your sketch. Choose board thickness and shelf supports that can safely handle the planned shelf width and book weight. Make a cut list; cutting and assembly come afterward.',
         steps:'1) Measure the space and estimate book weight. 2) Draw the shelf layout and select appropriately strong boards and supports. 3) Measure twice and cut the sides and shelves. 4) Sand edges, drill pilot holes and assemble square and level. 5) Add a back or bracing, then anchor the unit to the wall to prevent tipping. 6) Load shelves evenly and check for sagging.',
         materials:'Tape measure, pencil, level, suitable plywood or lumber, shelf supports, screws, drill/driver, saw, sandpaper, safety glasses and appropriate wall anchors. Heavy books may require thicker shelves or more supports.',
         stuck:'If cutting feels overwhelming, start by writing the available width, height and desired shelf depth; then choose a simple pre-cut-board design.',
@@ -4615,7 +4615,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       painting:{
         topic:'painting a room',
         first:'First, clear or cover furniture and floors, then inspect the walls for holes, cracks and loose paint. Clean the walls and let them dry before opening a paint can.',
-        next:'Next, patch holes, sand patched areas with appropriate dust precautions, and mask trim with painter’s tape. Ventilate, prime where necessary, then cut in edges with a brush and roll the larger wall areas.',
+        next:'Clean the wall surfaces and let them dry. Patch small holes if needed, then follow safe dust precautions before sanding any patches. In older buildings, assess possible lead paint before disturbing existing coatings. Tape, priming and painting come later.',
         steps:'1) Move or cover furniture and floors. 2) Clean walls, patch small holes and follow safe dust precautions. 3) Mask trim and protect outlets. 4) Ventilate and apply primer if needed. 5) Paint edges with a brush and large sections with a roller. 6) Let coats dry according to the label, apply another if needed, then clean up. In older buildings, avoid disturbing potentially lead-based paint without proper assessment.',
         materials:'Drop cloths, painter’s tape, suitable interior paint and primer if needed, tray, roller, angled brush, patch filler, cleaning supplies, gloves and ventilation. Use care with dust from old painted surfaces.',
         stuck:'If you do not know where to start, move the furniture away from the walls and cover the floor. Do not sand unknown old paint until its safety has been assessed.',
@@ -4624,7 +4624,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       compost:{
         topic:'making a compost bin',
         first:'First, choose an outdoor spot with good drainage and convenient access. Decide whether you want a lidded container or a simple open bin, accounting for local pests and rules.',
-        next:'Next, make sure the container has drainage at the bottom and airflow through the sides. Add a layer of dry leaves or shredded plain cardboard, then small amounts of vegetable scraps, and cover with more dry material.',
+        next:'Choose a sturdy, pest-resistant compost container or simple wooden frame that fits your outdoor space. It should have a secure cover when needed; drainage and airflow will be addressed in the following step.',
         steps:'1) Choose an accessible, well-drained spot. 2) Select a sturdy lidded container or build a simple ventilated frame. 3) Provide drainage and air circulation. 4) Alternate dry leaves/cardboard with vegetable scraps. 5) Keep it moist like a wrung-out sponge and mix periodically. 6) Keep meat, dairy and oily leftovers out of a basic backyard bin, and follow local composting rules.',
         materials:'A sturdy bin or untreated wood frame, lid or pest-resistant cover where appropriate, drill for airflow if using a plastic container, dry leaves/cardboard, vegetable scraps and a small garden tool.',
         stuck:'If the bin smells, add dry material and improve airflow. If pests are a concern, use a secure lid and check local composting rules.',
@@ -4633,7 +4633,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       tomatoes:{
         topic:'planting tomatoes',
         first:'First, choose a sunny growing place that gets roughly 6–8 hours of direct sun. If planting outdoors, wait until frost risk has passed and conditions are warm enough for tomatoes.',
-        next:'Next, prepare well-draining soil or a large container with drainage holes. Plant a healthy seedling at a suitable depth, water it thoroughly, and add a cage or stake early so it has support.',
+        next:'Check the last expected frost date and nighttime temperatures in your area before transplanting tomatoes outdoors. If cold weather is still possible, keep the plant protected and wait. Soil preparation is the following step.',
         steps:'1) Choose a spot with about 6–8 hours of sun. 2) Check the local last-frost date before planting outdoors. 3) Prepare compost-enriched, well-draining soil or a container with drainage. 4) Plant the seedling and add support. 5) Water consistently at soil level, and mulch if suitable. 6) Watch for pests and adjust watering as the plant grows.',
         materials:'Tomato seedling or seeds, suitable garden soil or potting mix, a sunny bed or large draining container, water, and a stake/cage. Gloves and a small trowel are helpful.',
         stuck:'Start small: choose one sunny place or container. If outdoor nights are still cold, keep the seedling protected until conditions are safe.',
@@ -4642,7 +4642,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       hinge:{
         topic:'fixing a loose cabinet hinge',
         first:'First, open the cabinet door and support it with one hand. Check whether the hinge is loose where it attaches to the cabinet or to the door. Look for loose screws or damaged screw holes.',
-        next:'Next, gently tighten the loose screw with the correct screwdriver. Stop if it spins without gripping; that may mean the screw hole is stripped and needs an appropriate repair rather than more tightening.',
+        next:'Identify the hinge or mounting plate with the loose screw, and select the correctly fitting screwdriver. Keep the cabinet door supported while you inspect the screw and its hole; tightening is the following step.',
         steps:'1) Support the door. 2) Locate the loose hinge or mounting plate. 3) Check each screw and gently tighten loose ones with the correct screwdriver. 4) If a screw spins freely, assess the stripped hole and use a suitable wood repair or replacement hardware rather than overtightening. 5) Recheck door alignment and operation. Stop if the hinge or cabinet material is cracked.',
         materials:'Correct-size screwdriver, good lighting and possibly replacement hinge screws or a suitable wood-hole repair kit. You may not need any new materials if a screw only needs tightening.',
         stuck:'If the screw keeps turning, stop tightening. The hole may be stripped. Check whether the cabinet is solid wood, particleboard or another material before choosing a repair.',
@@ -4656,7 +4656,15 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(!info)return null;
     this.clearContext();this.s.category='everyday';this.s.intent='plan';this.s.taskType='plan';
     this.s.stage='practicalProject';this.s.practicalKind=kind;this.s.projectStep=0;this.s.topic=info.topic;
-    return{say:'Let’s work on '+info.topic+'. '+info.first,choices:['Give me the first step','Show all steps','What materials do I need?','Make it simpler']};
+    const introductions={
+      birdhouse:'We can build a birdhouse together, one manageable step at a time. We’ll choose a bird-appropriate design, prepare the pieces, assemble a weather-ready box, and pick a safe location. The first decision is which bird you want it for.',
+      bookshelf:'We can build a simple bookshelf in stages: plan its size and load, select boards, assemble it, and secure it against tipping. We’ll start with the space where it will go.',
+      painting:'We can paint the room in stages: protect the space, prepare the walls, paint carefully, and clean up. We’ll start with preparation before any paint goes on.',
+      compost:'We can make a compost bin step by step: select a location and container, provide drainage and airflow, then add suitable compost materials. The first choice is where it can go outdoors.',
+      tomatoes:'We can grow tomatoes step by step: choose a sunny spot, check outdoor temperatures, prepare soil, then plant and care for a seedling. We’ll start with the growing location.',
+      hinge:'We can fix a loose cabinet hinge by identifying what is loose, checking the screws and attachment points, and repairing only what needs attention. We’ll start with a safe inspection.'
+    };
+    return{say:introductions[kind]||'Let’s work on '+info.topic+' one step at a time.',choices:['Give me the first step','Show all steps','What materials do I need?','Make it simpler']};
   }
   continuePracticalProject(text){
     const info=this.practicalProjectDetails(this.s.practicalKind);
