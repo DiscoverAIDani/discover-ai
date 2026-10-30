@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: birthday-conversation-v52</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: natural-corrections-v53</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -5136,7 +5136,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const patterns=[
       new RegExp('\\b(?:group|party)\\s+of\\s+'+num+'\\b'),
       new RegExp('\\b(?:down to|up to|increased to|decreased to)\\s+'+num+'\\b'),
-      new RegExp('\\bnot\\s+(?:\\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\\s*(?:people|guests)?\\s*(?:but|rather|instead)\\s+'+num+'\\b'),
+      new RegExp('\\bnot\\s+(?:\\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\\s*(?:people|guests)?\\s*,?\\s*(?:but|rather|instead)\\s+'+num+'\\b'),
       new RegExp('\\b(?:for|to|with|now|only|just|actually|make it|change it to|change to|we have|we are|we\\x27re|there are|it\\x27s|it is|i meant)\\s+(?:a total of\\s+|going to be\\s+|just\\s+|only\\s+|for\\s+)?'+num+'\\b'),
       new RegExp('\\b'+num+'\\s+(?:people|persons?|guests?|attendees?|diners?|of us)\\b')
     ];
@@ -5156,7 +5156,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   birthdayDinnerPreferences(text){
     const q=this.normalize(text).replace(/[.!?]+$/,'').trim();
     const list=[...q.matchAll(/\b(italian|mexican|thai|chinese|japanese|indian|mediterranean|korean|vietnamese|american|seafood|steakhouse|sushi|pizza|vegetarian|vegan|french|greek)\b/g)].map(x=>x[1]);
-    const cuisine=list.length?list[/\b(?:not|instead|rather than|change|actually)\b/.test(q)?list.length-1:0]:null;
+    const preferredBeforeAlternative=q.match(/\b(italian|mexican|thai|chinese|japanese|indian|mediterranean|korean|vietnamese|american|seafood|steakhouse|sushi|pizza|vegetarian|vegan|french|greek)\s+(?:instead of|rather than)\s+(?:italian|mexican|thai|chinese|japanese|indian|mediterranean|korean|vietnamese|american|seafood|steakhouse|sushi|pizza|vegetarian|vegan|french|greek)\b/);
+    const cuisine=preferredBeforeAlternative?preferredBeforeAlternative[1]:list.length?list[/\b(?:not|instead|rather than|change|actually)\b/.test(q)?list.length-1:0]:null;
     const ambience=(q.match(/\b(quiet|casual|upscale|romantic|family-friendly|relaxed|laid-back)\b/)||[])[1]||null;
     const money=q.match(/\b(under|below|less than|up to|budget(?:\s+(?:is|of))?|max(?:imum)?)\s*\$?\s*(\d{2,6})\b/);
     const bare=q.match(/\$\s*(\d{2,6})/);
@@ -5236,9 +5237,12 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(timing.day){ctx.day=timing.day;parts.push('Day: '+ctx.day+'.');}
     if(timing.time){ctx.time=timing.time;parts.push('Time: '+ctx.time+'.');}
     if(avoided.length)parts.push('Avoid cuisines: '+ctx.avoidCuisines.join(', ')+'.');
-    const rejectRestaurant=/\b(?:not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:at\s+)?(?:a\s+|the\s+)?restaurants?\b/.test(q);
+    const rejectRestaurant=/\b(?:no|not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:at\s+)?(?:a\s+|the\s+)?restaurants?\b|\b(?:won't|will not|don't|do not)\s+(?:eat|dine|go)\s+(?:at\s+)?(?:a\s+|the\s+)?restaurants?\b/.test(q);
     const rejectHome=/\b(?:not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:cooking\s+at\s+home|cook\s+at\s+home|home-cooked|at\s+home)\b/.test(q);
     const rejectOrder=/\b(?:no|not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:takeout|take-out|delivery|ordered food)\b/.test(q);
+    if(rejectRestaurant&&ctx.place==='restaurant')ctx.place=null;
+    if(rejectHome&&ctx.place==='home-cooked')ctx.place=null;
+    if(rejectOrder&&ctx.place==='ordered food')ctx.place=null;
     if(/\b(?:at (?:a |the )?restaurant|to (?:a |the )?restaurant|dine out|dining out|eat out)\b/.test(q)&&!rejectRestaurant){ctx.place='restaurant';parts.push('Dining: restaurant.');}
     else if(/\b(?:cook|cooking|cooked|homemade|at home)\b/.test(q)&&!rejectHome){ctx.place='home-cooked';parts.push('Dining: home-cooked.');}
     else if(/\b(?:takeout|take-out|order food|ordered food|delivery|catering)\b/.test(q)&&!rejectOrder){ctx.place='ordered food';parts.push('Dining: ordered food.');}
@@ -5249,6 +5253,17 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(!ctx||this.s.stage!=='birthdayDinner')return null;
     const q=this.normalize(text);
     const captured=this.birthdayDinnerCaptureDetails(text,ctx);
+    // An unqualified clock time needs AM/PM; never silently guess.
+    const timeChoice=q.match(/^(am|pm)[.!]*$/);
+    if(ctx.pendingTime&&timeChoice){
+      ctx.time=ctx.pendingTime+timeChoice[1];ctx.pendingTime=null;
+      return{say:'Thanks — the birthday dinner time is now '+ctx.time+'. I am keeping the other details unchanged.',choices:['Review the plan','Change time']};
+    }
+    const ambiguousTime=q.match(/\b(?:at|around)\s+(\d{1,2}):([0-5]\d)\b/);
+    if(ambiguousTime&&!/\b(?:am|pm)\b/.test(q)&&Number(ambiguousTime[1])>=1&&Number(ambiguousTime[1])<=12){
+      ctx.pendingTime=ambiguousTime[1]+':'+ambiguousTime[2];
+      return{say:'Do you mean '+ctx.pendingTime+' AM or PM? I will not change the planned time until you confirm.',choices:['AM','PM','Review the plan']};
+    }
     const candidate=this.birthdayDinnerCount(text);
     const correction=/\b(?:actually|instead|sorry|oops|wait|i meant|make it|change|now|only)\b/.test(q)||this.correction(text);
     const guestLabel=/\b(?:people|persons?|guests?|attendees?|diners?|of us)\b/.test(q);
@@ -5285,7 +5300,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     // Negative venue corrections must outrank mention-based destination matching.
     // "Not at a restaurant, we'll cook at home" does NOT mean restaurant.
-    const rejectRestaurant=/\b(?:not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:at\s+)?(?:a\s+|the\s+)?restaurants?\b|\bfrom\s+(?:a\s+|the\s+)?restaurant\s+to\b/.test(q);
+    const rejectRestaurant=/\b(?:no|not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:at\s+)?(?:a\s+|the\s+)?restaurants?\b|\b(?:won't|will not|don't|do not)\s+(?:eat|dine|go)\s+(?:at\s+)?(?:a\s+|the\s+)?restaurants?\b|\bfrom\s+(?:a\s+|the\s+)?restaurant\s+to\b/.test(q);
     const rejectHome=/\b(?:not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:cooking\s+at\s+home|cook\s+at\s+home|home-cooked|at\s+home)\b/.test(q);
     const rejectOrder=/\b(?:no|not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:takeout|take-out|delivery|ordered food)\b/.test(q);
     if(rejectRestaurant||rejectHome||rejectOrder){

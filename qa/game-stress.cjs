@@ -149,7 +149,17 @@ check('birthday clock not guests',['Help me plan a birthday dinner for six peopl
 check('birthday not-or cuisines',['Help me plan a birthday dinner for six people at a restaurant.','Not Italian or Mexican.','Review the plan'],['avoid cuisines: italian, mexican'],['cuisine: mexican'],{count:6,cuisine:null});
 check('birthday first-turn multiple exclusion',['Plan a birthday dinner for four people at a restaurant, not Italian or Mexican.','Review the plan'],['4 people','avoid cuisines: italian, mexican'],['cuisine: mexican'],{count:4,cuisine:null});
 check('birthday dense correction',['Help me plan a birthday dinner for six people.','Actually four people at a restaurant in Sacramento on Saturday at 6pm, quiet Thai, under $200.','Review the plan'],['4 people','restaurant','sacramento','saturday','6pm','thai','quiet','under $200'],[],{count:4,place:'restaurant',area:'sacramento',cuisine:'thai'});
-staticCheck('build ID v52',html.includes('Build: birthday-conversation-v52'));
+staticCheck('build ID v53',html.includes('Build: natural-corrections-v53'));
+
+
+check('birthday correction not six comma but four',['Help me plan a birthday dinner for six people at a restaurant.','Actually, not six, but four.','Review the plan'],['4 people'],['6 people'],{count:4});
+check('birthday italian instead of thai',['Help me plan a birthday dinner for six people at a restaurant.','Thai please.','Make it Italian instead of Thai.','Review the plan'],['cuisine: italian'],['cuisine: thai'],{count:6,cuisine:'italian'});
+check('birthday restaurant to order',['Help me plan a birthday dinner for six people at a restaurant.','No restaurant anymore, we will order.','Review the plan'],['ordered food'],['dining option: restaurant'],{count:6,place:'ordered food'});
+check('birthday guest and venue retraction',['Help me plan a birthday dinner for six people at a restaurant.','Actually not at the restaurant, but four people.','Review the plan'],['4 people','not chosen yet'],['dining option: restaurant'],{count:4,place:null});
+check('birthday no restaurant contraction',['Help me plan a birthday dinner for six people at a restaurant.',"Four people, and we won't eat at the restaurant.",'Review the plan'],['4 people','not chosen yet'],['dining option: restaurant'],{count:4,place:null});
+check('birthday ambiguous clock asks for AMPM',['Help me plan a birthday dinner for six people at a restaurant.','At 7:30 instead.'],['7:30 am or pm','will not change'],[],{count:6,time:null});
+check('birthday ambiguous clock completed',['Help me plan a birthday dinner for six people at a restaurant.','At 7:30 instead.','PM','Review the plan'],['time: 7:30pm'],[],{count:6,time:'7:30pm'});
+check('birthday no incorrect time change',['Help me plan a birthday dinner for six people at a restaurant.','Saturday at 6pm.','At 7:30 instead.','Review the plan'],['time: 6pm'],['time: 7:30pm'],{count:6,time:'6pm'});
 
 // Static interface checks protect the beginner-facing layout and controls.
 const allElementIds=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
