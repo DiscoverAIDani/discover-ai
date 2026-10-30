@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: natural-portions-v46</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: safety-phrasing-v47</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -3675,6 +3675,10 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/\b(?:plan|recipe|dinner|trip|grocery|workshop|printer|wifi|wi-fi)\b/.test(low)&&!/\b(?:bank|scam|phishing|link|text|account|password|message)\b/.test(low))return null;
     if(this.s.securityContext.credentialsShared===true&&/\b(?:what (?:do|should|can) i do|what now|what next|what should i check|how (?:do|can) i secure|secure my account)\b/.test(low))
       return{say:'Since you said you entered a banking password on the suspicious page, contact your bank fraud or security team promptly through the official app or number on your card, change that password through the official service, review account transactions and recent sign-ins, and ask about ending unfamiliar sessions. Change it on any other accounts where it was reused. Do not share more codes or use the suspicious link.',choices:['How do I report it?','What if I reused the password?']};
+    if(/\bi\s+(?:already\s+|just\s+)?(?:entered|shared|sent|gave|provided|submitted|typed)\s+(?:it|them)\b/.test(low)){
+      this.s.securityContext.credentialsShared=true;
+      return this.bankPhishingAfterAction(true,this.s.securityContext.clicked);
+    }
     const entered=/\b(?:(?:i|and|then)\s+(?:(?:already|just)\s+)?(?:entered|shared|gave|typed|submitted)\s+(?:(?:my|the|a)\s+)?(?:banking\s+)?(?:password|passcode|verification code|security code)|i gave (?:them|it) (?:my|a) (?:password|code))\b/.test(low);
     if(entered){this.s.securityContext.credentialsShared=true;return this.bankPhishingAfterAction(true,this.s.securityContext.clicked)}
     const clicked=/\b(?:i (?:already |just )?(?:clicked|tapped|opened)(?: (?:the|that|a))? (?:link|website)|clicked (?:it|the link)|opened (?:it|the link))\b/.test(low);
@@ -3706,7 +3710,10 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const fictional=/^(?:write|draft|compose|make up|create)\s+(?:a\s+)?(?:fictional\s+)?(?:story|scene|script|poem)\b/.test(low);
     const selfHarm=!fictional&&/\b(?:i (?:think i |feel like i )?(?:might|may|want to|plan to|could|am going to)\s+(?:hurt|harm|kill)\s+myself|i(?:'m| am)\s+(?:thinking about|considering)\s+(?:hurting|harming|killing)\s+myself|i (?:do not|don't) want to (?:be alive|live)|i want to die|i (?:am|feel) suicidal)\b/.test(low);
     const selfHarmReply=()=>({say:'I’m sorry you’re dealing with this. Your immediate safety matters. If you might act on these thoughts now, call emergency services (911 in the U.S.) or go to an emergency department. In the U.S., you can call or text 988 to reach the Suicide & Crisis Lifeline. Move away from anything you might use to hurt yourself, and contact someone you trust who can stay with you. This practice game cannot provide live crisis support. Are you somewhere safe right now?',choices:[]});
-    if(selfHarm){this.clearContext();this.s.stage='selfHarmAdvice';this.s.intent='safety';this.s.topic='immediate safety';return selfHarmReply();}
+    const additionalPersonalRisk=!fictional&&/\bi (?:feel like|want to|am thinking about|have been thinking about)\s+(?:hurting|harming|killing) myself\b|\bi (?:don't|do not) think i can keep myself safe(?: tonight| today| right now)?\b|\bi (?:cannot|can't) keep myself safe\b/.test(low);
+    const thirdPartyRisk=!fictional&&/\b(?:friend|someone|person|partner|relative)\b.{0,45}\b(?:might|may|wants? to|thinking about)\s+(?:hurt|harm|kill|hurting|harming|killing)\s+(?:themselves|himself|herself|themself|theirself)\b/.test(low);
+    if(thirdPartyRisk)return{say:'If a friend may hurt themselves, take the concern seriously. If there is immediate danger, call emergency services (911 in the U.S.). In the U.S., you or your friend can call or text 988 for crisis support. Try to stay with them or connect them with a trusted person, listen without judgment, and help them seek professional or emergency support. This practice game cannot provide live crisis help.',choices:[]};
+    if(selfHarm||additionalPersonalRisk){this.clearContext();this.s.stage='selfHarmAdvice';this.s.intent='safety';this.s.topic='immediate safety';return selfHarmReply();}
     if(this.s.stage==='selfHarmAdvice'&&/\b(?:what|how|help|now|next|should|unsafe|still|scared|alone|suicid|hurt|harm|kill|988)\b/.test(low))return selfHarmReply();
     // Chest pain with breathing difficulty does not establish an allergic reaction.
     const allergySigns=/\b(?:my|his|her|their|the)\s+throat\s+(?:(?:is|feels|seems)\s+(?:like\s+(?:it's|it is)\s+)?)?(?:closing|tightening|swelling|tight)\b|\b(?:lips?|tongue)\s+(?:is|are)\s+(?:swelling|swollen)\b|\banaphylax(?:is|tic)\b/.test(low);
@@ -3725,6 +3732,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const birthdayStart=this.birthdayDinnerStart(text);if(birthdayStart)return birthdayStart;
     // Do not conflate a possible overdose, a denied overdose, and a hypothetical.
     const doseDenied=/\b(?:thought|worried|afraid|suspected)\b.{0,80}\b(?:double|extra|two|2|twice)\b.{0,55}\b(?:but|actually|no)\s+i\s+(?:didn'?t|did not|never)\b|\b(?:double|extra|two|2)\s+doses?\b.{0,55}\b(?:but|actually)\s+i\s+(?:didn'?t|did not|never)\b/.test(low);
+    const standaloneDoseDenied=/\bi (?:didn'?t|did not|never)\s+(?:take|took)\s+(?:an?\s+)?(?:double|extra)\s+dose\b/.test(low);
+    if(standaloneDoseDenied){
+      this.s.stage='accidentalDoseAdvice';this.s.intent='safety';this.s.topic='medication dose clarification';this.s.doseIncidentConfirmed=false;
+      return{say:'You said you did not take an extra dose, so I will not treat an overdose as confirmed. If you are uncertain about the dose or timing, check the label and contact a pharmacist or prescriber rather than guessing or changing a dose based on this game.',choices:['What if I am unsure?']};
+    }
     if(doseDenied){
       this.s.stage='accidentalDoseAdvice';this.s.intent='safety';this.s.topic='medication dose clarification';this.s.doseIncidentConfirmed=false;
       return{say:'Thanks for clarifying that you did not take an extra dose. I will not assume an overdose occurred. If you are uncertain about what you took or when, check the label and ask a pharmacist or prescriber rather than guessing about your next dose.',choices:['What if I am uncertain?','How do I check the schedule?']};
@@ -3736,8 +3748,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const hypotheticalDose=/^(?:what if|suppose|if i|what should i do if|what happens if|is it dangerous if)\b/.test(low);
     const doseReported=/\b(?:i|we)\s+(?:(?:already|just|accidentally|mistakenly)\s+)?(?:took|taken|swallowed|have taken)\s+(?:(?:two|2|double|an extra)\s+(?:doses?|pills?|tablets?)|(?:a\s+)?double dose|(?:my|the|a)\s+(?:medicine|medication|prescription|pills?|tablets?)\s+twice|twice\s+(?:my|the|a)\s+(?:usual|prescribed)?\s*dose)\b/.test(low)||
       /\b(?:i|we)\s+(?:(?:already|just|accidentally|mistakenly)\s+)?(?:took|taken|swallowed)\s+(?:an?\s+)?extra\s+dose\b/.test(low);
+    const additionalDoseReported=/\bi\s+(?:(?:accidentally|mistakenly|just|already)\s+)?took\s+twice\s+(?:my|the)\s+(?:normal|usual|prescribed|recommended)\s+dose\s+of\s+(?:my|the|a)?\s*(?:medicine|medication|prescription|pills?)\b/.test(low);
     const doseHypothetical=/\b(?:took|take|taken)\s+(?:an?\s+)?(?:extra|double)\s+dose\b|\b(?:took|take)\s+(?:two|2)\s+doses?\b|\b(?:took|take|taken)\s+(?:(?:my|the|a|their)\s+)?(?:medicine|medication|prescription|pills?|tablets?|it)\s+twice\b/.test(low);
-    if((doseReported&&!hypotheticalDose)||hypotheticalDose&&doseHypothetical){
+    if(((doseReported||additionalDoseReported)&&!hypotheticalDose)||hypotheticalDose&&doseHypothetical){
       this.clearContext();this.s.stage='accidentalDoseAdvice';this.s.intent='safety';this.s.topic='possible extra medication dose';
       this.s.doseIncidentConfirmed=!hypotheticalDose;
       return{say:(hypotheticalDose?'If someone may have taken an extra dose, ':'Because you said you took an extra medication dose, ')+
@@ -3798,6 +3811,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/\b(?:i|we)\s+(?:(?:already|just|accidentally)\s+)?(?:entered|typed|submitted|gave|shared)\s+(?:(?:my|a|the)\s+)?(?:(?:bank|banking|email)\s+)?(?:password|passcode|login|credentials?)\b/.test(low)&&/\b(?:suspicious|phishing|phish|scam|fake|untrusted)\b/.test(low)&&/\b(?:site|website|page|link|text|message)\b/.test(low)){
       this.s.trustContext={kind:'suspicious-link',clicked:null,credentialsShared:true};this.s.stage='trustAdvice';this.s.intent='safety';this.s.topic='password exposure';
       return{say:'Since you said you entered a password on a suspicious site, treat that password as potentially exposed. Open the affected service official app or website yourself, change that password, and change it anywhere else you reused it. Review recent sign-ins, recovery settings and multi-factor authentication. Contact official support if needed. I cannot tell whether someone accessed your account.',choices:['How do I secure the account?','How do I report the message?']};
+    }
+    if(/\b(?:someone|a stranger|an unknown (?:person|sender))\b.{0,50}\b(?:texted|messaged|contacted|asked|told)\b.{0,90}\b(?:enter|share|send|give|provide)\b.{0,35}\b(?:bank|banking)\s+(?:login|password|credentials?)\b/.test(low)){
+      this.clearContext();this.s.stage='securityAdvice';this.s.category='problem';this.s.intent='safety';this.s.topic='suspicious bank message';
+      this.s.securityContext={kind:'bank-phishing',clicked:false,credentialsShared:false};
+      return{say:'An unexpected message asking you to provide banking passwords or login details is a phishing warning sign. Do not reply, click links or share codes. Verify any claim by opening your bank’s official app or calling the number on your bank card. This game cannot verify who sent the message. Have you already entered any information?',choices:['I did not enter anything','I entered it','How do I report it?']};
     }
     // Safety-critical banking impersonation outranks stale intent and generic routing.
     if(this.looksLikeBankPhishing(text))return this.bankPhishingInitial(text);
@@ -5224,7 +5242,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const isGovernment=kind==='government-message';
     const isSensitive=kind==='sensitive-share';
     const isGenericLink=kind==='suspicious-link';
-    if(isCode&&/\b(?:did not|didn'?t|never|haven'?t|have not)\s+(?:share|send|give|enter)\b/.test(q)){
+    if(isCode&&/\b(?:did not|didn'?t|never|haven'?t|have not)\s+(?:share|send|give|enter)(?:\s+it)?\b|\b(?:never|haven'?t)\s+shared\b/.test(q)){
       ctx.shared=false;
       return{say:'Thanks for clarifying that you did not share the verification code. I will not treat it as exposed. Do not send it or use a link from the suspicious message. Verify any claim through the service official app or website. You can report the message and block its sender.',choices:['How do I report the message?','How do I verify the sender?']};
     }
