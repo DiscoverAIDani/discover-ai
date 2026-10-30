@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: birthday-preferences-v49</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: food-allergy-memory-v50</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -454,7 +454,7 @@ class DiscoverConversation {
     const alias={'egg':'eggs','tortilla':'tortillas','bean':'beans','black beans':'beans','canned beans':'beans','pinto beans':'beans','kidney beans':'beans','potato':'potatoes'};
     const have=[...new Set(this.extractDinnerIngredients(t).include.map(x=>alias[x]||x))];
     const vegan=/\bvegan\b/.test(low),vegetarian=vegan||/\bvegetarian\b/.test(low),dairyFree=vegan||/\b(?:dairy[- ]?free|no dairy|without dairy|avoid dairy)\b/.test(low);
-    this.s.multiMeal={count,have,excluded:[],vegan,vegetarian,dairyFree,glutenFree:/\bgluten[- ]?free\b/.test(low),shopping:[]};
+    this.s.multiMeal={count,have,excluded:(this.s.reportedFoodAllergies||[]).slice(),vegan,vegetarian,dairyFree,glutenFree:/\bgluten[- ]?free\b/.test(low),shopping:[]};
     this.s.category='everyday';this.s.intent='dinner';this.s.stage='dinnerPlan';this.s.taskType='plan';this.s.topic=count+' dinners';this.s.mealCount=count;this.s.ingredients=have.slice();
     if(dairyFree)this.noteFact('no dairy');
     return this.renderMealPlan();
@@ -2669,6 +2669,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
         this.s.servings=wordCounts[portion[1]]||Number(portion[1]);
       }
       const food=this.extractDinnerIngredients(x);
+      const allergies=this.s.reportedFoodAllergies||[];
+      const conflict=food.include.filter(v=>allergies.some(a=>v===a||v===a.replace(/s$/,'')||a==='dairy'&&/^(?:dairy|milk|cheese)$/.test(v)));
+      if(conflict.length)return answer('You told me that '+allergies.join(', ')+' is an allergy concern, so I will not suggest using '+conflict.join(', ')+'. We can choose suitable ingredients instead. Verify labels and cross-contact risks.', ['Choose another ingredient','Plan another dinner']);
       this.s.ingredients=food.include.slice();
       if(/vegetarian|vegan/.test(low))this.noteFact((low.match(/\b(?:vegetarian|vegan)\b/)||['vegetarian'])[0]);
       if(/lactose|dairy[- ]?free|no dairy|without dairy|avoid dairy|(?:cannot|can't|don't|do not)\s+(?:have|eat|consume)\s+(?:any\s+)?dairy/.test(low))this.noteFact('no dairy');
@@ -3728,6 +3731,38 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(this.s.stage==='birthdayDinner'&&/^(?:now\s+)?(?:i (?:need|want)(?: help)?|help me|can you|could you|let'?s)\b.{0,80}\b(?:grocery list|groceries|shopping list|plan my week|organize my week)\b/.test(low)&&!/\bbirthday\b/.test(low)){
       const topic=/\b(?:week)\b/.test(low)?'week':'groceries';this.clearContext();
       return this.directAnswer(x,topic)||this.routeIntent(x,topic);
+    }
+    // Carry explicitly stated food allergies through this practice conversation.
+    const allergyStatement=low.match(/\b(?:i am|i'm|i have|i've got)\s+(?:an?\s+)?(?:(?:severe|serious|very bad)\s+)?allerg(?:ic|y)\s+(?:to\s+)?(peanuts?|eggs?|dairy|milk|soy|wheat|fish|shellfish|nuts?|sesame)\b/)||
+      low.match(/\b(?:i have|i've got)\s+(?:an?\s+)?(peanut|egg|dairy|milk|soy|wheat|fish|shellfish|nut|sesame)\s+allergy\b/);
+    if(allergyStatement){
+      const raw=allergyStatement[1],aliases={peanut:'peanuts',egg:'eggs',nut:'nuts',milk:'dairy'};
+      const avoided=aliases[raw]||raw;
+      if(!this.s.reportedFoodAllergies)this.s.reportedFoodAllergies=[];
+      if(!this.s.reportedFoodAllergies.includes(avoided))this.s.reportedFoodAllergies.push(avoided);
+      if(this.s.multiMeal){
+        if(!this.s.multiMeal.excluded.includes(avoided))this.s.multiMeal.excluded.push(avoided);
+        const plan=this.renderMealPlan();
+        return{say:'I noted your allergy to '+avoided+'. I will exclude it from the current suggestions, but you must independently verify labels and cross-contact safety.\n\n'+plan.say,choices:plan.choices};
+      }
+      if(this.s.everydayCase?.kind==='meals'){
+        if(!this.s.everydayCase.avoid.includes(avoided))this.s.everydayCase.avoid.push(avoided);
+        const plan=this.everydayCaseReply('Make a shopping list');
+        return{say:'I noted your allergy to '+avoided+'. Verify ingredient labels and cross-contact independently.\n\n'+plan.say,choices:plan.choices};
+      }
+      return{say:'You mentioned an allergy to '+avoided+'. I will exclude '+avoided+' from food suggestions within this practice conversation. This does not guarantee safety: verify ingredients, labels and cross-contact risks yourself.',choices:['Plan a dinner','Make a grocery list']};
+    }
+    if(this.s.reportedFoodAllergies?.length&&/\b(?:can you|please|make sure to)\s+avoid\s+(?:my\s+)?(?:peanuts?|eggs?|dairy|milk|soy|wheat|fish|shellfish|nuts?|sesame)\b/.test(low)){
+      return{say:'Yes. I will continue excluding '+this.s.reportedFoodAllergies.join(', ')+' from suggestions in this conversation. This is not a guarantee of allergen safety; verify labels, ingredients and cross-contact.',choices:['Plan a dinner','Review ingredients']};
+    }
+    if(this.s.reportedFoodAllergies?.length&&/\b(?:dinner|meal|recipe|cook|make|food)\b/.test(low)){
+      const found=[...low.matchAll(/\b(?:peanuts?|eggs?|dairy|milk|soy|wheat|fish|shellfish|nuts?|sesame)\b/g)].map(m=>m[0]);
+      const normalized=found.map(v=>({peanut:'peanuts',egg:'eggs',nut:'nuts',milk:'dairy'}[v]||v));
+      const conflict=normalized.filter(v=>this.s.reportedFoodAllergies.includes(v));
+      if(conflict.length){
+        this.s.stage='dinnerPlan';this.s.intent='dinner';this.s.topic='an allergy-aware dinner';
+        return{say:'Your meal request mentions '+[...new Set(conflict)].join(', ')+', which you said you are allergic to. I will not recommend cooking with those ingredients. We can choose a different meal using ingredients you know you can safely eat. Verify ingredient labels and cross-contact precautions; this practice game cannot certify food safety.',choices:['Choose another ingredient','Plan another meal']};
+      }
     }
     // Birthday dinner is an occasion/guest planning task, not an automatic recipe request.
     const birthdayFollowup=this.birthdayDinnerFollowup(text);if(birthdayFollowup)return birthdayFollowup;
@@ -4851,7 +4886,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(!kind)return null;
     this.clearContext();
     this.s.stage='everydayCase';this.s.intent='plan';this.s.taskType='plan';this.s.category='everyday';
-    this.s.everydayCase={kind,...data,avoid:[],budget:data.budget||'',noScreens:false,fun:false,short:false,cold:false,small:false};
+    this.s.everydayCase={kind,...data,avoid:(kind==='meals'?(this.s.reportedFoodAllergies||[]).slice():[]),budget:data.budget||'',noScreens:false,fun:false,short:false,cold:false,small:false};
     this.s.topic=({percent:'a percentage',meals:'three dinners',freeDay:'a free day at home',packing:'weekend packing',desk:'choosing a desk',chores:'household chores',plants:'plant care',work:'a workday routine'})[kind];
     return this.everydayCaseReply(input);
   }
