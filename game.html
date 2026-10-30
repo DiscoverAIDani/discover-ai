@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: safety-phrasing-v47</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: valid-shopping-v48</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -482,8 +482,8 @@ class DiscoverConversation {
       if(!pool.length)break;
       picked.push(pool[0]);groups.add(pool[0].kind);
     }
-    if(picked.length<c.count)return{say:'I cannot make '+c.count+' distinct meals with these restrictions. Consider changing the number or allowing another ingredient.',choices:['Change the count','Change an ingredient']};
-    c.shopping=[...new Set(picked.flatMap(r=>r.ingredients.filter(x=>!have.has(x))))];
+    if(picked.length<c.count){c.shopping=[];c.planValid=false;return{say:'I cannot make '+c.count+' distinct meals with these restrictions. The previous shopping list is no longer valid because it may contain excluded ingredients. Consider changing the count or adding a suitable ingredient before generating a new shopping list.',choices:['Change the count','Change an ingredient']};}
+    c.planValid=true;c.shopping=[...new Set(picked.flatMap(r=>r.ingredients.filter(x=>!have.has(x))))];
     const lines=picked.map((r,i)=>{const missing=r.ingredients.filter(x=>!have.has(x));return (i+1)+'. '+r.name+' — '+r.steps+(missing.length?' Buy: '+missing.join(', ')+'.':' No essential extras.');});
     const shopping=c.shopping.length?'Shopping extras (only if you do not have them): '+c.shopping.join(', ')+'.':'Shopping extras: none needed.';
     return{say:'Here are '+c.count+' inexpensive'+(c.dairyFree?' dairy-free':'')+(have.size?' dinners using your stated ingredients:':' suggested dinners (ingredients not assumed to be in your kitchen):')+'\n\n'+lines.join('\n')+'\n\n'+shopping+' Oil and seasonings are optional, not assumed to be in your pantry. Check packaged ingredients for any dietary restrictions.',choices:['Show the shopping list','Change an ingredient','Make it vegan']};
@@ -491,6 +491,8 @@ class DiscoverConversation {
   reviseMealPlan(t){
     const c=this.s.multiMeal;if(!c)return null;
     const low=this.normalize(t);
+    if(c.planValid===false&&/\b(?:shopping|groceries|grocery|list|to buy)\b/.test(low))
+      return{say:'The earlier shopping list is no longer valid because the current restrictions prevent me from suggesting '+c.count+' distinct dinners. I will not reuse a list containing excluded ingredients. We can reduce the number of meals or choose another safe ingredient first.',choices:['Reduce the number of meals','Change an ingredient']};
     if(/\b(?:how many|what number|what did i ask for|how many (?:dinners|meals) now)\b/.test(low)&&/\b(?:dinners?|meals?|ask for|number)\b/.test(low))return{say:'The latest plan is for '+c.count+' dinners. I am using this updated count, not an earlier one.',choices:['Make a shopping list','Show the meals']};
     if(/^(?:(?:can i|could i|please|i want to|i'd like to)\s+)?(?:show|give|tell|what|list|make|create|build|get|send)\b.*\b(?:shopping|grocery|groceries|extras|to buy|list)\b|\b(?:what(?:'s| is) the updated list|can i get the list|can you give me the list)\b/.test(low))
       return{say:c.shopping.length?'For '+c.count+' dinners, additional groceries: '+c.shopping.join(', ')+'. Check your pantry first.':'No extra groceries are required for the current meals.',choices:['Change an ingredient','Show plan again']};
@@ -3903,6 +3905,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     const inventoryChange=this.dinnerInventoryChange(text);
     if(inventoryChange)return inventoryChange;
+    if(this.s.multiMeal&&this.s.stage==='dinnerPlan'&&/\b(?:how many (?:dinners?|meals?)|how many are we doing|number of (?:dinners?|meals?)|what(?:'s| is) the (?:dinner|meal) count)\b/.test(low)){
+      const count=this.s.multiMeal.count;return{say:'The current plan is for '+count+' dinners.'+(this.s.multiMeal.planValid===false?' We still need to adjust the restrictions before a valid shopping list can be made.':' That is the latest count.'),choices:['Make a shopping list','Review the meals']};
+    }
     const servingAnswer=this.dinnerServingAmounts(text);
     if(servingAnswer)return servingAnswer;
     const correctionInfo=this.s.stage!=='start'?this.deviceCorrectionInfo(text):null;
