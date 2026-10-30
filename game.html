@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: natural-followups-v44</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: recipe-portions-v45</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2661,6 +2661,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     if(intent==='dinner' && /dinner|meal|make|cook|what should/.test(low)){
       this.s.category='everyday';this.s.intent='dinner';this.s.topic='dinner';this.s.stage='dinnerPlan';
+      const portion=low.match(/\b(?:for|serves?|feeds?|enough for)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s+(?:people|persons?|servings?|portions?)\b/);
+      if(portion){
+        const wordCounts={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12};
+        this.s.servings=wordCounts[portion[1]]||Number(portion[1]);
+      }
       const food=this.extractDinnerIngredients(x);
       this.s.ingredients=food.include.slice();
       if(/vegetarian|vegan/.test(low))this.noteFact((low.match(/\b(?:vegetarian|vegan)\b/)||['vegetarian'])[0]);
@@ -3869,6 +3874,14 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(this.s.intent==='dinner'&&this.s.stage==='dinnerPlan'&&/\b(?:what (?:are|were) (?:the|our|my) ingredients|what ingredients (?:do (?:we|i) have|now)|list (?:the|our|my) ingredients|ingredients (?:now|so far)|what did i add)\b/.test(low)){
       const ingredients=this.safeDinnerIngredients();
       return{say:ingredients.length?'The current dinner ingredients are: '+ingredients.join(', ')+'. I’ll keep those unless you add or remove something.':'No confirmed dinner ingredients are in the current plan. Tell me what you have and I’ll keep track.',choices:['Add an ingredient','Remove an ingredient','Give me cooking steps']};
+    }
+    if(this.s.intent==='dinner'&&this.s.stage==='dinnerPlan'&&!this.s.multiMeal){
+      const portionChange=low.match(/^(?:(?:actually|no|wait|sorry)\s*,?\s*)?(?:(?:we(?: are|'re)|there (?:are|will be)|make it|change it to|now|only|just|for)\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s*(?:people|persons?|servings?|portions?)?\s*(?:now)?[.!?]*$/);
+      if(portionChange){
+        const wordCounts={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12};
+        const n=wordCounts[portionChange[1]]||Number(portionChange[1]);
+        if(n>=1&&n<=16){this.s.servings=n;return{say:'Updated: this dinner is now planned for '+n+' '+(n===1?'person':'people')+'. I’ll use that number for recipe amounts and keep the ingredients you already gave me.',choices:['How much of each ingredient do I need?','List my ingredients']};}
+      }
     }
     const inventoryChange=this.dinnerInventoryChange(text);
     if(inventoryChange)return inventoryChange;
