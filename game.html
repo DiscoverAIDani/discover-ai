@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: doghouse-context-v10</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: practical-projects-v11</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -3841,6 +3841,16 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return switchedDirect||this.routeIntent(x,detected);
     }
 
+    const practical=this.practicalProjectFromRequest(x);
+    if(practical)return this.startPracticalProject(practical);
+    if(this.s.stage==='practicalProject'){
+      const newGoal=/^(?:help me|please help me|can you|could you|i want to|let's|let us|now)\s+(?:plan|make|write|learn|build|organize|compare|fix|solve)\b/.test(low);
+      if(newGoal&&!/\b(?:birdhouse|bird house|bookshelf|bookcase|compost|tomato|hinge|cabinet|painting|paint a room)\b/.test(low)){
+        this.clearContext();this.s.stage='start';
+        return this.directAnswer(x,detected)||this.routeIntent(x,detected);
+      }
+      return this.continuePracticalProject(x);
+    }
     if(this.isDoghouseBuildRequest(x))return this.startDoghouseBuild();
     if(this.s.stage==='doghouseBuild'){
       const newGoal=/^(?:help me|please help me|can you|could you|i want to|let's|let us|now)\s+(?:plan|make|write|learn|build|organize|compare|fix|solve)\b/.test(low);
@@ -4567,6 +4577,111 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     if(this.uncertain(text))return first();
     return{say:'We are building a doghouse. Start by measuring your dog, then make the raised floor and walls. Ask for all steps or tell me which building action is unclear.',choices:['Give me the first step','Show all steps','Show materials']};
+  }
+
+
+  practicalProjectFromRequest(text){
+    const low=this.normalize(text);
+    const action=/\b(?:build|make|construct|assemble|create|start|plant|grow|paint|repaint|repair|fix|tighten)\b/.test(low);
+    if(!action)return null;
+    if(/\b(?:birdhouse|bird house)\b/.test(low))return'birdhouse';
+    if(/\b(?:bookshelf|book shelf|bookcase|book case)\b/.test(low))return'bookshelf';
+    if(/\b(?:room|bedroom|living room|walls)\b/.test(low)&&/\b(?:paint|painting|repaint)\b/.test(low))return'painting';
+    if(/\b(?:compost(?:ing)? bin|bin for compost)\b/.test(low))return'compost';
+    if(/\b(?:tomato|tomatoes)\b/.test(low)&&/\b(?:plant|grow|start)\b/.test(low))return'tomatoes';
+    if(/\b(?:cabinet|cupboard)\b/.test(low)&&/\b(?:hinge|door)\b/.test(low)&&/\b(?:repair|fix|tighten)\b/.test(low))return'hinge';
+    return null;
+  }
+  practicalProjectDetails(kind){
+    const tasks={
+      birdhouse:{
+        topic:'building a birdhouse',
+        first:'First, decide which local bird you want to attract. Different species need different entrance-hole sizes and interior dimensions. Choose a simple birdhouse design appropriate for that species before cutting wood.',
+        next:'Next, mark the front, back, sides, roof and floor on untreated wood using a bird-specific plan. Cut and sand the pieces; leave drainage holes in the floor and ventilation near the top. Assemble with exterior screws and mount away from predators.',
+        steps:'1) Pick a local cavity-nesting bird and find a correctly sized birdhouse plan. 2) Mark and cut untreated wooden panels and the species-appropriate entrance hole. 3) Sand sharp edges and add drainage and ventilation. 4) Fasten panels securely and make one side openable for cleaning. 5) Mount in a suitable protected location, following local wildlife guidance.',
+        materials:'Untreated exterior-suitable lumber, a birdhouse plan, measuring tape, pencil, saw, exterior screws, drill, sandpaper and eye protection. Avoid treated interior surfaces and decorative perches that can aid predators.',
+        stuck:'If the dimensions are confusing, start by choosing a bird species. Use a nesting-box plan for that species rather than guessing the hole diameter.',
+        simple:'Start with one decision: which bird is the house for? That determines the box size and entrance hole.'
+      },
+      bookshelf:{
+        topic:'building a bookshelf',
+        first:'First, measure the available wall space: width, height and depth. Decide how many shelves you need and whether they will hold heavy books. Sketch the dimensions before cutting material.',
+        next:'Next, choose suitable board thickness and shelf supports for the span and load. Cut and smooth the side panels and shelves. Assemble square and level; secure a freestanding bookcase to wall studs or suitable rated anchors so it cannot tip.',
+        steps:'1) Measure the space and estimate book weight. 2) Draw the shelf layout and select appropriately strong boards and supports. 3) Measure twice and cut the sides and shelves. 4) Sand edges, drill pilot holes and assemble square and level. 5) Add a back or bracing, then anchor the unit to the wall to prevent tipping. 6) Load shelves evenly and check for sagging.',
+        materials:'Tape measure, pencil, level, suitable plywood or lumber, shelf supports, screws, drill/driver, saw, sandpaper, safety glasses and appropriate wall anchors. Heavy books may require thicker shelves or more supports.',
+        stuck:'If cutting feels overwhelming, start by writing the available width, height and desired shelf depth; then choose a simple pre-cut-board design.',
+        simple:'Step one: measure where the bookshelf will go. Write down width, height and depth.'
+      },
+      painting:{
+        topic:'painting a room',
+        first:'First, clear or cover furniture and floors, then inspect the walls for holes, cracks and loose paint. Clean the walls and let them dry before opening a paint can.',
+        next:'Next, patch holes, sand patched areas with appropriate dust precautions, and mask trim with painter’s tape. Ventilate, prime where necessary, then cut in edges with a brush and roll the larger wall areas.',
+        steps:'1) Move or cover furniture and floors. 2) Clean walls, patch small holes and follow safe dust precautions. 3) Mask trim and protect outlets. 4) Ventilate and apply primer if needed. 5) Paint edges with a brush and large sections with a roller. 6) Let coats dry according to the label, apply another if needed, then clean up. In older buildings, avoid disturbing potentially lead-based paint without proper assessment.',
+        materials:'Drop cloths, painter’s tape, suitable interior paint and primer if needed, tray, roller, angled brush, patch filler, cleaning supplies, gloves and ventilation. Use care with dust from old painted surfaces.',
+        stuck:'If you do not know where to start, move the furniture away from the walls and cover the floor. Do not sand unknown old paint until its safety has been assessed.',
+        simple:'One step: cover the floor and move furniture away from the walls before painting.'
+      },
+      compost:{
+        topic:'making a compost bin',
+        first:'First, choose an outdoor spot with good drainage and convenient access. Decide whether you want a lidded container or a simple open bin, accounting for local pests and rules.',
+        next:'Next, make sure the container has drainage at the bottom and airflow through the sides. Add a layer of dry leaves or shredded plain cardboard, then small amounts of vegetable scraps, and cover with more dry material.',
+        steps:'1) Choose an accessible, well-drained spot. 2) Select a sturdy lidded container or build a simple ventilated frame. 3) Provide drainage and air circulation. 4) Alternate dry leaves/cardboard with vegetable scraps. 5) Keep it moist like a wrung-out sponge and mix periodically. 6) Keep meat, dairy and oily leftovers out of a basic backyard bin, and follow local composting rules.',
+        materials:'A sturdy bin or untreated wood frame, lid or pest-resistant cover where appropriate, drill for airflow if using a plastic container, dry leaves/cardboard, vegetable scraps and a small garden tool.',
+        stuck:'If the bin smells, add dry material and improve airflow. If pests are a concern, use a secure lid and check local composting rules.',
+        simple:'Step one: choose a sturdy outdoor container with airflow and drainage.'
+      },
+      tomatoes:{
+        topic:'planting tomatoes',
+        first:'First, choose a sunny growing place that gets roughly 6–8 hours of direct sun. If planting outdoors, wait until frost risk has passed and conditions are warm enough for tomatoes.',
+        next:'Next, prepare well-draining soil or a large container with drainage holes. Plant a healthy seedling at a suitable depth, water it thoroughly, and add a cage or stake early so it has support.',
+        steps:'1) Choose a spot with about 6–8 hours of sun. 2) Check the local last-frost date before planting outdoors. 3) Prepare compost-enriched, well-draining soil or a container with drainage. 4) Plant the seedling and add support. 5) Water consistently at soil level, and mulch if suitable. 6) Watch for pests and adjust watering as the plant grows.',
+        materials:'Tomato seedling or seeds, suitable garden soil or potting mix, a sunny bed or large draining container, water, and a stake/cage. Gloves and a small trowel are helpful.',
+        stuck:'Start small: choose one sunny place or container. If outdoor nights are still cold, keep the seedling protected until conditions are safe.',
+        simple:'One step: find a place that gets at least six hours of sun.'
+      },
+      hinge:{
+        topic:'fixing a loose cabinet hinge',
+        first:'First, open the cabinet door and support it with one hand. Check whether the hinge is loose where it attaches to the cabinet or to the door. Look for loose screws or damaged screw holes.',
+        next:'Next, gently tighten the loose screw with the correct screwdriver. Stop if it spins without gripping; that may mean the screw hole is stripped and needs an appropriate repair rather than more tightening.',
+        steps:'1) Support the door. 2) Locate the loose hinge or mounting plate. 3) Check each screw and gently tighten loose ones with the correct screwdriver. 4) If a screw spins freely, assess the stripped hole and use a suitable wood repair or replacement hardware rather than overtightening. 5) Recheck door alignment and operation. Stop if the hinge or cabinet material is cracked.',
+        materials:'Correct-size screwdriver, good lighting and possibly replacement hinge screws or a suitable wood-hole repair kit. You may not need any new materials if a screw only needs tightening.',
+        stuck:'If the screw keeps turning, stop tightening. The hole may be stripped. Check whether the cabinet is solid wood, particleboard or another material before choosing a repair.',
+        simple:'One step: hold the door steady and gently tighten the loose hinge screw.'
+      }
+    };
+    return tasks[kind]||null;
+  }
+  startPracticalProject(kind){
+    const info=this.practicalProjectDetails(kind);
+    if(!info)return null;
+    this.clearContext();this.s.category='everyday';this.s.intent='plan';this.s.taskType='plan';
+    this.s.stage='practicalProject';this.s.practicalKind=kind;this.s.projectStep=0;this.s.topic=info.topic;
+    return{say:'Let’s work on '+info.topic+'. '+info.first,choices:['Give me the first step','Show all steps','What materials do I need?','Make it simpler']};
+  }
+  continuePracticalProject(text){
+    const info=this.practicalProjectDetails(this.s.practicalKind);
+    if(!info)return null;
+    const low=this.normalize(text);
+    if(/\b(?:show (?:me )?(?:all |the )?steps|give me (?:all )?steps|how do i do it|how do i (?:build|make|paint|plant|fix|repair)|walk me through|step by step|full instructions|how to do it)\b/.test(low)){
+      this.s.projectStep=Math.max(1,this.s.projectStep||0);
+      return{say:'Here are the main steps for '+info.topic+':\n'+info.steps,choices:['Make it simpler','Give me the first step','What materials do I need?']};
+    }
+    if(/\b(?:materials?|supplies|tools?|what do i need|shopping list)\b/.test(low))
+      return{say:'For '+info.topic+': '+info.materials,choices:['Give me the first step','Show all steps','What next?']};
+    if(/\b(?:simpler|simple|easier|too much|confusing)\b/.test(low))
+      return{say:info.simple,choices:['What next?','Show all steps','What materials do I need?']};
+    if(/\b(?:stuck|not working|i tried|doesn't work|confused)\b/.test(low))
+      return{say:info.stuck,choices:['Make it simpler','What next?','Show all steps']};
+    if(/\b(?:first step|start|begin|where do i start|where should i start)\b/.test(low)){
+      this.s.projectStep=1;
+      return{say:'Step 1 — '+info.first,choices:['What next?','What materials do I need?','Make it simpler']};
+    }
+    if(/\b(?:what next|next step|then what|what now|keep going|continue)\b/.test(low)){
+      if(!(this.s.projectStep>0))this.s.projectStep=1;
+      else this.s.projectStep=2;
+      return{say:this.s.projectStep===1?'Step 1 — '+info.first:'Step 2 — '+info.next,choices:['Show all steps','Make it simpler','I got stuck']};
+    }
+    return{say:'We’re working on '+info.topic+'. '+info.first+' You can ask for the full instructions, materials, or the next step.',choices:['Show all steps','What next?','Make it simpler']};
   }
 
   handleOpenGoal(x){
