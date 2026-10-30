@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: correction-reversal-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: natural-exclusions-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2620,7 +2620,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(this.sharedBillQuestion(raw)&&/\b(?:new bill|different bill|another bill|separate bill|new restaurant|start over)\b/.test(x))return this.sharedBillStart(raw);
     const v=this.sharedBillParse(raw);let changed=false;
     if(v.bill!==null&&/\b(?:bill|tab|total|check|amount)\b/.test(x)){c.bill=v.bill;changed=true;}
-    const restoredTip=raw.match(/\b(?:change|set|switch|revert|restore|put)(?:\s+it)?\s+back\s+to\s+(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)/i);
+    const restoredTip=raw.match(/\b(?:change|set|switch|revert|restore|put)(?:\s+(?:it|that))?\s+back\s+to\s+(\d{1,3}(?:\.\d+)?)\s*(?:%|percent)/i);
     if(v.tip!==null||restoredTip){c.tip=v.tip!==null?v.tip:Number(restoredTip[1]);changed=true;}
     const pm=raw.match(/\b(?:now|actually|instead|only|just|changed to|splitting|split|among|between|with|for|there are|we have|we're|we are)\b[^.!?\n]{0,70}?\b(\d{1,2})\s*(?:people|persons?|friends?|diners?|of us|ways?|guests?)\b/i)||raw.match(/\b(?:split|divide)\s+(?:it|this|the bill|the total)?\s*(?:among|between|with|into|by)\s*(\d{1,2})\b/i);
     if(v.people!==null||pm){
@@ -2675,7 +2675,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   budgetBegin(text){
     const funds=this.budgetFunds(text),items=this.budgetExpenses(text);
-    this.clearContext();this.s.category='everyday';this.s.intent='monthlyBudget';this.s.stage='monthlyBudgetMath';this.s.topic='budget arithmetic';this.s.monthlyBudgetCalc={funds,items};
+    this.clearContext();this.s.category='everyday';this.s.intent='monthlyBudget';this.s.stage='monthlyBudgetMath';this.s.topic='budget arithmetic';this.s.monthlyBudgetCalc={funds,items,extraEntries:[]};
     return this.budgetAnswer();
   }
   budgetContinue(text){
@@ -2683,7 +2683,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const raw=String(text||''),x=this.normalize(raw),c=this.s.monthlyBudgetCalc;
     if(/\b(?:dinner|recipe|cereal|box a|box b|jacket|discount|advertisement|phishing|password|water contamination|appointment|reminder|doctor|email)\b/.test(x)
        &&!/\b(?:budget|expense|rent|groceries|spending|monthly|income)\b/.test(x))return null;
-    if(!/\b(?:budget|expense|spending|rent|groceries|grocery|utilities|transportation|insurance|phone|internet|income|monthly|money|left|balance|surplus|shortfall|afford|remaining|over|under|cost|bill|save|cut|reduce|add|increase|decrease|now|actually)\b/.test(x))return null;
+    if(!/\b(?:budget|expense|spending|rent|groceries|grocery|utilities|transportation|insurance|phone|internet|income|monthly|money|left|balance|surplus|shortfall|afford|remaining|remains|over|under|cost|bill|save|cut|reduce|add|increase|decrease|now|actually)\b/.test(x))return null;
     if(this.isBudgetMath(raw)&&/\b(?:new budget|different budget|start over|separate scenario|new scenario)\b/.test(x))return this.budgetBegin(raw);
     let changed=false;
     const top=this.budgetFunds(raw);
@@ -2693,7 +2693,20 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const rx=/\b(?:additional|extra|another|unexpected|new)\s*(?:\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:(?:unexpected|extra|additional|new)\s+)?(?:expense|bill|cost|charge)|(?:(?:unexpected|extra|new)\s+)?(?:expense|bill|cost|charge)\s*(?:of|for|is|:)?\s*\$\s*([\d,]+(?:\.\d{1,2})?))/i;
     const extra=raw.match(rx);
     if(extra&&!keys.length){
-      const amount=this.budgetAmount(extra[1]||extra[2]);if(amount!==null){c.items.other=Math.round(((c.items.other||0)+amount)*100)/100;changed=true;}
+      const amount=this.budgetAmount(extra[1]||extra[2]);
+      if(amount!==null){
+        const undo=/\b(?:ignore|remove|drop|cancel|forget|exclude|take off|take out|don't count|do not count)\b/.test(x);
+        if(undo){
+          const list=c.extraEntries||[],i=list.lastIndexOf(amount);
+          if(i<0)return{say:'I cannot identify an earlier extra bill with that amount to remove. Please clarify which previously added expense you mean.',choices:['Review current expenses','Correct an amount']};
+          list.splice(i,1);c.items.other=Math.round(((c.items.other||0)-amount)*100)/100;
+          if(Math.abs(c.items.other)<0.005)delete c.items.other;
+        }else{
+          c.items.other=Math.round(((c.items.other||0)+amount)*100)/100;
+          (c.extraEntries||(c.extraEntries=[])).push(amount);
+        }
+        changed=true;
+      }
     }
     const adj=raw.match(/\b(reduce|reduced|cut|lower|lowered|decrease|decreased|trim|trimmed|increase|increased|raise|raised)\s+(?:(?:my|the|our)\s+)?([a-z][a-z -]{1,30}?)\s+(?:spending|expense|expenses|costs?|bill|budget)?\s*by\s*\$\s*([\d,]+(?:\.\d{1,2})?)/i);
     if(adj){const k=this.budgetKey(adj[2]),n=this.budgetAmount(adj[3]);if(k&&n!==null&&Object.hasOwn(c.items,k)){
@@ -2704,7 +2717,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(went){const k=this.budgetKey(went[1]),n=this.budgetAmount(went[3]);if(k&&n!==null&&Object.hasOwn(c.items,k)){
       const next=c.items[k]+(went[2].toLowerCase()==='up'?n:-n);
       if(next>=0){c.items[k]=Math.round(next*100)/100;changed=true;}}}
-    if(changed||/\b(?:what|how much|balance|left|remaining|calculate|recalculate|total|within|over|under|afford)\b/.test(x))return this.budgetAnswer();
+    if(changed||/\b(?:what|how much|balance|left|remaining|remains|calculate|recalculate|total|within|over|under|afford)\b/.test(x))return this.budgetAnswer();
     return null;
   }
   unitValueNumber(v){const n=Number(String(v||'').replace(/[$,]/g,''));return Number.isFinite(n)&&n>=0&&n<=1000000?n:null;}
@@ -3426,8 +3439,16 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     if(this.s.stage!=='start' && this.isRecallRequest(x))return this.recallConversation(x);
     if(/\b(?:scrambled? eggs?|scramble eggs?)\b/.test(low)&&/\b(?:how to|how do i|tell me how|help me|recipe|make|cook|scramble)\b/.test(low)&&!/\b(?:write|draft|summari[sz]e|translate)\b/.test(low)){
-      const spinach=/\bspinach\b/.test(low);this.clearContext();this.s.category='everyday';this.s.intent='dinner';this.s.stage='dinnerPlan';this.s.topic='scrambled eggs';this.s.ingredients=spinach?['eggs','spinach']:['eggs'];
-      return{say:'For two servings, beat 4 eggs. Heat a little oil or butter in a nonstick pan over medium-low heat. '+(spinach?'Wilt a handful of spinach first. ':'')+'Pour in the eggs, stir gently until set, then season to taste.',choices:['Add spinach','Make it quicker','Give me exact amounts']};
+      const noEgg=/\b(?:allergic to|allergy to|cannot eat|can't eat|avoid|without|no|don't have|do not have|don't use|do not use)\s+(?:the\s+)?eggs?\b/.test(low);
+      const noSpinach=/\b(?:allergic to|allergy to|cannot eat|can't eat|avoid|without|no|don't use|do not use)\s+(?:the\s+)?spinach\b/.test(low);
+      const noMushrooms=/\b(?:allergic to|allergy to|cannot eat|can't eat|avoid|without|no|don't use|do not use)\s+(?:the\s+)?mushrooms?\b/.test(low);
+      const dairyFree=/\b(?:dairy[- ]?free|no dairy|without dairy)\b/.test(low),spinach=/\bspinach\b/.test(low)&&!noSpinach;
+      this.clearContext();this.s.category='everyday';this.s.intent='dinner';this.s.stage='dinnerPlan';this.s.topic='scrambled eggs';
+      this.s.excludedIngredients=[...(noEgg?['eggs']:[]),...(noSpinach?['spinach']:[]),...(noMushrooms?['mushrooms']:[]),...(dairyFree?['cheese']:[])];
+      if(dairyFree)this.noteFact('no dairy');
+      this.s.ingredients=noEgg?[]:(spinach?['eggs','spinach']:['eggs']);
+      if(noEgg)return{say:'You said eggs are off-limits, so I cannot give an egg-based scrambled-egg recipe. A tofu scramble is a possible alternative if tofu is suitable for you. Check ingredients and allergy precautions before using substitutes.',choices:['Explore an egg-free alternative','Change the dish']};
+      return{say:'For two servings, beat 4 eggs. Heat a little oil'+(dairyFree?'':' or butter')+' in a nonstick pan over medium-low heat. '+(spinach?'Wilt a handful of spinach first. ':'')+'Pour in the eggs, stir gently until set, then season to taste.'+(noMushrooms?' I will not include mushrooms.':''),choices:['Add spinach','Make it quicker','Give me exact amounts']};
     }
     const detected=this.detectIntent(x);
     // Explicit requests to change subjects outrank the previous topic's
@@ -3735,6 +3756,13 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       if(/\b(?:don't|do not|never|no|without|remove|omit|skip|leave out)\s+(?:(?:use|add|include|the|any)\s+)?$/.test(before))added.splice(added.indexOf(item),1);
       else if(/\b(?:add|include|use|have|put back|bring back)\s+(?:(?:the|some)\s+)?$/.test(before))removed.splice(removed.indexOf(item),1);
     }
+    // Exclusions override mere possession of ingredients, including allergies.
+    const forbidden=new Set();
+    for(const m of low.matchAll(/\b(?:allergic to|allergy to|can't eat|cannot eat|must avoid|avoid|don't eat|do not eat)\s+(?:the\s+)?(eggs?|spinach|mushrooms?|tomatoes?|cheese|tortillas?|beans?|rice|pasta|tofu)\b/g))for(const v of foods(m[1]))forbidden.add(v);
+    if(/\b(?:don't|do not|never)\s+(?:use|add|include|eat)\s+(?:it|them)\b/.test(low)){const mentioned=foods(low);if(mentioned.length===1)forbidden.add(mentioned[0]);}
+    for(const m of low.matchAll(/\b(?:instead of|rather than)\s+(?:the\s+)?(eggs?|spinach|mushrooms?|tomatoes?|cheese|tortillas?|beans?|rice|pasta|tofu)\s*[,;]?\s+(?:please\s+)?(?:use|add|include)\s+(?:the\s+)?(eggs?|spinach|mushrooms?|tomatoes?|cheese|tortillas?|beans?|rice|pasta|tofu)\b/g)){push(removed,m[1]);push(added,m[2]);}
+    if((/\b(?:dairy[- ]?free|no dairy|without dairy)\b/.test(low)||(this.s.facts||[]).includes('no dairy'))&&added.includes('cheese'))forbidden.add('cheese');
+    for(const item of forbidden){const i=added.indexOf(item);if(i>=0)added.splice(i,1);if(!removed.includes(item))removed.push(item);}
     if(!removed.length&&!added.length)return null;
     const normalizeItem=(v)=>foods(this.normalize(v))[0]||this.normalize(v);
     const unavailable=new Set((this.s.excludedIngredients||[]).map(normalizeItem));
@@ -3776,7 +3804,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const low=this.normalize(x);
     if(this.normalize(this.s.topic)==='scrambled eggs'&&!this.safeDinnerIngredients().includes('eggs'))return{say:'I cannot make scrambled eggs without eggs. You can add eggs back or switch to a recipe using the ingredients you have.',choices:['Add eggs back','Choose another dish']};
     if(this.normalize(this.s.topic)==='scrambled eggs'&&/\b(?:quick|quicker|faster|fast)\b/.test(low)){const have=this.safeDinnerIngredients();return{say:'Quick version: beat the eggs while a little oil heats over medium-low heat. '+(have.includes('mushrooms')?'Cook sliced mushrooms until softened. ':'')+(have.includes('spinach')?'Wilt the spinach briefly. ':'')+(have.includes('tomatoes')?'Add diced tomato. ':'')+'Add the eggs and stir gently until set.',choices:['Give me exact amounts','Change an ingredient']};}
-    if(this.normalize(this.s.topic)==='scrambled eggs'&&/\b(?:exact amounts|for two|recipe|ingredients)\b/.test(low)){const have=this.safeDinnerIngredients();return{say:'For two servings, use 4 eggs and about a teaspoon of oil or butter'+(have.includes('spinach')?', plus a handful of washed spinach':'')+(have.includes('mushrooms')?', plus half a cup of sliced mushrooms':'')+(have.includes('tomatoes')?', plus one diced tomato':'')+(have.includes('cheese')?', plus a quarter cup of shredded cheese':'')+'. Heat the oil over medium-low heat. '+(have.includes('mushrooms')?'Cook the mushrooms until softened. ':'')+(have.includes('spinach')?'Wilt the spinach briefly. ':'')+(have.includes('tomatoes')?'Add tomato. ':'')+'Stir in the eggs gently until set.'+(have.includes('cheese')?' Add the cheese near the end.':''),choices:['Make it quicker','Change an ingredient']};}
+    if(this.normalize(this.s.topic)==='scrambled eggs'&&/\b(?:exact amounts|for two|recipe|ingredients)\b/.test(low)){const have=this.safeDinnerIngredients();return{say:'For two servings, use 4 eggs and about a teaspoon of '+((this.s.facts||[]).includes('no dairy')?'oil':'oil or butter')+(have.includes('spinach')?', plus a handful of washed spinach':'')+(have.includes('mushrooms')?', plus half a cup of sliced mushrooms':'')+(have.includes('tomatoes')?', plus one diced tomato':'')+(have.includes('cheese')?', plus a quarter cup of shredded cheese':'')+'. Heat the oil over medium-low heat. '+(have.includes('mushrooms')?'Cook the mushrooms until softened. ':'')+(have.includes('spinach')?'Wilt the spinach briefly. ':'')+(have.includes('tomatoes')?'Add tomato. ':'')+'Stir in the eggs gently until set.'+(have.includes('cheese')?' Add the cheese near the end.':''),choices:['Make it quicker','Change an ingredient']};}
     const listText=(items)=>items.length<=1?(items[0]||'what you have'):(items.length===2?items.join(' and '):items.slice(0,-1).join(', ')+', and '+items[items.length-1]);
 
     if(/\bvegan\b/.test(low)){
