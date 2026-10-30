@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: practical-projects-v11</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: practical-projects-v12</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -4674,12 +4674,17 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:info.stuck,choices:['Make it simpler','What next?','Show all steps']};
     if(/\b(?:first step|start|begin|where do i start|where should i start)\b/.test(low)){
       this.s.projectStep=1;
-      return{say:'Step 1 — '+info.first,choices:['What next?','What materials do I need?','Make it simpler']};
+      return{say:'Step 1 — '+info.first.replace(/^First,\s*/i,''),choices:['What next?','What materials do I need?','Make it simpler']};
     }
     if(/\b(?:what next|next step|then what|what now|keep going|continue)\b/.test(low)){
-      if(!(this.s.projectStep>0))this.s.projectStep=1;
-      else this.s.projectStep=2;
-      return{say:this.s.projectStep===1?'Step 1 — '+info.first:'Step 2 — '+info.next,choices:['Show all steps','Make it simpler','I got stuck']};
+      const steps=Array.from(info.steps.matchAll(/\b(\d+)\)\s*(.*?)(?=\s+\d+\)\s|$)/g),m=>m[2]);
+      if((this.s.projectStep||0)>=steps.length){
+        return{say:'Those are the main instructions for '+info.topic+'. Before using the result, check stability, fit and any safety points described in the steps. You can review materials or ask about a specific step.',choices:['Show all steps','What materials do I need?','Make it simpler']};
+      }
+      this.s.projectStep=(this.s.projectStep||0)+1;
+      const step=this.s.projectStep;
+      const detail=step===1?info.first.replace(/^First,\s*/i,''):step===2?info.next.replace(/^Next,\s*/i,''):steps[step-1];
+      return{say:'Step '+step+' — '+detail,choices:['What next?','Show all steps','Make it simpler']};
     }
     return{say:'We’re working on '+info.topic+'. '+info.first+' You can ask for the full instructions, materials, or the next step.',choices:['Show all steps','What next?','Make it simpler']};
   }
