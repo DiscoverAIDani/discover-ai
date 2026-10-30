@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: venue-corrections-v37</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: incident-facts-v38</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -5189,9 +5189,18 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:'You said you clicked a suspicious link. Close the page and avoid further interaction with it. Do not enter passwords or codes, download files, or grant permissions. Clicking alone does not prove that an account or device was compromised. Did you enter any information, download or install anything, or allow access?',choices:['I did not enter anything','I entered a password','I downloaded something']};
     }
     if(isGenericLink){
-      if(/\b(?:did not|didn'?t|never)\s+(?:download|install|allow|grant|open)\b/.test(q)){
-        ctx.downloaded=false;
-        return{say:'Thanks for clarifying that you did not download or install anything. I’ll no longer treat a file or app as installed based on this incident. Close the suspicious page and avoid the link. '+(ctx.credentialsShared?'Because you also said a password was entered, still secure the affected account through its official app or website.':'If you did not enter any details or grant permissions, clicking alone does not establish compromise.') ,choices:['How do I report it?','How do I secure the account?']};
+      if(/\b(?:did not|didn'?t|never)\s+download\b|\b(?:nothing|no files?)\s+downloaded\b/.test(q)){
+        ctx.downloaded=false;ctx.reportedFileDownload=false;
+        return{say:'Thanks for clarifying: nothing downloaded from the suspicious link. I’ll no longer assume a file was downloaded. Close the page and avoid it. '+(ctx.credentialsShared?'Because you also said you entered a password, secure that account using the official service.':'If you did not enter information or grant permissions either, clicking alone does not prove compromise.'),choices:['How do I report the message?','How do I secure the account?']};
+      }
+      if(/\b(?:did not|didn'?t|never)\s+install\b|\b(?:nothing|no apps?)\s+installed\b/.test(q)){
+        ctx.installed=false;
+        if(ctx.reportedFileDownload!==true)ctx.downloaded=false;
+        return{say:'Thanks for clarifying that you did not install an app. I will not assume an installation occurred. '+(ctx.reportedFileDownload===true?'You did previously report a download, so that still deserves a device-security check.':'Whether any file downloaded remains a separate question; please check downloads if unsure.')+(ctx.credentialsShared?' You also reported entering a password, so secure the account using the official service.':' A click by itself does not prove compromise.'),choices:['Nothing downloaded','How do I secure my device?','How do I report the message?']};
+      }
+      if(/\b(?:did not|didn'?t|never)\s+(?:allow|grant)\b/.test(q)){
+        ctx.permissionGranted=false;
+        return{say:'Thanks for clarifying that you did not grant permissions. I will not assume access was granted. If you downloaded or installed anything, those still need separate checks. Do not use the suspicious link again.',choices:['Nothing downloaded','How do I report it?']};
       }
       if(/\b(?:did not|didn'?t|never)\s+(?:enter|type|submit|share)\b/.test(q)){
         ctx.credentialsShared=false;
@@ -5206,6 +5215,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       }
       if(/\b(?:downloaded|installed|opened a file|allowed permissions|allowed access|granted permissions)\b/.test(q)&&!/\b(?:did not|didn'?t|never|nothing)\s+(?:download(?:ed|ing)?|install(?:ed|ing)?|allow(?:ed|ing)?|grant(?:ed|ing)?)\b/.test(q)){
         ctx.downloaded=true;
+        if(/\b(?:downloaded|opened a file)\b/.test(q))ctx.reportedFileDownload=true;
+        if(/\binstalled\b/.test(q))ctx.installed=true;
         return{say:'If you downloaded or installed something through that suspicious link, do not open the file or grant further permissions. Use your device built-in or trusted security tools to check for unwanted software, and remove unfamiliar apps using the device provider guidance. If you also entered credentials, secure the affected account through its official app or website. What type of device did you use?',choices:['It was on my phone','It was on my computer','I entered a password']};
       }
       if(/\b(?:i (?:did not|didn'?t|never) enter|no details|nothing entered|only clicked)\b/.test(q)){
