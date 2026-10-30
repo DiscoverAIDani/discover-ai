@@ -214,6 +214,42 @@ main{padding:12px 0 28px}
 #game .cbline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px}
 #game .score-gain{display:none;align-items:center;padding:2px 7px;margin:0;border:1px solid #c7decd;border-radius:999px;background:#e8f4ea;color:#286545;font-size:11px;line-height:1.15;font-weight:700;white-space:nowrap}
 @media(max-width:380px){#game .cbline{gap:5px}#game .score-gain{font-size:10px;padding:2px 5px}}
+
+/* Test 61: make completion a distinct, accessible call to action. */
+#game .choice-label.results-ready{
+  color:#17345f;font-size:15px;font-weight:800;text-align:center;
+  padding:8px 5px 4px;
+}
+#game .controls .choice.results-cta{
+  display:block;width:100%;max-width:540px;margin:4px auto 8px;
+  min-height:60px;padding:13px 20px;
+  border:2px solid #9a6a18;border-radius:16px;
+  background:linear-gradient(135deg,#fae5a7 0%,#eac05d 100%);
+  color:#17345f;font-size:19px;font-weight:900;line-height:1.25;
+  text-align:center;box-shadow:0 5px 0 #ae8026,0 9px 20px rgba(23,52,95,.20);
+  transform:none;transition:box-shadow .16s ease,filter .16s ease,transform .16s ease;
+  cursor:pointer;
+}
+#game .controls .choice.results-cta:hover{
+  background:linear-gradient(135deg,#ffeab4 0%,#eac05d 100%);
+  filter:brightness(1.025);transform:translateY(-2px);
+  box-shadow:0 7px 0 #ae8026,0 12px 22px rgba(23,52,95,.23);
+}
+#game .controls .choice.results-cta:active{
+  transform:translateY(3px);box-shadow:0 2px 0 #ae8026,0 4px 10px rgba(23,52,95,.18);
+}
+#game .controls .choice.results-cta:focus-visible{
+  outline:3px solid #187f80;outline-offset:4px;
+}
+@media(max-width:650px){
+  #game .choice-label.results-ready{font-size:14px}
+  #game .controls .choice.results-cta{max-width:100%;min-height:58px;font-size:18px}
+}
+@media(prefers-reduced-motion:reduce){
+  #game .controls .choice.results-cta{transition:none}
+  #game .controls .choice.results-cta:hover{transform:none}
+}
+
 </style>
 </head>
 <body>
@@ -223,7 +259,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: compact-score-v6</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: standout-results-v7</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -4462,16 +4498,18 @@ const rewards=[['🌱','First Step'],['💬','Conversation Builder'],['🧭','Co
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function add(who,text){const d=document.createElement('div');d.className='msg '+(who==='AI'?'ai':'user');d.innerHTML='<div class="bubble"><div class="who">'+who+'</div>'+esc(text)+'</div>';chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
 function setChoices(items=[]){renderChoices(items)}
-function renderChoices(items=[]){choices.innerHTML='';const label=document.getElementById('choiceLabel');const has=Array.isArray(items)&&items.length>0;label.textContent='Or pick a quick response';label.style.display=has?'block':'none';items.forEach(x=>{const b=document.createElement('button');b.className='choice';b.type='button';b.textContent=x;b.onclick=()=>{input.value=x;submit();};choices.appendChild(b)});}
+function renderChoices(items=[]){choices.innerHTML='';const label=document.getElementById('choiceLabel');const has=Array.isArray(items)&&items.length>0;label.textContent='Or pick a quick response';label.classList.remove('results-ready');label.style.display=has?'block':'none';items.forEach(x=>{const b=document.createElement('button');b.className='choice';b.type='button';b.textContent=x;b.onclick=()=>{input.value=x;submit();};choices.appendChild(b)});}
 function showResultsButton(){
   choices.innerHTML='';
   const label=document.getElementById('choiceLabel');
-  label.textContent='Challenge complete';
+  label.textContent='🎉 Challenge complete — your results are ready!';
+  label.classList.add('results-ready');
   label.style.display='block';
   const b=document.createElement('button');
-  b.className='choice';
+  b.className='choice results-cta';
   b.type='button';
-  b.textContent='See my results';
+  b.textContent='🏆 See my results';
+  b.setAttribute('aria-label','See my results and final score');
   b.onclick=finish;
   choices.appendChild(b);
 }
