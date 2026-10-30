@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: meal-followups-v42</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: grocery-context-v43</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -4824,27 +4824,32 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     if(c.kind==='meals'){
       if(!c.mealCount)c.mealCount=3;
-      const wordNum={one:1,two:2,three:3};
-      const update=low.match(/\b(?:actually|instead|only|just|now|make it|change (?:it )?to|we need)\s+(?:only\s+|just\s+)?(one|two|three|[1-3])\s*(?:dinners?|meals?|nights?)\b/);
-      const changed=!!update;
-      if(update)c.mealCount=wordNum[update[1]]||Number(update[1]);
-      const count=c.mealCount,labels=['egg-and-spinach rice bowls','bean tacos with tomatoes','pasta with tomato sauce and spinach'];
-      const desc=count+' '+(count===1?'dinner':'dinners');
-      const exclusion=low.match(/\b(?:no|without|don't eat|do not eat|avoid)\s+(?:any\s+)?(fish|seafood|mushrooms?|dairy|cheese)\b/);
-      if(exclusion&&!c.avoid.includes(exclusion[1]))c.avoid.push(exclusion[1]);
+      const words={one:1,two:2,three:3};
+      const change=low.match(/\b(?:actually(?:\s+i)?(?:\s+(?:only|just))?(?:\s+need)?|(?:i\s+)?(?:only|just)(?:\s+need)?|instead|now|make it|change (?:it )?to|we need|i need)\s+(?:only\s+|just\s+)?(one|two|three|[1-3])\s*(?:dinners?|meals?|nights?)\b/);
+      if(change)c.mealCount=words[change[1]]||Number(change[1]);
+      for(const match of low.matchAll(/\b(?:no|without|don't eat|do not eat|can't eat|cannot eat|allergic to|allergy to|avoid)\s+(?:any\s+)?(eggs?|beans?|fish|seafood|mushrooms?|dairy|cheese)\b/g)){
+        const exclusion=/^eggs?$/.test(match[1])?'eggs':/^beans?$/.test(match[1])?'beans':match[1];
+        if(!c.avoid.includes(exclusion))c.avoid.push(exclusion);
+      }
+      const noEgg=c.avoid.includes('eggs'),noBeans=c.avoid.includes('beans');
+      const recipes=[
+        {title:noEgg?(noBeans?'spinach-and-tomato rice bowls':'bean-and-spinach rice bowls'):'egg-and-spinach rice bowls',ingredients:noEgg?(noBeans?'rice, spinach and tomatoes':'rice, beans and spinach'):'eggs, rice and spinach'},
+        {title:noBeans?'spinach-and-tomato tacos':'bean tacos with tomatoes',ingredients:noBeans?'tortillas, spinach and tomatoes':'two cans of beans, tortillas and tomatoes'},
+        {title:'pasta with tomato sauce and spinach',ingredients:'pasta, onion, tomato sauce and spinach'}
+      ];
       const budget=low.match(/\b(?:under|budget|spend)\b[^\d]{0,15}(\d{1,5})(?!\d)/);
       if(budget)c.budget=budget[1];
-      const constraints=(c.avoid.length?' I’ll avoid '+c.avoid.join(', ')+'.':'')+(c.budget?' Your total budget target is $'+c.budget+'; store prices need checking.':'');
+      const count=c.mealCount,desc=count+' '+(count===1?'dinner':'dinners'),chosen=recipes.slice(0,count);
+      const titles=chosen.map(r=>r.title);
+      const constraints=(c.avoid.length?' I’ll avoid '+c.avoid.join(', ')+'. Please check labels and cross-contact risks if an allergy is involved.':'')+(c.budget?' Your total budget target is $'+c.budget+'; store prices need checking.':'');
       if(/\b(?:how many|how much|number of)\b.{0,28}\b(?:dinners?|meals?|nights?)\b|\b(?:how many did i say|what did i say)\b/.test(low))
         return{say:'The latest plan is for '+desc+', not the previous count.'+constraints,choices:['Make a shopping list','Review the meals']};
-      if(changed)return{say:'Updated: we are now planning '+desc+', not three by default. The menu is '+labels.slice(0,count).join('; ')+'. I’ll use '+count+' '+(count===1?'dinner':'dinners')+' in the shopping list going forward.'+constraints,choices:['Make a shopping list','Review the meals']};
-      if(/\b(?:shopping list|grocery list|what to buy|what do i need to buy)\b/.test(low)){
-        const shopping=['eggs, rice and spinach','two cans of beans, tortillas and tomatoes','pasta, onion and tomato sauce'];
-        return{say:'Shopping list for '+desc+', assuming about two servings each: '+shopping.slice(0,count).join('; ')+'. Check what is already in your pantry before buying, and adjust amounts to your serving sizes.'+constraints,choices:['Keep it cheaper','Make the list shorter','Swap a meal']};
-      }
+      if(change)return{say:'Updated: we are now planning '+desc+'. The menu is '+titles.join('; ')+'. I’ll use this count for the shopping list.'+constraints,choices:['Make a shopping list','Review the meals']};
+      if(/\b(?:shopping list|grocery list|what to buy|what do i need to buy|(?:can i |could i |please )?get (?:the|my|a) list|make (?:the|my|a) list|updated list)\b/.test(low))
+        return{say:'Shopping list for '+desc+', assuming about two servings each: '+chosen.map(r=>r.ingredients).join('; ')+'. Check what is already in your pantry before buying, and adjust amounts to your serving sizes.'+constraints,choices:['Keep it cheaper','Make the list shorter','Swap a meal']};
       if(/\b(?:quicker|shorter|simpler|cheap)\b/.test(low))
-        return{say:'Simple '+desc+': '+labels.slice(0,count).map((x,i)=>'Night '+(i+1)+' — '+x).join('. ')+'. Reuse ingredients where practical.'+constraints,choices:['Make a shopping list','Swap a meal']};
-      return{say:count+' easy '+(count===1?'dinner':'dinners')+': '+labels.slice(0,count).join('; ')+'. These reuse ingredients and do not require fish, mushrooms or dairy.'+constraints,choices:['Make a shopping list','Keep it cheap','Make meals quicker']};
+        return{say:'Simple '+desc+': '+titles.map((x,i)=>'Night '+(i+1)+' — '+x).join('. ')+'. Reuse ingredients where practical.'+constraints,choices:['Make a shopping list','Swap a meal']};
+      return{say:count+' easy '+(count===1?'dinner':'dinners')+': '+titles.join('; ')+'. These meals reuse ingredients.'+constraints,choices:['Make a shopping list','Keep it cheap','Make meals quicker']};
     }
     if(c.kind==='freeDay'){
       if(/\b(?:tv|television|screen)\b/.test(low)&&/\b(?:okay|ok|fine|allowed|can use|a little|some)\b/.test(low))c.noScreens=false;
