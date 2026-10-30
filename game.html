@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: compact-results-v9</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: doghouse-context-v10</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -3685,6 +3685,10 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    if(/^(?:hi|hello|hey|good morning|good afternoon|good evening)[!.,\s]*$/.test(low)){
+      if(this.s.stage==='start')return{say:'Hi! What would you like help with today? You can ask in your own words or choose a starting point.',choices:['Plan something','Learn something','Solve a problem','Make something']};
+      return{say:'Hi! We can keep working on '+this.topicLabel()+' or start a different task. What would you like?',choices:['Continue','New topic']};
+    }
     // An explicit new question must not be swallowed by the previous topic.
     const newTask=this.s.stage!=='start'&&String(text||'').trim().match(/^(?:new|different)\s+(?:question|topic)\s*[:–-]\s*(.+)$/i);
     if(newTask){this.clearContext();this.s.stage='start';return this.responseFor(newTask[1]);}
@@ -3837,6 +3841,15 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return switchedDirect||this.routeIntent(x,detected);
     }
 
+    if(this.isDoghouseBuildRequest(x))return this.startDoghouseBuild();
+    if(this.s.stage==='doghouseBuild'){
+      const newGoal=/^(?:help me|please help me|can you|could you|i want to|let's|let us|now)\s+(?:plan|make|write|learn|build|organize|compare|fix|solve)\b/.test(low);
+      if(newGoal&&!/\b(?:dog\s*house|doghouse)\b/.test(low)){
+        this.clearContext();this.s.stage='start';
+        return this.directAnswer(x,detected)||this.routeIntent(x,detected);
+      }
+      return this.continueDoghouseBuild(x);
+    }
     // On the opening turn, direct requests should produce an answer rather than
     // a meta-response about how AI could help.
     if(this.s.stage==='start'){
@@ -4520,6 +4533,42 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(this.uncertain(x))return{say:'No problem. Let me give you some ideas instead of making you come up with one. AI can help plan something, make everyday tasks easier, learn about a hobby, compare choices, or help with a project.',choices:['Plan a trip or outing','Make dinner easier','Organize my week','Help me learn something']};
     return{say:'Let’s make this concrete. AI can help with planning, everyday problems, learning, organizing information, and creative projects. Pick one and we can try a real example.',choices:['Plan something','Solve a problem','Learn something','Make something']}
   }
+
+  isDoghouseBuildRequest(text){
+    const low=this.normalize(text);
+    return /\b(?:dog\s*house|doghouse)\b/.test(low)&&(
+      /^(?:(?:hi|hello|hey)[,!.]?\s*)?(?:(?:can|could) you\s+)?(?:please\s+)?(?:help me\s+)?(?:build|make|construct|design|plan)\b/.test(low)||
+      /^(?:i (?:want|would like|need) to|i'm trying to|i am trying to|how (?:do|can|would) i|what are the steps to)\s+(?:build|make|construct)\b/.test(low));
+  }
+  startDoghouseBuild(){
+    this.clearContext();this.s.category='everyday';this.s.intent='plan';this.s.taskType='plan';this.s.stage='doghouseBuild';this.s.topic='building a doghouse';this.s.doghouseStep=0;
+    return{say:'To build a simple doghouse, start with the size of your dog. Measure your dog standing (floor to top of head) and lying down (nose to base of tail), then sketch a shelter with enough room to stand, turn around, and lie comfortably. Plan for a raised dry floor, ventilation, and a sloping waterproof roof. The basic build is: measure → cut a floor and walls → assemble → add a roof → finish safely. You can start with the measurements; you do not need a perfect blueprint yet.',choices:['Give me the first step','Show materials','Show all steps','Make it simpler']};
+  }
+  continueDoghouseBuild(text){
+    const low=this.normalize(text);
+    const first=()=>{this.s.doghouseStep=1;return{say:'Step 1 — Measure your dog. Use a tape measure to find standing height from floor to top of head and length from nose to base of tail. Write both down. The inside must let your dog stand, turn, and lie down comfortably. If you share those measurements, we can size the floor and doorway instead of guessing.',choices:['I measured my dog','Show materials','What next?','Make it simpler']}};
+    if(/\b(?:how (?:do|can|should|would) i (?:do|build|make)|show (?:me )?(?:all|the) steps|give me (?:all )?steps|step by step|full instructions|how to (?:build|make)|explain how)\b/.test(low)){
+      this.s.doghouseStep=Math.max(1,this.s.doghouseStep||0);
+      return{say:'Step-by-step guide for a simple wooden doghouse:\n1) Measure your dog and sketch the interior so the dog can stand, turn and lie down.\n2) Cut an exterior-grade plywood floor and support it underneath with framing lumber. Raise the base slightly off the ground.\n3) Cut front, back and side walls, including an entrance sized for your dog.\n4) Fasten walls to the floor with exterior screws; avoid exposed screw tips and splinters inside.\n5) Add a sloping, waterproof roof, ideally removable for cleaning.\n6) Sand rough edges, include upper ventilation, and finish the outside with a pet-safe coating. Keep your dog out until fully cured.\nWear eye protection and follow saw/drill safety instructions. Exact cut dimensions depend on your dog’s size.',choices:['Give me the first step','Show materials','What size should it be?','Make it simpler']};
+    }
+    if(/\b(?:materials?|supplies|tools?|shopping list|what do i need)\b/.test(low))
+      return{say:'Basic supplies: exterior-grade plywood, framing lumber, exterior screws, waterproof roofing, and a pet-safe exterior finish. Tools: tape measure, pencil, saw, drill/driver, sandpaper and safety glasses. Keep the floor raised and interior smooth; allow finishes to fully cure before your dog enters.',choices:['Give me the first step','Show all steps','What next?']};
+    if(/\b(?:simple|simpler|easier|one step|too much|confus|overwhelm)\b/.test(low))
+      return{say:'One easy starting step: measure how tall and long your dog is. Write down the two numbers. Those tell you how big to make the doghouse. We can work out the wood pieces next—one step at a time.',choices:['I measured my dog','Show the next step','Show materials']};
+    if(/\b(?:first step|where do i start|start first|what should i do first|start with|begin)\b/.test(low))return first();
+    if(/\b(?:measured|measurements?|my dog is|inches|centimeters|cm\b|feet tall|large dog|small dog|medium dog|what size|how big)\b/.test(low)){
+      this.s.doghouseStep=Math.max(1,this.s.doghouseStep||0);
+      return{say:'Use your dog’s actual standing height and length to size the shelter. It should allow standing, turning, and lying down with some clearance. If you share both measurements, we can estimate cut dimensions rather than guess. Next is the raised floor.',choices:['Show the next step','Show materials','Show all steps']};
+    }
+    if(/\b(?:what next|next step|show the next step|then what|what do i do now|keep going|continue)\b/.test(low)){
+      if((this.s.doghouseStep||0)<1)return first();
+      this.s.doghouseStep=2;
+      return{say:'Step 2 — Build the floor. Once you know the interior length and width, cut exterior-grade plywood for the base, support it with framing lumber and use exterior screws to secure it. Raise it slightly off the ground to stay dry, sand the edges, and check that it is level and sturdy before adding walls.',choices:['Show all steps','What next?','Make it simpler']};
+    }
+    if(this.uncertain(text))return first();
+    return{say:'We are building a doghouse. Start by measuring your dog, then make the raised floor and walls. Ask for all steps or tell me which building action is unclear.',choices:['Give me the first step','Show all steps','Show materials']};
+  }
+
   handleOpenGoal(x){
     if(this.uncertain(x)){
       this.s.stage='openBuild';
