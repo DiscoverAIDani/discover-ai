@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: missing-info-v21</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: trust-safety-v22</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -3738,6 +3738,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     // Safety-critical banking impersonation outranks stale intent and generic routing.
     if(this.looksLikeBankPhishing(text))return this.bankPhishingInitial(text);
     if(this.s.stage==='securityAdvice'){const follow=this.bankPhishingFollowup(text);if(follow)return follow;}
+    const trust=this.trustAndSafetyQuestion(x);if(trust)return trust;
     const pendingDraft=this.continueUnanchoredDraft(text);
     if(pendingDraft)return pendingDraft;
     const missingDraft=this.handleUnanchoredDraftRevision(text);
@@ -4920,6 +4921,44 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:'The correct opening size depends on the bird species.'+(this.s.birdSpecies?' Check a trusted nesting-box plan for '+this.s.birdSpecies+'.':' You have not chosen a species yet.')+' I will not guess the measurement.',choices:['Choose a bird']};
     if(this.s.stage==='doghouseBuild'&&/(?:dimensions|cut|exact size|what size)/.test(q)&&/(?:exact|measure|dimensions|size)/.test(q))
       return{say:'Exact cut dimensions depend on your dog measurements and the selected design. I need the standing height and body length, so I will not guess.',choices:['Give me the first step']};
+    return null;
+  }
+
+
+  trustAndSafetyQuestion(input){
+    const q=this.normalize(input);
+    if(/\b(?:are you real ai|are you an ai|just a game|is this (?:real|live) ai|are (?:these|your) responses (?:real|generated)|is this a simulation)\b/.test(q))
+      return{say:'This is a guided AI conversation simulation, not a live AI assistant. It uses prepared response rules to help you practice asking questions and refining answers. After the game, you can try a real AI platform using the links on the results screen.',choices:['What can this game do?','Try a practice question']};
+    if(/\b(?:can you|do you)\b.{0,36}\b(?:browse|search|look at|access)\b.{0,24}\b(?:internet|web|online|live sites?)\b/.test(q))
+      return{say:'No. This practice game does not browse the internet, check live websites, or verify current information. Its answers come from built-in examples. Use a live source to check facts such as opening hours, prices or news.',choices:['How do I check information?','Practice a question']};
+    if(/\b(?:can you|do you)\b.{0,35}\b(?:see|read|access|check)\b.{0,20}\b(?:my )?(?:appointments?|calendar|medical records|emails?|bank account)\b/.test(q))
+      return{say:'No. This practice game has no access to your personal calendar, email, bank accounts or medical records. It only works from what you type here, and you should avoid entering sensitive information.',choices:['What is safe to share?','Try a practice question']};
+    if(/\b(?:safe to|should i|can i|is it ok(?:ay)? to)\b.{0,35}\b(?:paste|share|give|type|enter|send)\b.{0,35}\b(?:social security|ssn|bank account|credit card|password|pin|security code|verification code|private information|personal data)\b/.test(q)||
+      /\b(?:my password is|here is my password|my social security number is|my bank account number is|my card number is)\b/.test(q))
+      return{say:'Please do not enter passwords, Social Security numbers, account numbers, PINs or verification codes into this practice game. Use invented placeholder details for examples. If you already shared a real password elsewhere, change it through the official account and review its security.',choices:['How can I use a placeholder?','What is safe to share?']};
+    if(/\b(?:verification|security|one[- ]time|login)\s+code\b/.test(q)&&/\b(?:send|share|give|texted|someone|asked|should i)\b/.test(q))
+      return{say:'Do not send a one-time verification code to someone who contacts you unexpectedly. Codes can allow account access. Use the official app or website you open yourself to verify any claim, not a link or phone number in the message.',choices:['How do I verify a message?','What if I already shared it?']};
+    if(/\b(?:bank account|account)\b.{0,70}\b(?:frozen|locked|suspended)\b/.test(q)&&/\b(?:email|message|link|click|password)\b/.test(q)||
+       /\b(?:email|message)\b.{0,90}\b(?:click a link|confirm my password|account will be frozen)\b/.test(q))
+      return{say:'Treat that as a possible phishing attempt. Do not click the message link or enter your password. Instead, open your bank app or type the known official website yourself, and contact the bank through its published contact information. This game cannot verify who sent the message.',choices:['What if I clicked?','How do I report it?']};
+    if(/\b(?:irs|tax agency|government)\b/.test(q)&&/\b(?:text|message|email|link|claiming|claims)\b/.test(q))
+      return{say:'A message claiming to be from a government agency is not proof it is genuine. Do not follow unexpected links or share personal details. Check the agency notice through an official government website or published phone number, and be wary of pressure to act immediately.',choices:['How do I check if it is real?','What if I clicked?']};
+    if(/\b(?:can you diagnose|diagnose me|tell me what disease|what condition do i have)\b/.test(q))
+      return{say:'This practice game cannot examine you, review medical history or provide a diagnosis. You can use a real clinician for assessment, and discuss symptoms and timing with them. For severe or rapidly worsening symptoms, seek urgent medical care.',choices:['How can I prepare for an appointment?']};
+    if(/\b(?:guarantee|certain|definitely)\b.{0,55}\b(?:stock|investment|share price|crypto)\b|\b(?:stock|investment)\b.{0,55}\b(?:go up tomorrow|guaranteed return)\b/.test(q))
+      return{say:'No one can guarantee which stock will rise tomorrow. This practice game has no live market data. Investment choices involve uncertainty and potential loss, so verify claims and avoid promises of guaranteed profit.',choices:['How do I compare risks?']};
+    if(/\b(?:landlord|tenant|lease)\b.{0,35}\b(?:legally|required|law|illegal|rights)\b/.test(q))
+      return{say:'That depends on your location, lease, and the specific issue. This practice game cannot verify current local laws or give a legal determination. You can describe the issue without private details and check a reliable local tenant resource or qualified professional.',choices:['What details would matter?']};
+    if(/\b(?:what time is it right now|what is the time right now|current time)\b/.test(q))
+      return{say:'This practice game does not read a live clock, so I cannot verify the current time. Your device clock is the best place to check.',choices:['Practice another question']};
+    if(/\b(?:can i|where can i|how do i)\b.{0,50}\b(?:links?|real ai|chatgpt|claude|gemini|copilot|perplexity)\b/.test(q)&&/\b(?:after|finish|end|practice|game)\b/.test(q))
+      return{say:'Yes. After completing the practice conversation, the results screen has links to real AI platforms including ChatGPT, Gemini, Claude, Copilot and Perplexity. Those are separate services; check their privacy terms before sharing personal details.',choices:['Keep practicing']};
+    if(/\b(?:government|official|agency)\b.{0,35}\b(?:letter|notice|mail)\b|\b(?:letter|notice)\b.{0,35}\b(?:government|official|agency)\b/.test(q)){
+      this.s.stage='trustNotice';
+      return{say:'A letter that claims to be from an agency is not automatically authentic. Check the sender and reference details against a contact method published independently by the agency. You can redact personal details before asking for help understanding the letter; this game cannot authenticate documents.',choices:['How do I verify it?','How do I redact it?']};
+    }
+    if(this.s.stage==='trustNotice'&&/\b(?:verify|official|real|authentic|genuine|scam)\b/.test(q))
+      return{say:'I cannot confirm authenticity from the claim alone. Look up the agency website or published phone number independently and verify the notice directly, without using suspicious links or phone numbers in the letter.',choices:['How do I redact it?']};
     return null;
   }
 
