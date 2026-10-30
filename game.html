@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: corrections-v18</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: followup-reasoning-v19</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -3766,6 +3766,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       if(noEgg)return{say:'You said eggs are off-limits, so I cannot give an egg-based scrambled-egg recipe. A tofu scramble is a possible alternative if tofu is suitable for you. Check ingredients and allergy precautions before using substitutes.',choices:['Explore an egg-free alternative','Change the dish']};
       return{say:'For two servings, beat 4 eggs. Heat a little oil'+(dairyFree?'':' or butter')+' in a nonstick pan over medium-low heat. '+(spinach?'Wilt a handful of spinach first. ':'')+'Pour in the eggs, stir gently until set, then season to taste.'+(noMushrooms?' I will not include mushrooms.':''),choices:['Add spinach','Make it quicker','Give me exact amounts']};
     }
+    const whyFollow=this.contextWhyWhatIf(x);if(whyFollow)return whyFollow;
     if(this.s.stage==='everydayCase'){const r=this.everydayCaseContinue(x);if(r)return r;}
     if(this.s.stage==='weekPlan'){const w=this.weekAppointmentFollowup(x);if(w)return w;}
     const everyday=this.everydayCaseStart(x);if(everyday)return everyday;
@@ -4849,6 +4850,42 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/\b(?:what appointments?|which appointments?|what do i have (?:on )?(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)|when is my appointment)\b/.test(low)){
       const a=this.s.weekAppointment;
       return a?{say:'From this practice conversation: your '+a.kind+' is on '+formatDay(a.day)+'. You haven’t given a time, so I won’t invent one.',choices:['Plan around it','Add the time']}:{say:'You haven’t given me any appointment details in this practice conversation yet.',choices:['Add an appointment','Keep planning']};
+    }
+    return null;
+  }
+
+
+  contextWhyWhatIf(input){
+    const q=this.normalize(input);
+    const why=/^(?:why(?:\??|\s+(?:that|this|those meals|is that important|after work)\??)|(?:can|could) you explain (?:that|this|it)\??|what do you mean(?: by that)?\??)$/.test(q);
+    const hypothetical=/^what if\b/.test(q);
+    if(!why&&!hypothetical)return null;
+    const c=this.s.everydayCase;
+    if(this.s.stage==='everydayCase'&&c){
+      if(c.kind==='chores'){
+        if(hypothetical&&/washer|laundry/.test(q))return{say:'If the washer is unavailable, do the essential kitchen tasks first and leave laundry for another time. That is an alternative plan, not a claim the washer is broken.',choices:['What can wait?','Make it simpler']};
+        if(why)return{say:'Laundry can run while you clean, saving time. With '+(c.minutes||60)+' minutes, focus on dishes and clear counters if that is more realistic; laundry can wait if a wash cycle will not fit.',choices:['What can wait?','Make it simpler']};
+      }
+      if(c.kind==='meals'&&why)return{say:'I chose meals with overlapping ingredients, so you can buy fewer different items and reuse what you have. They also respect the stated exclusions.'+(c.budget?' Your budget target is $'+c.budget+', but prices still need checking.':''),choices:['Make a shopping list','Make meals quicker']};
+      if(c.kind==='desk'&&why)return{say:'Measure first so the desk will fit without crowding your chair, doorway, or walking space. Also check stability and the total cost'+(c.budget?' against your $'+c.budget+' budget':'')+'.',choices:['My space is small','Make it simpler']};
+      if(c.kind==='packing'){
+        if(hypothetical&&/rain|wet/.test(q))return{say:'If rain is possible, add a rain jacket or umbrella and suitable shoes. Check the forecast before leaving. This does not change the weather you previously described.',choices:['Make it shorter']};
+        if(why)return{say:'The list covers clothing, toiletries, medications, charging, ID, and bookings. The clothing changes with the forecast, so you can pack lightly without missing essentials.',choices:['Make it shorter']};
+      }
+      if(c.kind==='plants'&&why)return{say:'Plants use light to make food. Soil moisture matters because too much water can leave roots without enough air. Different species need different care, so check the soil and plant type.',choices:['Give me an example','Make it simpler']};
+      if(c.kind==='work'&&why)return{say:'After work is only one option around your 8-to-5 schedule. Before work or a suitable break may work just as well; choose a time that is practical for you.',choices:['Make it simpler','Only 15 minutes']};
+    }
+    if(this.s.stage==='doghouseBuild'&&why)return{say:'The doghouse dimensions depend on your dog. Measuring standing height and body length first helps provide enough room to stand, turn, and rest. Then you can choose the floor and doorway sizes.',choices:['Give me the first step','Show materials']};
+    if(this.s.stage==='practicalProject'&&this.s.practicalKind==='birdhouse'){
+      if(hypothetical&&/don't know|do not know|not sure/.test(q)&&/bird|species/.test(q)){
+        this.s.birdSpecies=this.s.birdSpecies||'house wren';this.s.projectStep=Math.max(2,this.s.projectStep||0);
+        return{say:'If you are unsure which bird to choose, use a house wren as an example. Find a nesting-box plan for that species before cutting wood; you can change the bird later.',choices:['What next?','Choose a different bird']};
+      }
+      if(why)return{say:'Different birds need different entrance holes and interior sizes. Choosing a species helps you find a tested nesting-box plan rather than guessing dimensions.',choices:['Choose for me','What next?']};
+    }
+    if(this.s.stage==='weekPlan'&&hypothetical&&this.s.weekAppointment&&/move|moves|change|changes/.test(q)){
+      const d=q.match(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/);
+      if(d)return{say:'If it moves to '+d[1]+', you would rearrange that day around it. For now I am keeping the appointment on '+this.s.weekAppointment.day+' because you asked what if, not to change it.',choices:['What appointments do I have?','Keep planning']};
     }
     return null;
   }
