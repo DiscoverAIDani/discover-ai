@@ -132,6 +132,19 @@ for(const [name,steps,must,not] of [["peanut allergy remembered",["I have a pean
 
 // Explicit simulation-limitation checks for workshop visitors.
 for(const [name,steps,must,not] of [["simulation is not ChatGPT",["Are you connected to ChatGPT?"],["not a live chatgpt","rule-based"],["i can work"]],["simulation not Claude",["Are you linked to Claude?"],["not a live chatgpt"],["i can work"]],["open live website unsupported",["Can you open a live website?"],["cannot open a url"],["i can work"]],["click website unsupported",["Can you follow a link?"],["cannot open a url"],["i can work"]],["paste URL unsupported",["What if I give you a URL?"],["cannot open a url"],["i can work"]],["live location cannot be read",["Can you see my location?"],["cannot see your current location"],["i can work"]],["exact address inaccessible",["Do you know my exact address?"],["cannot see your current location"],["i can work"]],["current time in a city",["What time is it in New York?"],["does not have a live clock"],["i can work"]],["current time without city",["What's the time right now?"],["does not have a live clock"],["i can work"]],["live browsing existing",["Can you browse the internet right now?"],["does not browse the internet"],[]],["still respects calendar privacy",["Can you see my appointments?"],["no access to your personal calendar"],[]],["live limitation does not hijack birthday time",["Help me plan a birthday dinner for six people at a restaurant.","Saturday at 6pm.","Review the plan"],["day: saturday","time: 6pm"],[]]])check(name,steps,must,not);
+// Static interface checks protect the beginner-facing layout and controls.
+const allElementIds=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
+const knownIds=new Set(allElementIds);
+staticCheck('element IDs are unique',knownIds.size===allElementIds.length);
+const jsElementIds=[...html.matchAll(/document\.getElementById\(\s*["']([^"']+)["']\s*\)/g)].map(m=>m[1]);
+staticCheck('JavaScript element references exist',jsElementIds.every(id=>knownIds.has(id)));
+const links=[...html.matchAll(/\bhref=["']([^"']*)["']/g)].map(m=>m[1]);
+staticCheck('no placeholder or script links',links.every(url=>url&&url!=='#'&&!/^javascript:/i.test(url)));
+staticCheck('internal fragment links resolve',links.filter(x=>x.startsWith('#')).every(x=>knownIds.has(x.slice(1))));
+staticCheck('responsive viewport declared',/<meta\s+name=["']viewport["'][^>]*width=device-width/i.test(html));
+const buttonMarkup=[...html.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/gi)].map(m=>m[0]);
+staticCheck('buttons have visible or accessible names',buttonMarkup.every(tag=>/\baria-label=["'][^"']+["']/.test(tag)||/<button\b[^>]*>(?:\s*<[^>]+>)*\s*[^<\s][^<]*/i.test(tag)));
+
 staticCheck('real AI platform links',['https://chatgpt.com','https://claude.ai/','https://gemini.google.com/','https://copilot.microsoft.com/','https://www.perplexity.ai/'].every(x=>html.includes(x)));
 staticCheck('microphone and restart',['id="voice"','id="startNew"','setupVoice()'].every(x=>html.includes(x)));
 staticCheck('scoring accessibility',['id="challengeScore"','aria-live'].every(x=>html.includes(x)));
