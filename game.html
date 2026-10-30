@@ -250,6 +250,59 @@ main{padding:12px 0 28px}
   #game .controls .choice.results-cta:hover{transform:none}
 }
 
+
+/* Test 61: compact results screen without losing scores, explanations, or tool links. */
+#results{padding:20px 22px 18px;line-height:1.4}
+#results h2{font-size:29px;line-height:1.1;margin:0 0 6px}
+#results .final-score{display:inline-block;vertical-align:middle;font-size:48px;line-height:1.05;margin:0 8px 0 0}
+#results .rank{vertical-align:middle;padding:5px 12px;font-size:13px;line-height:1.2}
+#results .result-tip{font-size:13px;line-height:1.35;margin:6px auto 0;max-width:650px}
+#results .summary{max-width:720px;margin:12px auto 13px}
+#results .summary div{padding:5px 8px;font-size:13px;line-height:1.35}
+#results .realWorld{margin:12px auto 0;max-width:800px;padding:12px 14px 10px;border-radius:15px}
+#results .realWorld h3{font-size:18px;line-height:1.2;margin:0 0 4px}
+#results .realWorld p{font-size:13px;line-height:1.35;margin:0 0 8px}
+#results .platformGrid{gap:7px;margin-top:8px}
+#results .platformCard{min-width:0;gap:4px;padding:9px 11px;border-radius:12px}
+#results .platformCard strong{font-size:14px;line-height:1.25}
+#results .platformCard span{font-size:12px;line-height:1.3}
+#results .platformBtn{min-height:36px;padding:7px 9px;border-radius:9px;font-size:12px;line-height:1.2}
+#results .platformNote{margin-top:8px;font-size:11px;line-height:1.3}
+#results .end-note{margin-top:10px;padding:8px 12px;font-size:12px;line-height:1.3}
+#results .start-new{margin-top:8px;min-height:40px;padding:8px 16px;font-size:13px;line-height:1.2}
+@media(min-width:651px){
+  /* Use the empty half-row: place Perplexity across the grid at lower height. */
+  #results .platformCard:last-child{
+    grid-column:1/-1;display:grid;
+    grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;
+    column-gap:12px;row-gap:2px;align-items:center
+  }
+  #results .platformCard:last-child strong{grid-column:1;grid-row:1}
+  #results .platformCard:last-child span{grid-column:1;grid-row:2}
+  #results .platformCard:last-child .platformBtn{grid-column:2;grid-row:1/span 2;min-width:148px}
+}
+@media(max-width:650px){
+  #results{padding:16px 12px 18px}
+  #results h2{font-size:25px}
+  #results .final-score{font-size:42px}
+  #results .rank{font-size:13px}
+  #results .summary{margin:10px auto 12px}
+  #results .summary div{padding:7px 5px;font-size:13px}
+  #results .realWorld{padding:12px 10px}
+  #results .realWorld h3{font-size:18px}
+  #results .platformGrid{grid-template-columns:1fr;gap:7px}
+  #results .platformCard{padding:10px}
+  #results .platformCard strong{font-size:15px}
+  #results .platformCard span{font-size:13px}
+  #results .platformBtn{min-height:44px;font-size:13px}
+  #results .start-new{min-height:48px;width:100%;font-size:14px}
+}
+@media(max-width:380px){
+  #results{padding:14px 10px 16px}
+  #results .final-score{font-size:38px}
+  #results .rank{padding:5px 9px}
+}
+
 </style>
 </head>
 <body>
@@ -259,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: learning-demo-v8</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: compact-results-v9</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
