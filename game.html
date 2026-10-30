@@ -207,7 +207,7 @@ main{padding:12px 0 28px}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
   <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: input-reliability-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: contextual-needs-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1334,6 +1334,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
         if(moving)return{say:`You do not need to plan the whole move at once. ${deadline?`With ${deadline} to work with, `:''}use three phases: start with logistics and one small nonessential area, use the middle stretch for most packing and address/utility changes, then keep the final days for essentials, cleaning, keys, and last checks. For today, confirm the move date and transportation, then pack or sort just one low-use area for 20–30 minutes.`,choices:['Make it week by week','Give me today’s checklist','I only have weekends']};
         return{say:`Let’s shrink ${this.s.topic==='this plan'?'this goal':this.s.topic} instead of trying to solve it all at once. ${deadline?`With ${deadline} to work with, `:''}use three layers: one small action today, the bulk of the work in the middle, and a short final-check phase before the deadline. Start today by naming the one result that absolutely must be finished and doing one 20–30 minute task that moves it forward.`,choices:['Make it week by week','Give me today’s first step','I have another constraint']};
       }
+      if(/\bweekend\b/.test(this.normalize(this.s.topic||''))&&/\b(?:relax|relaxing|rest|restful|unwind|easygoing|low[- ]key)\b/.test(this.normalize(this.s.topic||'')))return{say:'Let’s make it a low-pressure weekend. One starting idea: keep Saturday morning unhurried, choose just one enjoyable activity for the afternoon, and leave Sunday flexible for rest or something spontaneous. I can tailor it without making you start over.',choices:['Stay home','Include an outing','What do you need from me?']};
       return{say:`Absolutely. I can help plan ${this.s.topic}. I’ll keep the details you give me as ongoing constraints instead of asking you to repeat them${known?`. So far I have ${known}`:''}.`,choices:['Build a simple plan','Add a constraint','What do you need from me?']};
     }
     return{say:`Absolutely. I can help with ${this.s.topic}. I’ll keep track of what you tell me and build on it instead of restarting the conversation.`,choices:['Give me the first step','Add a detail','Show me an example']};
@@ -1611,6 +1612,54 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
   handleGeneralTask(text){
     const raw=String(text||'').trim(),low=this.normalize(raw),type=this.s.taskType||this.inferTaskType(raw,this.s.intent);const known=this.memorySummary();
+    // Answer the question about missing details directly, rather than treating it as a new constraint.
+    const needsQuestion=/^(?:(?:okay|ok|so|then|please)[, ]+)*(?:what (?:else )?(?:do|would|will|should|could) you (?:need|want)(?:\b|\s)|what (?:info(?:rmation)?|details?) (?:do|would|should) you (?:need|want)(?:\b|\s)|which (?:info(?:rmation)?|details?) (?:do|would|should) you need(?:\b|\s)|what (?:should|can|could) i (?:tell|give|share|provide) you(?:\b|\s)|tell me what you need from me(?:\b|\s))/.test(low);
+    if(needsQuestion){
+      const prior=this.normalize((this.s.userTurns||[]).slice(0,-1).join(' '));
+      const topic=this.normalize(this.s.topic||'');
+      const hasBudget=/\$\s*\d|\b(?:budget|free|no cost|no spending|inexpensive|cheap|low[- ]cost|under \d+|spend \d+)\b/.test(prior);
+      const parts=[];
+      const reply=(choices)=>({say:parts.length
+        ?'You already told me the goal is '+this.topicLabel()+'. To tailor it, the useful missing details are: '+parts.map((v,i)=>(i+1)+') '+v).join('; ')+'. You can give me just one detail, or say "choose for me" and I’ll make a reasonable starter plan without inventing personal facts.'
+        :'You have already given me the key details for '+this.topicLabel()+'. I don’t need you to repeat anything. I can build a first version now, and you can adjust it afterward.',
+        choices});
+      if(type==='plan' && /\b(?:weekend|saturday|sunday)\b/.test(topic) && !/\b(?:mov(?:e|ing)|relocat(?:e|ing))\b/.test(topic)){
+        if(!/\b(?:stay(?:ing)? (?:at )?home|at home|indoors?|inside|go(?:ing)? out|outdoors?|outing|day trip|mix of both|some of both)\b/.test(prior))parts.push('whether you prefer staying home, going out, or a mix');
+        if(!hasBudget)parts.push('your spending limit, including if you want it free');
+        if(!/\b(?:books?|reading|movie|movies|music|craft|walk|hike|park|food|cook|spa|friends?|family|quiet|crowds?|avoid|prefer|would enjoy|want to include|want to do)\b/.test(prior))parts.push('one thing you would enjoy or want to avoid');
+        return reply(['Stay home','Go out','Keep it free','Choose for me']);
+      }
+      if(type==='plan' && /\b(?:mov(?:e|ing)|relocat(?:e|ing))\b/.test(topic)){
+        if(!/\b(?:today|tomorrow|saturday|sunday|this weekend|next weekend|by \w+|\d+ (?:days?|weeks?)|deadline|date)\b/.test(prior))parts.push('the move date or time remaining');
+        if(!/\b(?:truck|van|transport|drive|driver|helpers?|help moving)\b/.test(prior))parts.push('whether transportation and help are arranged');
+        if(!/\b(?:packed|packing|boxes|keys|utilities|cleaning|lease|access|must|need to)\b/.test(prior))parts.push('what is already done and any must-do tasks');
+        return reply(['Add my move date','Add what is done','Build a starter plan','Choose for me']);
+      }
+      if(type==='plan'){
+        if(!/\b(?:finish|complete|accomplish|goal|must do|need to|want to)\b/.test(prior))parts.push('the main result you want');
+        if(!/\b(?:today|tomorrow|weekend|by \w+|\d+ (?:days?|weeks?|months?)|deadline|date|time limit)\b/.test(prior))parts.push('any deadline or available time');
+        if(!/\b(?:avoid|prefer|only|cannot|can't|must|important|budget|free|need to)\b/.test(prior))parts.push('any limits or preferences');
+        return reply(['Add my deadline','Add a preference','Build the plan','Choose for me']);
+      }
+      if(type==='compare'){
+        if(!/\b(?:versus|vs| or |option a|option b|two options|two laptops|two phones)\b/.test(prior))parts.push('the options you are comparing');
+        if(!hasBudget && !/\b(?:cost|price|quote|estimate)\b/.test(prior))parts.push('their prices, if you know them');
+        if(!/\b(?:important|priority|prefer|reliable|reliability|performance|battery|quality|fast|cheap|budget)\b/.test(prior))parts.push('what matters most to you');
+        return reply(['Add prices','Add priorities','Show the comparison','Choose criteria for me']);
+      }
+      if(type==='organize'){
+        if(!/\b(?:minutes?|hours?|today|tomorrow|time)\b/.test(prior))parts.push('how much time you want to spend');
+        if(!/\b(?:keep|donate|throw|discard|delete|avoid|do not|don't|priority|first|urgent)\b/.test(prior))parts.push('anything to keep, avoid, or prioritize');
+        return reply(['I have 20 minutes','Keep everything','Make a checklist','Choose for me']);
+      }
+      if(type==='brainstorm'||type==='create'){
+        parts.push('the style or kind of result you prefer, if you have one in mind');
+        if(!hasBudget)parts.push('a budget or effort limit, if relevant');
+        return reply(['Give me ideas','Keep it simple','Choose for me']);
+      }
+      parts.push('the outcome you want and any important limits');
+      return reply(['Tell you my goal','Give an example','Choose for me']);
+    }
     if(type==='transform'){
       if(/^(?:change the format|different format)$/i.test(low))return{say:'Sure. Pick the format you want and I’ll keep the same information.',choices:['Make it a checklist','Use bullets','Use a numbered list']};
       if(/\b(?:checklist|to-?do list)\b/.test(low)){this.s.transformFormat='checklist';return{say:this.renderTransform('checklist',this.s.transformItems,this.s.transformSource),choices:['Prioritize it','Use bullets','Add another item']};}
