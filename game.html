@@ -5141,7 +5141,14 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       new RegExp('\\b'+num+'\\s+(?:people|persons?|guests?|attendees?|diners?|of us)\\b')
     ];
     let value=null;
-    for(const pattern of patterns){const m=q.match(pattern);if(m){value=m[1];break}}
+    for(const pattern of patterns){
+      const m=q.match(pattern);
+      if(!m)continue;
+      const following=q.slice(m.index+m[0].length);
+      // Numbers describing duration, prices, dates or clock times are not guest counts.
+      if(/^\s*(?:hours?|hrs?|minutes?|mins?|days?|weeks?|months?|years?|dollars?|bucks?|am|pm|percent)\b|^\s*[%:]|^\s*\.\d/.test(following))continue;
+      value=m[1];break;
+    }
     if(!value)return null;
     const v=words[value]||Number(value);
     return v>=1&&v<=30?v:null;
@@ -5202,18 +5209,54 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       choices:['4 people','6 people','8 people']
     };
   }
+
+  birthdayDinnerCaptureDetails(text,ctx){
+    const q=this.normalize(text);
+    const pref=this.birthdayDinnerPreferences(text),timing=this.birthdayDinnerTiming(text);
+    const parts=[];
+    // Gather all stated details before responding, so a natural correction
+    // does not discard a city, cuisine, dining choice or time.
+    const cuisinePattern='italian|mexican|thai|chinese|japanese|indian|mediterranean|korean|vietnamese|american|seafood|steakhouse|sushi|pizza|french|greek';
+    const exclusion=new RegExp('\\b(?:no|not|without|avoid|don\\x27t want|do not want|exclude)\\s+(?:any\\s+)?('+cuisinePattern+')\\b').exec(q);
+    const avoided=[];
+    if(exclusion){
+      avoided.push(exclusion[1]);
+      let remaining=q.slice(exclusion.index+exclusion[0].length),next;
+      const additional=new RegExp('^\\s+(?:or|and)\\s+('+cuisinePattern+')\\b');
+      while((next=additional.exec(remaining))){avoided.push(next[1]);remaining=remaining.slice(next[0].length);}
+    }
+    if(!ctx.avoidCuisines)ctx.avoidCuisines=[];
+    for(const c of avoided){if(!ctx.avoidCuisines.includes(c))ctx.avoidCuisines.push(c);if(ctx.cuisine===c)ctx.cuisine=null;}
+    if(pref.cuisine&&!ctx.avoidCuisines.includes(pref.cuisine)&&!avoided.includes(pref.cuisine)){ctx.cuisine=pref.cuisine;parts.push('Cuisine: '+ctx.cuisine+'.');}
+    if(pref.ambience){ctx.ambience=pref.ambience;parts.push('Atmosphere: '+ctx.ambience+'.');}
+    if(pref.budget){ctx.budget=pref.budget;parts.push('Budget: '+ctx.budget+'.');}
+    if(pref.area){ctx.area=pref.area;parts.push('Area: '+ctx.area+'.');}
+    if(timing.day){ctx.day=timing.day;parts.push('Day: '+ctx.day+'.');}
+    if(timing.time){ctx.time=timing.time;parts.push('Time: '+ctx.time+'.');}
+    if(avoided.length)parts.push('Avoid cuisines: '+ctx.avoidCuisines.join(', ')+'.');
+    const rejectRestaurant=/\b(?:not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:at\s+)?(?:a\s+|the\s+)?restaurants?\b/.test(q);
+    const rejectHome=/\b(?:not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:cooking\s+at\s+home|cook\s+at\s+home|home-cooked|at\s+home)\b/.test(q);
+    const rejectOrder=/\b(?:no|not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:takeout|take-out|delivery|ordered food)\b/.test(q);
+    if(/\b(?:at (?:a |the )?restaurant|to (?:a |the )?restaurant|dine out|dining out|eat out)\b/.test(q)&&!rejectRestaurant){ctx.place='restaurant';parts.push('Dining: restaurant.');}
+    else if(/\b(?:cook|cooking|cooked|homemade|at home)\b/.test(q)&&!rejectHome){ctx.place='home-cooked';parts.push('Dining: home-cooked.');}
+    else if(/\b(?:takeout|take-out|order food|ordered food|delivery|catering)\b/.test(q)&&!rejectOrder){ctx.place='ordered food';parts.push('Dining: ordered food.');}
+    return parts;
+  }
   birthdayDinnerFollowup(text){
     const ctx=this.s.birthdayDinnerContext;
     if(!ctx||this.s.stage!=='birthdayDinner')return null;
     const q=this.normalize(text);
+    const captured=this.birthdayDinnerCaptureDetails(text,ctx);
     const candidate=this.birthdayDinnerCount(text);
     const correction=/\b(?:actually|instead|sorry|oops|wait|i meant|make it|change|now|only)\b/.test(q)||this.correction(text);
     const guestLabel=/\b(?:people|persons?|guests?|attendees?|diners?|of us)\b/.test(q);
+    if(ctx.budget&&/^(?:per person|per guest)[.!]*$/.test(q)){ctx.budgetScope='per person';return{say:'I will treat the stated budget of '+ctx.budget+' as per person, not for the whole group.',choices:['Review the plan','Change budget']};}
+    if(ctx.budget&&/^(?:total|for everyone|total for everyone|for the whole group)[.!]*$/.test(q)){ctx.budgetScope='total';return{say:'I will treat the stated budget of '+ctx.budget+' as a group total, not per person.',choices:['Review the plan','Change budget']};}
     if(candidate&&(correction||guestLabel||ctx.count===null)){
       const old=ctx.count;ctx.count=candidate;this.s.servings=candidate;
       const revised=candidate+' '+(candidate===1?'person':'people');
-      if(old===candidate)return{say:'Yes, the birthday dinner is still for '+revised+'. '+(ctx.place?'We are also keeping the '+ctx.place+' plan.':'We have not chosen where to eat yet.'),choices:['Review the plan','Change dining option']};
-      return{say:(old?'Got it — I’ve updated the birthday dinner from '+old+' people to '+revised+'. ':'Got it — the birthday dinner is for '+revised+'. ')+(ctx.place?'I’m keeping the '+ctx.place+' plan; the previous guest count is replaced.':'I’ll use the updated count from now on. Are you eating at a restaurant, cooking at home, or ordering food?'),choices:ctx.place?['Review the plan','Change dining option']:['At a restaurant','Cook at home','Order food']};
+      if(old===candidate)return{say:'Yes, the birthday dinner is still for '+revised+'. '+(ctx.place?'We are also keeping the '+ctx.place+' plan.':'We have not chosen where to eat yet.')+(captured.length?' '+captured.join(' '):''),choices:['Review the plan','Change dining option']};
+      return{say:(old?'Got it — I’ve updated the birthday dinner from '+old+' people to '+revised+'. ':'Got it — the birthday dinner is for '+revised+'. ')+(ctx.place?'I’m keeping the '+ctx.place+' plan; the previous guest count is replaced.':'I’ll use the updated count from now on. Are you eating at a restaurant, cooking at home, or ordering food?')+(captured.length?' '+captured.join(' '):''),choices:ctx.place?['Review the plan','Change dining option']:['At a restaurant','Cook at home','Order food']};
     }
     const excluded=(q.match(/\b(?:no|not|without|avoid|don't want|do not want|exclude)\s+(?:any\s+)?(italian|mexican|thai|chinese|japanese|indian|mediterranean|korean|vietnamese|american|seafood|steakhouse|sushi|pizza|french|greek)\b/)||[])[1];
     if(excluded){
@@ -5260,7 +5303,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/\b(?:order|takeout|take-out|delivery|cater|catering)\b/.test(q)){
       ctx.place='ordered food';return{say:'Great — we’re planning to order food for the birthday dinner'+(ctx.count?' for '+ctx.count+' people':'')+'. What kind of food and budget would you prefer?',choices:['Pizza','A mixed menu','Set a budget']};
     }
-    if(/\b(?:how many|number of|guest count|recap|summari[sz]e|review the plan|what (?:did|do) (?:i|you|we) say)\b/.test(q)){
+    if(/\b(?:how many|number of|guest count|recap|summari[sz]e|review the plan|what (?:did|do) (?:i|you|we) say|what (?:day|time|date)|when (?:is|are))\b/.test(q)){
       return{say:'The current birthday dinner plan is for '+(ctx.count?ctx.count+' people':'an unspecified number of guests')+'. Dining option: '+(ctx.place||'not chosen yet')+'. '+(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'')+(ctx.budgetScope?' Scope: '+ctx.budgetScope+'.':'')+(ctx.day?' Day: '+ctx.day+'.':'')+(ctx.time?' Time: '+ctx.time+'.':'')+(ctx.avoidCuisines?.length?' Avoid cuisines: '+ctx.avoidCuisines.join(', ')+'.':'')+' I’m using the latest guest count, not the earlier one.',choices:ctx.place?['What should we decide next?','Change dining option']:['At a restaurant','Cook at home','Order food']};
     }
     const {cuisine,ambience,budget,area}=this.birthdayDinnerPreferences(text);
