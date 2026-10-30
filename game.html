@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: no-assumed-time-v20</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: missing-info-v21</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -3766,6 +3766,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       if(noEgg)return{say:'You said eggs are off-limits, so I cannot give an egg-based scrambled-egg recipe. A tofu scramble is a possible alternative if tofu is suitable for you. Check ingredients and allergy precautions before using substitutes.',choices:['Explore an egg-free alternative','Change the dish']};
       return{say:'For two servings, beat 4 eggs. Heat a little oil'+(dairyFree?'':' or butter')+' in a nonstick pan over medium-low heat. '+(spinach?'Wilt a handful of spinach first. ':'')+'Pour in the eggs, stir gently until set, then season to taste.'+(noMushrooms?' I will not include mushrooms.':''),choices:['Add spinach','Make it quicker','Give me exact amounts']};
     }
+    const missing=this.answerMissingFacts(x);if(missing)return missing;
     const whyFollow=this.contextWhyWhatIf(x);if(whyFollow)return whyFollow;
     if(this.s.stage==='everydayCase'){const r=this.everydayCaseContinue(x);if(r)return r;}
     if(this.s.stage==='weekPlan'){const w=this.weekAppointmentFollowup(x);if(w)return w;}
@@ -4887,6 +4888,38 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       const d=q.match(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/);
       if(d)return{say:'If it moves to '+d[1]+', you would rearrange that day around it. For now I am keeping the appointment on '+this.s.weekAppointment.day+' because you asked what if, not to change it.',choices:['What appointments do I have?','Keep planning']};
     }
+    return null;
+  }
+
+
+  answerMissingFacts(input){
+    const q=this.normalize(input),c=this.s.everydayCase;
+    if(/(?:what(?:'s| is) on my calendar|show my calendar|check my calendar|my calendar tomorrow)/.test(q))
+      return{say:'This practice game cannot access your real calendar. I do not know what is scheduled unless you tell me about it.',choices:['Help me organize my week']};
+    if(this.s.stage==='weekPlan'&&this.s.weekAppointment&&/^(?:what time is it|when is it|what time is my appointment)\??$/.test(q))
+      return{say:'You told me the appointment day, but not the time. I cannot check your calendar or guess the hour.',choices:['What appointments do I have?']};
+    if(this.s.stage==='sourceInterpret'&&!this.s.sourceText){
+      if(/(?:don't want|do not want|rather not).{0,30}(?:share|private|personal)/.test(q))
+        return{say:'You do not need to share personal information. Remove identifying details, or describe just the question. I cannot see the letter unless you provide text.',choices:['How do I redact it?']};
+      if(/(?:what|when|which).{0,30}(?:date|appointment|deadline)/.test(q))
+        return{say:'You have not provided the date or the relevant letter excerpt. I cannot know or guess the appointment date.',choices:['Explain what to look for']};
+    }
+    if(this.s.stage==='everydayCase'&&c){
+      if(c.kind==='desk'&&/(?:how much|cost|price)/.test(q))
+        return{say:'Your budget is not a quoted desk price. This practice game cannot check current store prices or shipping.',choices:['Which factors matter most?']};
+      if(c.kind==='meals'&&/(?:how much|cost|price)/.test(q))
+        return{say:'I cannot verify the exact grocery cost without current local prices.'+(c.budget?' The $'+c.budget+' is your budget, not a price quote.':''),choices:['Make a shopping list']};
+      if(c.kind==='meals'&&/(?:how many people|how many servings|is that for two)/.test(q))
+        return{say:'The sample grocery list assumes about two servings per dinner. That is a planning assumption, not a fact you supplied.',choices:['Make a shopping list']};
+      if(c.kind==='packing'&&/(?:will it rain|going to rain|weather forecast)/.test(q))
+        return{say:'This practice game cannot access live weather. Forecasts require a destination and travel dates; a rain layer is only a backup.',choices:['What if it rains?']};
+    }
+    if(this.s.stage==='tripPlan'&&/(?:how long|driving time|travel time)/.test(q))
+      return{say:'I need your starting point and destination to estimate a drive. I cannot check live traffic, so I will not invent a travel time.',choices:['Help me choose a destination']};
+    if(this.s.stage==='practicalProject'&&this.s.practicalKind==='birdhouse'&&/(?:diameter|entrance (?:hole|size)|exact (?:entrance )?(?:hole )?size|exact dimensions)/.test(q))
+      return{say:'The correct opening size depends on the bird species.'+(this.s.birdSpecies?' Check a trusted nesting-box plan for '+this.s.birdSpecies+'.':' You have not chosen a species yet.')+' I will not guess the measurement.',choices:['Choose a bird']};
+    if(this.s.stage==='doghouseBuild'&&/(?:dimensions|cut|exact size|what size)/.test(q)&&/(?:exact|measure|dimensions|size)/.test(q))
+      return{say:'Exact cut dimensions depend on your dog measurements and the selected design. I need the standing height and body length, so I will not guess.',choices:['Give me the first step']};
     return null;
   }
 
