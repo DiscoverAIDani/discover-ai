@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: dining-context-stress-v31</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: safety-stress-v32</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -3615,14 +3615,13 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     return password&&reuse&&other&&asks;
   }
   credentialReuseAdvice(text){
-    const low=this.normalize(text);
-    const ctx=this.s.securityContext||{};
-    const exposed=ctx.credentialsShared===true;
+    const low=this.normalize(text),ctx=this.s.trustContext||{},bank=(this.s.securityContext&&this.s.securityContext.kind==='bank-phishing')||ctx.kind==='bank-phishing';
+    const exposed=ctx.kind==='suspicious-link'&&ctx.credentialsShared===true||bank&&this.s.securityContext&&this.s.securityContext.credentialsShared===true;
     const email=/\b(?:email|mailbox|gmail|outlook|yahoo)\b/.test(low);
-    const extra=email?'email account':'other accounts using that password';
-    const first=exposed?'Because you entered the bank password into the suspicious link,':'If the same password was entered on a suspicious banking link,';
-    return{say:first+' changing only your banking password is not enough when you reused it. Change your '+(email?'email password':'password on each other affected account')+' too, using the provider’s official app or website—not a link in the suspicious message. Choose a new, unique password for every account; never reuse the old one. Turn on multifactor authentication for your email and bank accounts, preferably a passkey or authenticator app where supported. Review recent sign-ins, account-recovery information, and email forwarding rules, and sign out any unfamiliar sessions if possible. Continue following your bank’s fraud team instructions and monitor account activity. Your email is especially important because it may be used to reset other passwords. Do not share any actual passwords or verification codes with this game.',choices:['How do I secure my email?','What should I check in email settings?','What about other accounts?']};
+    const first=exposed?(bank?'Because you said you entered a banking password on a suspicious page,':'Because you said you entered a password on a suspicious page,'):'If a password was entered on a suspicious site,';
+    return{say:first+' changing it on only one account is not enough if that same password was reused. Change the password on '+(email?'your email account':'each other affected account')+' through the provider official app or website, not the suspicious link. Choose a unique new password for each account. Review recent sign-ins and recovery settings, enable multi-factor authentication, and sign out unfamiliar sessions where supported. Email security is especially important because it may be used to reset other passwords. Do not enter passwords or codes in this game.',choices:['How do I secure my email?','How do I report the message?']};
   }
+
   looksLikeBankPhishing(text){
     const x=this.normalize(text);
     const financial=/\b(?:bank|credit union|credit card|debit card|financial account|banking|payment account)\b/.test(x);
@@ -3703,6 +3702,12 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     // Birthday dinner is an occasion/guest planning task, not an automatic recipe request.
     const birthdayFollowup=this.birthdayDinnerFollowup(text);if(birthdayFollowup)return birthdayFollowup;
     const birthdayStart=this.birthdayDinnerStart(text);if(birthdayStart)return birthdayStart;
+    if(/\b(?:i|we)\s+(?:(?:already|just|accidentally|mistakenly)\s+)?(?:took|taken|swallowed)\s+(?:two|2|double|an extra)\s+(?:doses?|pills?|tablets?)\b/.test(low)&&/\b(?:medicine|medication|prescription|doses?|pills?|tablets?)\b/.test(low)){
+      this.clearContext();this.s.stage='accidentalDoseAdvice';this.s.intent='safety';this.s.topic='possible extra medication dose';
+      return{say:'Because you said you took an extra medication dose, get prompt individualized advice from a pharmacist or Poison Control (U.S.: 1-800-222-1222). The risk depends on the medicine, strength, amount and timing. Do not take an additional dose until a qualified professional advises you. For severe symptoms, call emergency services. This practice game cannot assess overdose risk.',choices:['What details should I have ready?']};
+    }
+    if(this.s.stage==='accidentalDoseAdvice'&&/\b(?:what|should|can|take|dose|details|next|more|another|help|when)\b/.test(low))
+      return{say:'Contact Poison Control (U.S.: 1-800-222-1222), a pharmacist, or your treating clinician promptly with the medication name, strength, doses and times taken. Do not take more until you receive individualized advice. For severe symptoms, call emergency services.',choices:['What details should I have ready?']};
     if(this.s.stage==='workHoursCalculation'){const a=this.workFollowup(text);if(a)return a;}
     if(this.isWorkHoursQuestion(text))return this.workStart(text);
     if(this.s.stage==='sharedBillMath'){const a=this.sharedBillFollowup(text);if(a)return a;}
@@ -3740,6 +3745,10 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const incidentRecall=this.recallBankIncident(text);if(incidentRecall)return incidentRecall;
     // Answer password-reuse follow-ups without inventing a new phishing email.
     if(this.isCredentialReuseQuestion(text))return this.credentialReuseAdvice(text);
+    if(/\b(?:i|we)\s+(?:(?:already|just|accidentally)\s+)?(?:entered|typed|submitted|gave|shared)\s+(?:(?:my|a|the)\s+)?(?:(?:bank|banking|email)\s+)?(?:password|passcode|login|credentials?)\b/.test(low)&&/\b(?:suspicious|phishing|phish|scam|fake|untrusted)\b/.test(low)&&/\b(?:site|website|page|link|text|message)\b/.test(low)){
+      this.s.trustContext={kind:'suspicious-link',clicked:null,credentialsShared:true};this.s.stage='trustAdvice';this.s.intent='safety';this.s.topic='password exposure';
+      return{say:'Since you said you entered a password on a suspicious site, treat that password as potentially exposed. Open the affected service official app or website yourself, change that password, and change it anywhere else you reused it. Review recent sign-ins, recovery settings and multi-factor authentication. Contact official support if needed. I cannot tell whether someone accessed your account.',choices:['How do I secure the account?','How do I report the message?']};
+    }
     // Safety-critical banking impersonation outranks stale intent and generic routing.
     if(this.looksLikeBankPhishing(text))return this.bankPhishingInitial(text);
     if(this.s.stage==='securityAdvice'){const follow=this.bankPhishingFollowup(text);if(follow)return follow;}
@@ -5065,7 +5074,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const q=this.normalize(input),ctx=this.s.trustContext;
     const riskContext=ctx&&this.s.stage==='trustAdvice';
     const clicked=/\b(?:i (?:already |just )?(?:clicked|tapped|opened)(?: (?:the|that|a))? (?:link|website)|i clicked (?:it|on it)|clicked a suspicious link)\b/.test(q);
-    const typedPassword=/\b(?:i (?:already |just )?(?:entered|typed|shared|gave|submitted) (?:my |the |a )?(?:password|passcode|bank login|banking credentials)|i entered my password)\b/.test(q);
+    const typedPassword=/\b(?:i (?:already |just )?(?:entered|typed|shared|gave|submitted) (?:my |the |a )?(?:password|passcode|bank password|banking password|email password|bank login|banking credentials)|i entered my password)\b/.test(q);
     const sharedCode=/\b(?:i (?:already |just )?(?:shared|sent|gave|entered) (?:it|them|the code|a code|my code)|i gave it to them|i entered it|what if i (?:shared|gave|sent|entered) (?:it|the code)|gave it to them)\b/.test(q);
     const providedPersonal=/\b(?:i (?:already |just )?(?:shared|gave|sent|provided) (?:it|my name|my address|my details|my personal information)|i replied with my name and address)\b/.test(q);
     const directSuspiciousClick=clicked&&/\b(?:suspicious|scam|phish|unknown|untrusted)\b/.test(q);
@@ -5095,6 +5104,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:'You said you clicked a suspicious link. Close the page and avoid further interaction with it. Do not enter passwords or codes, download files, or grant permissions. Clicking alone does not prove that an account or device was compromised. Did you enter any information, download or install anything, or allow access?',choices:['I did not enter anything','I entered a password','I downloaded something']};
     }
     if(isGenericLink){
+      if(ctx.downloaded===true&&/\b(?:secure|protect|check|scan|clean)\b.{0,30}\b(?:phone|iphone|android|computer|laptop|device)\b/.test(q)){
+        return{say:'Because you said something downloaded or installed through the suspicious link, do not open it or grant more permissions. Check downloads, unfamiliar apps and permissions with the device built-in or reputable security tools. Follow device manufacturer guidance to remove unwanted apps. If you also entered a password, secure the account using its official website. Which device was involved?',choices:['It was an iPhone','It was an Android','It was a computer']};
+      }
       if(typedPassword){
         ctx.credentialsShared=true;
         return{say:'Since you said you entered a password on the suspicious page, treat that password as potentially exposed. Open the affected service through its official app or a website you navigate to yourself, change the password, check recent sign-ins, and sign out unfamiliar sessions where supported. If you reused that password on other accounts, change it there too. Review recovery options and multi-factor authentication. Do not enter the actual password in this game. I cannot tell whether someone accessed the account.',choices:['How do I secure the account?','How do I report the message?']};
