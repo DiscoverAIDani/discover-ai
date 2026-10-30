@@ -207,7 +207,7 @@ main{padding:12px 0 28px}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
   <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: contextual-weekend-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: afternoon-context-v3</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1238,6 +1238,43 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     return{say,choices:['Add travel time','Make it a simple order','What if I am running late?']};
   }
+
+  atHomeAfternoonRequest(text){
+    const low=this.normalize(text);
+    const asks=/\b(?:help me plan|can you (?:help me )?plan|could you (?:help me )?plan|would you (?:help me )?plan|plan|make (?:me )?a plan for|give me a plan for|put together a plan for|map out|what (?:can|should) i do)\b/.test(low);
+    const home=/\b(?:at home|stay(?:ing)? (?:at )?home|staying in|indoors?|at my house|in the house)\b/.test(low);
+    if(!asks||!/\bafternoon\b/.test(low)||!home)return null;
+    const free=/\b(?:free|no[- ]cost|no spending|without spending|nothing to spend|zero[- ]cost|don't (?:want to )?spend)\b/.test(low);
+    this.s.category='everyday';this.s.intent='plan';this.s.taskType='plan';this.s.stage='generalTask';
+    this.s.topic=(free?'a free ':'an ')+'afternoon at home';
+    this.s.afternoonContext={free,noScreens:false};
+    this.remember('constraints','at home');
+    if(free)this.remember('constraints','no spending');
+    const intro=free?'Here is a free, at-home afternoon plan using things you already have:':'Here is an easy afternoon plan you can enjoy at home:';
+    return{say:intro+'\n1) Ease in (20 minutes): make a drink, get comfortable, and put on music if you like.\n2) Pick one enjoyable activity (45–60 minutes): read, do a puzzle, draw or journal, or watch a favorite show.\n3) Take a break (15 minutes): stretch, have a snack you already have, or simply rest.\n4) Finish gently (30–60 minutes): enjoy a movie, hobby, or more quiet time. Leave anything extra optional.\nYou can start whenever you like; there is no fixed schedule'+(free?' and nothing here requires spending money.':'.'),choices:['Make it quieter','No screens','Make it shorter','More creative ideas']};
+  }
+  atHomeAfternoonFollowUp(text){
+    if(!this.s.afternoonContext||!/\bafternoon at home\b/.test(this.normalize(this.s.topic)))return null;
+    const low=this.normalize(text),ctx=this.s.afternoonContext;
+    if(/\b(?:no screens?|screen[- ]free|offline)\b/.test(low)){
+      ctx.noScreens=true;
+      return{say:'Screen-free version: start with a drink and a little quiet time, then read a book or magazine, write or draw, or work on a puzzle. Take a stretch break, then finish with music, journaling, or simply resting. You can use whatever you already have at home'+(ctx.free?', without buying anything.':'.'),choices:['Make it shorter','Make it quieter','More creative ideas']};
+    }
+    if(/\b(?:shorter|keep it short|one hour|1 hour|just an hour|only an hour|less time)\b/.test(low)){
+      return{say:'Here is a one-hour version at home: 10 minutes to settle in with a drink, 35 minutes for one enjoyable activity ('+(ctx.noScreens?'a book, puzzle, drawing, or journaling':'reading, a puzzle, drawing, or a favorite show')+'), and 15 minutes to rest or listen to music. Everything is optional'+(ctx.free?' and costs nothing.':'.'),choices:['Make it quieter','More creative ideas','No screens']};
+    }
+    if(/\b(?:quieter|more restful|more relaxing|less busy|slower|calmer)\b/.test(low)){
+      return{say:'Quieter version: begin with a warm drink and a few minutes of silence, then spend some time reading, journaling, or sitting comfortably. Take an unhurried break and leave the rest of the afternoon open. Skip anything that feels like a chore'+(ctx.free?'; no spending needed.':'.'),choices:['No screens','Make it shorter','More creative ideas']};
+    }
+    if(/\b(?:creative|art|drawing|craft|ideas|music)\b/.test(low)){
+      return{say:'For a more creative afternoon at home, try one of these with things you already have: sketch a scene, make a tiny collage from scrap paper, write a short story, build a playlist, or rearrange a favorite photo collection. Pick one, spend about an hour on it, then take a break'+(ctx.free?'. No purchases needed.':'.'),choices:['Make it shorter','No screens','Make it quieter']};
+    }
+    if(/\b(?:build|show|make|give)\b.*\b(?:plan|schedule)\b|^build it$/.test(low)){
+      return{say:'Your flexible at-home plan: settle in for 20 minutes; spend an hour on one activity you enjoy; take a 15-minute snack or stretch break; then leave up to an hour for a movie, a book, or relaxing. You can move or skip any part'+(ctx.free?', and the options use what you already own.':'.'),choices:['Make it quieter','No screens','Make it shorter']};
+    }
+    return null;
+  }
+
   generalTaskStart(clean,intent){
     const type=this.inferTaskType(clean,intent);this.s.taskType=type;this.s.intent=intent||type;this.s.category=type==='create'?'create':type==='learn'?'learn':type==='troubleshoot'?'problem':type==='brainstorm'?'everyday':'open';
     if(type==='organize'&&this.isSequenceRequest(clean))return this.sequenceResponse(clean);
@@ -1326,6 +1363,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:`Absolutely. Let’s make ${this.s.topic} noticeably better without turning it into a huge project. ${first}`,choices:['Give me the first step','Help me prioritize','Make a simple plan']};
     }
     if(type==='plan'){
+      const afternoon=this.atHomeAfternoonRequest(clean);if(afternoon)return afternoon;
       const low=this.normalize(clean);
       const deadline=(low.match(/\b(?:in|within)\s+((?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:days?|weeks?|months?))\b/)||[])[1]||((this.s.memory&&this.s.memory.constraints)||[]).slice().reverse().find(v=>/\b(?:days?|weeks?|months?)\b/i.test(v))||'';
       const overwhelmed=/\b(?:overwhelmed|don'?t know where to start|do not know where to start|not sure where to start|no idea where to start|where do i start)\b/.test(low);
@@ -1612,6 +1650,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
 
   handleGeneralTask(text){
     const raw=String(text||'').trim(),low=this.normalize(raw),type=this.s.taskType||this.inferTaskType(raw,this.s.intent);const known=this.memorySummary();
+    const afternoon=this.atHomeAfternoonRequest(raw);if(afternoon)return afternoon;
+    const afternoonFollow=this.atHomeAfternoonFollowUp(raw);if(afternoonFollow)return afternoonFollow;
     // Answer the question about missing details directly, rather than treating it as a new constraint.
     const needsQuestion=/^(?:(?:okay|ok|so|then|please)[, ]+)*(?:what (?:else )?(?:do|would|will|should|could) you (?:need|want)(?:\b|\s)|what (?:info(?:rmation)?|details?) (?:do|would|should) you (?:need|want)(?:\b|\s)|which (?:info(?:rmation)?|details?) (?:do|would|should) you need(?:\b|\s)|what (?:should|can|could) i (?:tell|give|share|provide) you(?:\b|\s)|tell me what you need from me(?:\b|\s))/.test(low);
     if(needsQuestion){
