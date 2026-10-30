@@ -145,6 +145,12 @@ check('birthday budget total short',['Help me plan a birthday dinner for six peo
 check('birthday count plus multiple prefs',['Help me plan a birthday dinner for six people at a restaurant.','Actually 4 people, Thai, quiet, in Sacramento.','Review the plan'],['4 people','thai','quiet','sacramento'],[],{count:4,cuisine:'thai',area:'sacramento'});
 check('birthday clock not guests',['Help me plan a birthday dinner for six people at a restaurant.','Actually 7pm instead.','Review the plan'],['6 people'],['for 7 people'],{count:6});
 
+
+check('birthday not-or cuisines',['Help me plan a birthday dinner for six people at a restaurant.','Not Italian or Mexican.','Review the plan'],['avoid cuisines: italian, mexican'],['cuisine: mexican'],{count:6,cuisine:null});
+check('birthday first-turn multiple exclusion',['Plan a birthday dinner for four people at a restaurant, not Italian or Mexican.','Review the plan'],['4 people','avoid cuisines: italian, mexican'],['cuisine: mexican'],{count:4,cuisine:null});
+check('birthday dense correction',['Help me plan a birthday dinner for six people.','Actually four people at a restaurant in Sacramento on Saturday at 6pm, quiet Thai, under $200.','Review the plan'],['4 people','restaurant','sacramento','saturday','6pm','thai','quiet','under $200'],[],{count:4,place:'restaurant',area:'sacramento',cuisine:'thai'});
+staticCheck('build ID v52',html.includes('Build: birthday-conversation-v52'));
+
 // Static interface checks protect the beginner-facing layout and controls.
 const allElementIds=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
 const knownIds=new Set(allElementIds);
