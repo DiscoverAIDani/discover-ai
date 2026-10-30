@@ -177,6 +177,26 @@ main{padding:12px 0 28px}
 @media(max-width:380px){
   #game .chat{height:clamp(145px,24vh,190px)}
 }
+
+/* Smaller example tiles: readable on phones, fewer rows on wide screens. */
+#game .example-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:8px 0}
+#game .example-card{min-width:0;display:flex;flex-direction:column;gap:3px;padding:9px;border-radius:11px}
+#game .example-card .icon{font-size:19px;line-height:1.1;margin:0 0 1px}
+#game .example-card b{font-size:13px;line-height:1.25;margin:0}
+#game .example-card p{font-size:12px;line-height:1.35;margin:1px 0 5px;flex:1;overflow-wrap:anywhere}
+#game .example-card .use-example{width:100%;min-height:44px;padding:7px 8px;font-size:12px;line-height:1.2;margin-top:auto}
+@media(max-width:800px){#game .example-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){
+  #game .example-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  #game .example-card{padding:8px}
+  #game .example-card b{font-size:13px}
+  #game .example-card p{font-size:12px}
+  #game .example-card .use-example{min-height:44px}
+}
+@media(max-width:350px){
+  #game .example-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #game .example-card{padding:7px}
+}
 </style>
 </head>
 <body>
@@ -187,7 +207,7 @@ main{padding:12px 0 28px}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
   <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: examples-restart-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: compact-tiles-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
