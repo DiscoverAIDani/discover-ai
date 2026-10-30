@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: trust-followups-v25</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: generic-link-followups-v26</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -4984,6 +4984,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const isBank=kind==='bank-phishing';
     const isGovernment=kind==='government-message';
     const isSensitive=kind==='sensitive-share';
+    const isGenericLink=kind==='suspicious-link';
     if(isBank&&/\b(?:downloaded|installed|opened a file|allowed permissions|allowed access)\b/.test(q)){
       return{say:'If the link caused a download or installation, stop opening the file or app and do not grant additional permissions. Check the device with its built-in or trusted security tools, and remove unfamiliar software using reliable device guidance. If you also entered banking information, contact your bank fraud team using a verified number. A click or download alone does not establish exactly what happened.',choices:['I entered my password','How do I verify my bank directly?']};
     }
@@ -4993,7 +4994,34 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if((isCode||isBank||isGovernment)&&/\b(?:how (?:do|can) i report|report the message|report it|report the sender|how do i block)\b/.test(q)){
       return{say:'Use the official service or agency website to find its phishing or fraud reporting instructions. In your email or messaging app, use Report spam or Report phishing if available, then block the sender. Do not reply to the suspicious message, forward sensitive codes or use its links to report it.',choices:['How do I secure the account?','How do I verify the sender?']};
     }
-    if((isBank||directSuspiciousClick)&&clicked){
+    if(directSuspiciousClick&&!isBank){
+      this.s.trustContext={kind:'suspicious-link',clicked:true,credentialsShared:false};
+      this.s.stage='trustAdvice';
+      return{say:'You said you clicked a suspicious link. Close the page and avoid further interaction with it. Do not enter passwords or codes, download files, or grant permissions. Clicking alone does not prove that an account or device was compromised. Did you enter any information, download or install anything, or allow access?',choices:['I did not enter anything','I entered a password','I downloaded something']};
+    }
+    if(isGenericLink){
+      if(typedPassword){
+        ctx.credentialsShared=true;
+        return{say:'Since you said you entered a password on the suspicious page, treat that password as potentially exposed. Open the affected service through its official app or a website you navigate to yourself, change the password, check recent sign-ins, and sign out unfamiliar sessions where supported. If you reused that password on other accounts, change it there too. Review recovery options and multi-factor authentication. Do not enter the actual password in this game. I cannot tell whether someone accessed the account.',choices:['How do I secure the account?','How do I report the message?']};
+      }
+      if(/\b(?:downloaded|installed|opened a file|allowed permissions|allowed access|granted permissions)\b/.test(q)&&!/\b(?:did not|didn'?t|never|nothing)\s+(?:download|install|allow|grant)\b/.test(q)){
+        ctx.downloaded=true;
+        return{say:'If you downloaded or installed something through that suspicious link, do not open the file or grant further permissions. Use your device built-in or trusted security tools to check for unwanted software, and remove unfamiliar apps using the device provider guidance. If you also entered credentials, secure the affected account through its official app or website. What type of device did you use?',choices:['It was on my phone','It was on my computer','I entered a password']};
+      }
+      if(/\b(?:i (?:did not|didn'?t|never) enter|no details|nothing entered|only clicked)\b/.test(q)){
+        return{say:'You said you did not enter information. Close the suspicious page and avoid the link. If nothing downloaded or installed and you did not grant permissions, that generally calls for fewer steps than exposing a password. Check whether anything downloaded or requested access. A click alone does not establish that your device or account was compromised.',choices:['Nothing downloaded','I downloaded something','How do I report the message?']};
+      }
+      if(/\b(?:how (?:do|can|should) i secure|secure (?:my|the) account|protect (?:my|the) account|change (?:my|the) password|what should i do now)\b/.test(q)){
+        return{say:'Use the official app or website of any affected service, not the suspicious link. If you entered a password, change it and review recent sign-ins, unfamiliar sessions, recovery settings and multi-factor authentication. If you only clicked without entering information, first check whether anything downloaded or gained permissions; a password reset is not automatically necessary. Do not share account details in this game.',choices:['How do I report the message?','I entered a password','I downloaded something']};
+      }
+      if(/\b(?:how (?:do|can) i report|report (?:the|it|this) (?:message|text|link|sender)?|block (?:the|this) sender)\b/.test(q)){
+        return{say:'Use your messaging app Report spam or Report phishing option where available, then block the sender. If the message impersonated a service, use that service official website or app to find its fraud-reporting instructions. Do not reply or use a link or phone number from the suspicious message, and do not forward passwords or verification codes.',choices:['How do I secure the account?','What if I entered a password?']};
+      }
+      if(/\b(?:nothing downloaded|nothing installed|did not download|didn'?t download|no downloads?)\b/.test(q)){
+        return{say:'Thanks for clarifying that nothing downloaded. If you also did not enter information or grant permissions, close the page and avoid the link. Clicking by itself does not prove compromise. If the link claimed to be from a service, verify its claim through the official app or website.',choices:['How do I report the message?','What if I entered information?']};
+      }
+    }
+    if(isBank&&clicked){
       return this.bankPhishingAfterAction(false,true);
     }
     if(isBank&&typedPassword){
