@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: everyday-context-v17</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: corrections-v18</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2107,7 +2107,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;this.s.weekAppointment=null;return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -3767,6 +3767,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:'For two servings, beat 4 eggs. Heat a little oil'+(dairyFree?'':' or butter')+' in a nonstick pan over medium-low heat. '+(spinach?'Wilt a handful of spinach first. ':'')+'Pour in the eggs, stir gently until set, then season to taste.'+(noMushrooms?' I will not include mushrooms.':''),choices:['Add spinach','Make it quicker','Give me exact amounts']};
     }
     if(this.s.stage==='everydayCase'){const r=this.everydayCaseContinue(x);if(r)return r;}
+    if(this.s.stage==='weekPlan'){const w=this.weekAppointmentFollowup(x);if(w)return w;}
     const everyday=this.everydayCaseStart(x);if(everyday)return everyday;
     const detected=this.detectIntent(x);
     // Explicit requests to change subjects outrank the previous topic's
@@ -4770,17 +4771,21 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:'Three easy dinners: egg-and-spinach rice bowls, bean tacos with tomatoes, and pasta with tomato sauce and spinach. These reuse ingredients and need no fish, mushrooms or dairy.'+constraints,choices:['Make a shopping list','Keep it cheap','Make meals quicker']};
     }
     if(c.kind==='freeDay'){
-      if(/\b(?:no screens?|screen[- ]free|offline)\b/.test(low))c.noScreens=true;
+      if(/\b(?:tv|television|screen)\b/.test(low)&&/\b(?:okay|ok|fine|allowed|can use|a little|some)\b/.test(low))c.noScreens=false;
+      else if(/\b(?:no screens?|screen[- ]free|offline)\b/.test(low))c.noScreens=true;
       if(/\b(?:fun|creative|less boring)\b/.test(low))c.fun=true;
       if(/\b(?:shorter|simpler|one hour)\b/.test(low))c.short=true;
       return{say:(c.short?'Short free day at home: ':'Flexible free day at home: ')+(c.fun?'Start with music and a creative project using things you have.':'Ease in with a drink and a quiet activity.')+' Then '+(c.noScreens?'try reading, sketching, a puzzle or a card game.':'read, enjoy a hobby or watch a favorite show.')+' Take a snack or stretch break and leave time to rest. Nothing requires spending money.'+(c.noScreens?' No screens are needed.':''),choices:['No screens','Make it more fun','Make it shorter']};
     }
     if(c.kind==='packing'){
-      if(/\b(?:cold|chilly|snow|winter)\b/.test(low))c.cold=true;
+      if(/\b(?:warm|hot|mild|not cold|no longer cold)\b/.test(low))c.cold=false;
+      else if(/\b(?:cold|chilly|snow|winter)\b/.test(low))c.cold=true;
       if(/\b(?:shorter|simpler|minimal)\b/.test(low))c.short=true;
       return{say:(c.short?'Short weekend packing list: ':'Weekend packing checklist: ')+'two changes of clothes, underwear, socks, sleepwear, toiletries, medications, a charger, ID and booking details.'+(c.cold?' Add a warm coat, sweater, extra socks and appropriate shoes.':' Check the forecast before picking outerwear.')+' Add any items required for your activities.',choices:['It will be cold','Make it shorter','Add toiletries']};
     }
     if(c.kind==='desk'){
+      const budgetCorrection=low.match(/\b(?:budget (?:is|of)|(?:spend|under|up to)\s*)\s*\$?\s*(\d{1,6})\b/);
+      if(budgetCorrection)c.budget=budgetCorrection[1];
       if(/\b(?:small|tiny|narrow|limited space|not much room)\b/.test(low))c.small=true;
       const budget=c.budget?' within a $'+c.budget+' total budget':'';
       return{say:/\b(?:factor|matter|important|priorit|compare|what to look)\b/.test(low)?
@@ -4790,12 +4795,17 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(c.kind==='chores'){
       if(/\blaundry\b/.test(low))c.laundry=true;
       if(/\b(?:kitchen|dishes)\b/.test(low))c.kitchen=true;
-      if(/\b(?:an hour|one hour|60 minutes|only have an hour)\b/.test(low))c.hour=true;
+      const time=low.match(/\b(\d+|thirty|fifteen|half|one|two)\s*(minutes?|mins?|hours?|hrs?)\b/);
+      if(time){const words={thirty:30,fifteen:15,half:0.5,one:1,two:2};const amt=words[time[1]]??Number(time[1]);c.minutes=/hour|hr/.test(time[2])?Math.round(amt*60):amt;}
+      else if(/\b(?:an hour|one hour|60 minutes|only have an hour)\b/.test(low))c.minutes=60;
+      if(/\b(?:washer|washing machine)\b.{0,20}\b(?:broken|not working|doesn't work|won't work|out of order)\b/.test(low))c.washerBroken=true;
+      if(/\b(?:can wait|skip|put off|postpone|not essential)\b/.test(low))return{say:'Postpone deep scrubbing, reorganizing cupboards and folding nonessential clothes. Focus on usable dishes and clear counters. Laundry can wait if the washer is unavailable or there is not time to finish.',choices:['Make it simpler','I only have 30 minutes']};
+      if(c.washerBroken)return{say:'Since the washer is broken, do not plan to start a load. Use your time for kitchen essentials, then troubleshoot the washer or plan a separate laundry trip. The old plan relying on the washer no longer applies.',choices:['What can wait?','Make it simpler']};
       if(/\b(?:simpler|shorter)\b/.test(low))return{say:'One small start: put a load of laundry in if you have one, then clean one kitchen surface. Stop when your time is up.',choices:['I only have an hour','What can wait?']};
       if(/\b(?:which should i do first|what should i do first|priority|prioritize)\b/.test(low)&&c.laundry&&c.kitchen)
         return{say:'Start one load of laundry first, then clean the kitchen while the washer runs. This lets two tasks progress without making you do both at once.',choices:['I only have an hour','Make it simpler']};
-      if(c.laundry||c.kitchen||c.hour)
-        return{say:(c.hour?'With one hour: ':'A practical order: ')+(c.laundry?'start one laundry load, then ':'')+(c.kitchen?'do essential dishes, clear the counter and wipe surfaces. ':'spend 20–30 minutes on the most urgent chore. ')+(c.hour?'The laundry may take longer than your available time.':'Use laundry-cycle time for kitchen tasks if you can.')+' Finishing everything is optional.',choices:['I only have an hour','What can wait?','Make it simpler']};
+      if(c.laundry||c.kitchen||c.minutes)
+        return{say:(c.minutes?'With '+c.minutes+' minutes: ':'A practical order: ')+(c.minutes&&c.minutes<=30?'focus on essential dishes and one counter first; start laundry only if you can return to it later. ':c.laundry?'start one laundry load, then ':'')+(c.kitchen?(c.minutes&&c.minutes<=30?'Skip deep cleaning. ':'do essential dishes, clear the counter and wipe surfaces. '):'work on the most urgent chore. ')+(c.minutes&&c.minutes<=30?'Do not assume the wash cycle can finish in this window.':c.minutes?'Laundry may take longer than your available time.':'Use laundry-cycle time for kitchen tasks if you can.')+' Finishing everything is optional.',choices:['What can wait?','Make it simpler','I only have an hour']};
       return{say:'Let’s prioritize your chores. Tell me the two or three things that must get done, and I’ll help order them instead of making a huge list.',choices:['Kitchen and laundry','I only have an hour','What should I do first?']};
     }
     if(c.kind==='plants'){
@@ -4806,9 +4816,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     if(c.kind==='work'){
       if(/\b(?:exercise|workout|walk|activity)\b/.test(low))c.exercise=true;
-      if(/\b(?:15|fifteen)\s*(?:minutes?|mins?)\b/.test(low))c.minutes=15;
+      const duration=low.match(/\b(\d+|fifteen|thirty)\s*(?:minutes?|mins?)\b/);if(duration)c.minutes=({fifteen:15,thirty:30})[duration[1]]??Number(duration[1]);
       if(/\b(?:simpler|simple)\b/.test(low))c.simple=true;
-      return{say:c.exercise?'With an 8-to-5 weekday work schedule, try '+(c.minutes||15)+' minutes of walking or gentle movement after work or during a suitable break.'+(c.simple?' A simple option: 15 minutes after arriving home, then stop.':''):'Got it: your weekdays are largely taken by work from 8 AM to 5 PM. I can help fit a manageable activity outside those hours.',choices:['Help me find time to exercise','Only 15 minutes','Make it simpler']};
+      return{say:c.exercise?'With an 8-to-5 weekday work schedule, try '+(c.minutes||15)+' minutes of walking or gentle movement after work or during a suitable break.'+(c.simple?' A simple option: '+(c.minutes||15)+' minutes after arriving home, then stop.':''):'Got it: your weekdays are largely taken by work from 8 AM to 5 PM. I can help fit a manageable activity outside those hours.',choices:['Help me find time to exercise','Only 15 minutes','Make it simpler']};
     }
     return null;
   }
@@ -4819,6 +4829,28 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       this.clearContext();this.s.stage='start';return null;
     }
     return this.everydayCaseReply(text);
+  }
+
+
+  weekAppointmentFollowup(text){
+    if(this.s.stage!=='weekPlan')return null;
+    const low=this.normalize(text),days='monday|tuesday|wednesday|thursday|friday|saturday|sunday';
+    const formatDay=d=>d.charAt(0).toUpperCase()+d.slice(1);
+    const first=new RegExp('\\b(?:i have|i\\s+(?:also )?scheduled|add|schedule)\\s+(?:a|an|the|my)?\\s*(?:(doctor|dentist|medical|work)\\s+)?appointments?\\s+(?:on|for)?\\s*('+days+')\\b').exec(low);
+    if(first){
+      const kind=first[1]?first[1]+' appointment':'appointment';this.s.weekAppointment={kind,day:first[2]};
+      return{say:'I have your '+kind+' noted for '+formatDay(first[2])+'. I’ll use that day in this practice plan. What time is it, if you want to add that?',choices:['Actually it is Thursday','What appointments do I have?','Keep planning my week']};
+    }
+    const correction=new RegExp('^(?:(?:actually|sorry|no)[, ]*)?(?:it(?:\\x27s| is)|move (?:it|the appointment) to|change (?:it|the appointment) to)\\s+(?:on\\s+)?('+days+')\\b').exec(low);
+    if(correction&&this.s.weekAppointment){
+      this.s.weekAppointment.day=correction[1];
+      return{say:'Updated: your '+this.s.weekAppointment.kind+' is on '+formatDay(correction[1])+', not the earlier day. I’ll use '+formatDay(correction[1])+' in this practice plan.',choices:['What appointments do I have?','Plan around it']};
+    }
+    if(/\b(?:what appointments?|which appointments?|what do i have (?:on )?(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)|when is my appointment)\b/.test(low)){
+      const a=this.s.weekAppointment;
+      return a?{say:'From this practice conversation: your '+a.kind+' is on '+formatDay(a.day)+'. You haven’t given a time, so I won’t invent one.',choices:['Plan around it','Add the time']}:{say:'You haven’t given me any appointment details in this practice conversation yet.',choices:['Add an appointment','Keep planning']};
+    }
+    return null;
   }
 
   handleOpenGoal(x){
