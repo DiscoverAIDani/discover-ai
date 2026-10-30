@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: valid-shopping-v48</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: birthday-preferences-v49</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -5114,19 +5114,29 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     return{cuisine,ambience,budget,area:area||null};
   }
 
+  birthdayDinnerTiming(text){
+    const q=this.normalize(text);
+    const day=(q.match(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/)||[])[1]||null;
+    const m=q.match(/\b(?:at|around)\s+(\d{1,2})(?::([0-5]\d))?\s*(am|pm)\b/);
+    return{day,time:m&&Number(m[1])>=1&&Number(m[1])<=12?m[1]+(m[2]?':'+m[2]:'')+m[3]:null};
+  }
   birthdayDinnerStart(text){
     const q=this.normalize(text);
     if(!/\bbirthday\b/.test(q)||!/\bdinner\b/.test(q))return null;
     if(/\b(?:write|draft|compose|send|invitation|invite|caption|post|message|card)\b/.test(q)&&!/\b(?:plan|planning|organize|arrange|host|hosting)\b/.test(q))return null;
     const count=this.birthdayDinnerCount(text);
     const prefs=this.birthdayDinnerPreferences(text);
+    const excluded=(q.match(/\b(?:no|not|without|avoid|don't want|do not want|exclude)\s+(?:any\s+)?(italian|mexican|thai|chinese|japanese|indian|mediterranean|korean|vietnamese|american|seafood|steakhouse|sushi|pizza|french|greek)\b/)||[])[1];
+    if(excluded&&prefs.cuisine===excluded)prefs.cuisine=null;
+    prefs.avoidCuisines=excluded?[excluded]:[];
+    const timing=this.birthdayDinnerTiming(text);
     const place=/\b(?:restaurant|dine out|dining out|eat out|eating out)\b/.test(q)?'restaurant':
       /\b(?:cook|cooking|cooked|home-cooked|homemade|at home|host at home)\b/.test(q)?'home-cooked':
       /\b(?:order food|ordering food|takeout|take-out|delivery|catered|catering)\b/.test(q)?'ordered food':null;
     this.clearContext();this.s.category='everyday';this.s.intent='dinner';this.s.topic='birthday dinner';this.s.stage='birthdayDinner';
-    this.s.birthdayDinnerContext={count:count,place:place,...prefs};
+    this.s.birthdayDinnerContext={count:count,place:place,...prefs,...timing,budgetScope:null};
     this.s.servings=count||0;
-    const known=(prefs.cuisine?' Cuisine: '+prefs.cuisine+'.':'')+(prefs.ambience?' Atmosphere: '+prefs.ambience+'.':'')+(prefs.budget?' Budget: '+prefs.budget+'.':'')+(prefs.area?' Area: '+prefs.area+'.':'');
+    const known=(prefs.cuisine?' Cuisine: '+prefs.cuisine+'.':'')+(prefs.ambience?' Atmosphere: '+prefs.ambience+'.':'')+(prefs.budget?' Budget: '+prefs.budget+'.':'')+(prefs.area?' Area: '+prefs.area+'.':'')+(timing.day?' Day: '+timing.day+'.':'')+(timing.time?' Time: '+timing.time+'.':'')+(excluded?' Avoid cuisine: '+excluded+'.':'');
     if(place==='restaurant')return{
       say:'I can help plan a birthday dinner at a restaurant'+(count?' for '+count+' people':'')+'.'+known+' '+(!count?'How many people will attend?':prefs.area?'What else matters: dietary needs, food preferences or timing?':'What city or area should we consider?')+' This game cannot check live reservations.',
       choices:count?['Choose an area','Set a budget','Choose a cuisine']:['4 people','6 people','8 people']
@@ -5160,6 +5170,29 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       if(old===candidate)return{say:'Yes, the birthday dinner is still for '+revised+'. '+(ctx.place?'We are also keeping the '+ctx.place+' plan.':'We have not chosen where to eat yet.'),choices:['Review the plan','Change dining option']};
       return{say:(old?'Got it — I’ve updated the birthday dinner from '+old+' people to '+revised+'. ':'Got it — the birthday dinner is for '+revised+'. ')+(ctx.place?'I’m keeping the '+ctx.place+' plan; the previous guest count is replaced.':'I’ll use the updated count from now on. Are you eating at a restaurant, cooking at home, or ordering food?'),choices:ctx.place?['Review the plan','Change dining option']:['At a restaurant','Cook at home','Order food']};
     }
+    const excluded=(q.match(/\b(?:no|not|without|avoid|don't want|do not want|exclude)\s+(?:any\s+)?(italian|mexican|thai|chinese|japanese|indian|mediterranean|korean|vietnamese|american|seafood|steakhouse|sushi|pizza|french|greek)\b/)||[])[1];
+    if(excluded){
+      if(!ctx.avoidCuisines)ctx.avoidCuisines=[];
+      if(!ctx.avoidCuisines.includes(excluded))ctx.avoidCuisines.push(excluded);
+      const pref=this.birthdayDinnerPreferences(text);
+      ctx.cuisine=pref.cuisine&&pref.cuisine!==excluded?pref.cuisine:(ctx.cuisine===excluded?null:ctx.cuisine);
+      return{say:'Understood — I will avoid '+excluded+' cuisine in this birthday plan.'+(ctx.cuisine?' Preferred cuisine: '+ctx.cuisine+'.':' No alternate cuisine has been chosen yet.')+' The guest count and dining option stay unchanged.',choices:['Review the plan','Choose another cuisine']};
+    }
+    if(/\b(?:per person or total|total or per person|per guest or total|total or per guest)\b/.test(q)){
+      return{say:ctx.budgetScope?'You already specified a '+ctx.budgetScope+' budget'+(ctx.budget?' of '+ctx.budget:'')+'.':'You stated '+(ctx.budget?'a budget of '+ctx.budget:'no amount')+', but you have not specified whether it is for the group or per person. Which should I use?',choices:['Total for everyone','Per person','Review the plan']};
+    }
+    if(/\b(?:per person|per guest|each person|each guest)\b/.test(q)&&/\b(?:budget|price|cost|spend|dollars?|\$)\b/.test(q)){
+      ctx.budgetScope='per person';return{say:'I will treat the stated budget'+(ctx.budget?' of '+ctx.budget:'')+' as per person, not for the whole group.',choices:['Review the plan','Change budget']};
+    }
+    if(/\b(?:total|altogether|for everyone|whole group)\b/.test(q)&&/\b(?:budget|price|cost|spend|dollars?|\$)\b/.test(q)){
+      ctx.budgetScope='total';return{say:'I will treat the stated budget'+(ctx.budget?' of '+ctx.budget:'')+' as a group total, not per person.',choices:['Review the plan','Change budget']};
+    }
+    const timing=this.birthdayDinnerTiming(text);
+    if(timing.day||timing.time){
+      if(timing.day)ctx.day=timing.day;
+      if(timing.time)ctx.time=timing.time;
+      return{say:'I have updated the birthday dinner timing.'+(ctx.day?' Day: '+ctx.day+'.':'')+(ctx.time?' Time: '+ctx.time+'.':'')+' I am keeping the guest count, dining choice and other stated preferences.',choices:['Review the plan','Change time','What else do you need?']};
+    }
     // Negative venue corrections must outrank mention-based destination matching.
     // "Not at a restaurant, we'll cook at home" does NOT mean restaurant.
     const rejectRestaurant=/\b(?:not|never|no longer|instead of|rather than|don't want|do not want)\s+(?:at\s+)?(?:a\s+|the\s+)?restaurants?\b|\bfrom\s+(?:a\s+|the\s+)?restaurant\s+to\b/.test(q);
@@ -5183,7 +5216,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       ctx.place='ordered food';return{say:'Great — we’re planning to order food for the birthday dinner'+(ctx.count?' for '+ctx.count+' people':'')+'. What kind of food and budget would you prefer?',choices:['Pizza','A mixed menu','Set a budget']};
     }
     if(/\b(?:how many|number of|guest count|recap|summari[sz]e|review the plan|what (?:did|do) (?:i|you|we) say)\b/.test(q)){
-      return{say:'The current birthday dinner plan is for '+(ctx.count?ctx.count+' people':'an unspecified number of guests')+'. Dining option: '+(ctx.place||'not chosen yet')+'. '+(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'')+' I’m using the latest guest count, not the earlier one.',choices:ctx.place?['What should we decide next?','Change dining option']:['At a restaurant','Cook at home','Order food']};
+      return{say:'The current birthday dinner plan is for '+(ctx.count?ctx.count+' people':'an unspecified number of guests')+'. Dining option: '+(ctx.place||'not chosen yet')+'. '+(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'')+(ctx.budgetScope?' Scope: '+ctx.budgetScope+'.':'')+(ctx.day?' Day: '+ctx.day+'.':'')+(ctx.time?' Time: '+ctx.time+'.':'')+(ctx.avoidCuisines?.length?' Avoid cuisines: '+ctx.avoidCuisines.join(', ')+'.':'')+' I’m using the latest guest count, not the earlier one.',choices:ctx.place?['What should we decide next?','Change dining option']:['At a restaurant','Cook at home','Order food']};
     }
     const {cuisine,ambience,budget,area}=this.birthdayDinnerPreferences(text);
     if(cuisine||ambience||budget||area){
@@ -5191,14 +5224,14 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       if(ambience)ctx.ambience=ambience;
       if(budget)ctx.budget=budget;
       if(area)ctx.area=area;
-      const parts=(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'');
+      const parts=(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'')+(ctx.budgetScope?' Scope: '+ctx.budgetScope+'.':'')+(ctx.day?' Day: '+ctx.day+'.':'')+(ctx.time?' Time: '+ctx.time+'.':'')+(ctx.avoidCuisines?.length?' Avoid cuisines: '+ctx.avoidCuisines.join(', ')+'.':'');
       return{say:'I’ve kept the birthday dinner for '+(ctx.count||'an unspecified number of')+' people'+(ctx.place?' at a '+ctx.place+' setting':'')+'.'+parts+(ctx.place==='restaurant'&&!ctx.area?' What city or area should we consider?':' The other details remain unchanged.'),choices:['Review the plan','Change guest count','Change a preference']};
     }
     if(/\b(?:what'?s our plan|what do we have so far|what have we decided|recap the details|summari[sz]e our plan)\b/.test(q)){
-      const parts=(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'');
+      const parts=(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'')+(ctx.budgetScope?' Scope: '+ctx.budgetScope+'.':'')+(ctx.day?' Day: '+ctx.day+'.':'')+(ctx.time?' Time: '+ctx.time+'.':'')+(ctx.avoidCuisines?.length?' Avoid cuisines: '+ctx.avoidCuisines.join(', ')+'.':'');
       return{say:'Birthday dinner for '+(ctx.count||'an unspecified number of')+' people. Dining: '+(ctx.place||'not chosen')+'.'+parts,choices:['Change a preference','What is next?']};
     }
-    if(/\b(?:what else do you need|what do you need from me|what information do you need|what else should i tell you|what should i tell you next|what city do you need|which city do you need)\b/.test(q)){
+    if(/\b(?:what else do you need|what do you need from me|what information do you need|what else should i tell you|what should i tell you next|what'?s left to decide|what is left to decide|what city do you need|which city do you need)\b/.test(q)){
       const current='The birthday dinner plan is for '+(ctx.count?ctx.count+' people':'an unspecified guest count')+'; dining option: '+(ctx.place||'not yet chosen')+'.';
       const next=!ctx.count?' How many guests should we plan for?':!ctx.place?' Do you want a restaurant, home cooking, or ordered food?':ctx.place==='restaurant'&&!ctx.area?' What city or general area should we consider? You do not need to share a street address.':ctx.place==='restaurant'&&!ctx.cuisine?' Do you have a preferred cuisine, or should we leave it open?':!ctx.budget?' Do you have a budget in mind?':' The next useful detail is any dietary restrictions or a preferred date and time.';
       return{say:current+next,choices:ctx.place==='restaurant'&&!ctx.area?['Choose a city or area','Review the plan']:['Review the plan','Set a budget','Choose a cuisine']};
