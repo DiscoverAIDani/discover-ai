@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: trust-safety-v23</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: trust-followups-v24</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2107,7 +2107,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;this.s.weekAppointment=null;return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;this.s.weekAppointment=null;this.s.trustContext=null;return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -3492,6 +3492,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:'Severe symptoms such as chest pain, difficulty breathing, fainting, signs of a stroke, or swelling of the face or throat can require emergency medical care. Call your local emergency number now if these are happening. Do not rely on a practice game to assess a serious reaction or decide whether to take another dose.',choices:['I can contact emergency services','I want to understand my prescription later']};
     if(/\b(?:doctor|prescriber|clinician)\s+(?:told|instructed|directed|advised)\s+me\s+to\s+stop\b/.test(x))
       return{say:'If your prescribing clinician personally instructed you to stop, follow their specific directions. If the timing or reason is unclear, verify with that clinician or a pharmacist; I cannot replace your individualized treatment plan.',choices:['What should I confirm?','How do I note the instructions?']};
+    if(/\b(?:already|accidentally|mistakenly|just)\s+(?:took|taken|swallowed)\s+(?:two|2|double|an extra)\b/.test(x))
+      return{say:'If you have taken more medication than prescribed, promptly contact your pharmacist or Poison Control (in the U.S., 1-800-222-1222) for advice based on the actual medication, dose and timing. Do not take another dose or try to counteract it without professional advice. If severe symptoms occur, such as trouble breathing, fainting, seizures or chest pain, call emergency services. This practice game cannot assess your individual risk.',choices:['What information should I have ready?']};
     if(/\b(?:missed|skipped|forgot|double(?: up)?|two (?:doses|pills)|extra dose|make up (?:the|a) dose)\b/.test(x))return this.medicationMissedDose();
     if(/\b(?:side effects?|dizzy|dizziness|lightheaded|feeling sick|reaction|makes me sick)\b/.test(x))
       return{say:'Medication side effects deserve attention, but I cannot tell which medicine or reaction you are experiencing. Contact the prescriber or pharmacist promptly to describe the symptom and ask whether you need a change or an urgent evaluation. Do not stop or alter a prescribed medicine solely on advice from a video. For severe symptoms such as chest pain, trouble breathing, fainting, or signs of stroke, seek emergency care.',choices:['What details should I report?','What should I ask the pharmacist?']};
@@ -3739,6 +3741,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(this.looksLikeBankPhishing(text))return this.bankPhishingInitial(text);
     if(this.s.stage==='securityAdvice'){const follow=this.bankPhishingFollowup(text);if(follow)return follow;}
     const trust=this.trustAndSafetyQuestion(x);if(trust)return trust;
+    const trustFollow=this.trustFollowup(x);if(trustFollow)return trustFollow;
     const pendingDraft=this.continueUnanchoredDraft(text);
     if(pendingDraft)return pendingDraft;
     const missingDraft=this.handleUnanchoredDraftRevision(text);
@@ -4935,14 +4938,14 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:'No. This practice game has no access to your personal calendar, email, bank accounts or medical records. It only works from what you type here, and you should avoid entering sensitive information.',choices:['What is safe to share?','Try a practice question']};
     if(/\b(?:safe to|should i|can i|is it ok(?:ay)? to)\b.{0,35}\b(?:paste|share|give|type|enter|send)\b.{0,35}\b(?:social security|ssn|bank account|credit card|password|pin|security code|verification code|private information|personal data)\b/.test(q)||
       /\b(?:my password is|here is my password|my social security number is|my bank account number is|my card number is)\b/.test(q))
-      return{say:'Please do not enter passwords, Social Security numbers, account numbers, PINs or verification codes into this practice game. Use invented placeholder details for examples. If you already shared a real password elsewhere, change it through the official account and review its security.',choices:['How can I use a placeholder?','What is safe to share?']};
+      {this.s.trustContext={kind:'sensitive-share'};this.s.stage='trustAdvice';return{say:'Please do not enter passwords, Social Security numbers, account numbers, PINs or verification codes into this practice game. Use invented placeholder details for examples. If you already shared a real password elsewhere, change it through the official account and review its security.',choices:['How can I use a placeholder?','What is safe to share?']};}
     if(/\b(?:(?:verification|security|one[- ]time|login)\s+code|code\s+(?:to\s+)?(?:share|send|give)|someone\s+(?:sent|gave|texted)\s+me\s+a\s+code)\b/.test(q)&&/\b(?:send|share|give|texted|someone|asked|should i|code)\b/.test(q))
-      return{say:'Do not send a one-time verification code to someone who contacts you unexpectedly. Codes can allow account access. Use the official app or website you open yourself to verify any claim, not a link or phone number in the message.',choices:['How do I verify a message?','What if I already shared it?']};
+      {this.s.trustContext={kind:'verification-code'};this.s.stage='trustAdvice';return{say:'Do not send a one-time verification code to someone who contacts you unexpectedly. Codes can allow account access. Use the official app or website you open yourself to verify any claim, not a link or phone number in the message.',choices:['How do I verify a message?','What if I already shared it?']};}
     if(/\b(?:bank account|account)\b.{0,70}\b(?:frozen|locked|suspended)\b/.test(q)&&/\b(?:email|message|link|click|password)\b/.test(q)||
        /\b(?:email|message)\b.{0,90}\b(?:click a link|confirm my password|account will be frozen)\b/.test(q))
-      return{say:'Treat that as a possible phishing attempt. Do not click the message link or enter your password. Instead, open your bank app or type the known official website yourself, and contact the bank through its published contact information. This game cannot verify who sent the message.',choices:['What if I clicked?','How do I report it?']};
+      {this.s.trustContext={kind:'bank-phishing'};this.s.stage='trustAdvice';return{say:'Treat that as a possible phishing attempt. Do not click the message link or enter your password. Instead, open your bank app or type the known official website yourself, and contact the bank through its published contact information. This game cannot verify who sent the message.',choices:['What if I clicked?','How do I report it?']};}
     if(/\b(?:irs|tax agency|government)\b/.test(q)&&/\b(?:text|message|email|link|claiming|claims)\b/.test(q))
-      return{say:'A message claiming to be from a government agency is not proof it is genuine. Do not follow unexpected links or share personal details. Check the agency notice through an official government website or published phone number, and be wary of pressure to act immediately.',choices:['How do I check if it is real?','What if I clicked?']};
+      {this.s.trustContext={kind:'government-message'};this.s.stage='trustAdvice';return{say:'A message claiming to be from a government agency is not proof it is genuine. Do not follow unexpected links or share personal details. Check the agency notice through an official government website or published phone number, and be wary of pressure to act immediately.',choices:['How do I check if it is real?','What if I clicked?']};}
     if(/\b(?:can you diagnose|diagnose me|tell me what disease|what condition do i have)\b/.test(q))
       return{say:'This practice game cannot examine you, review medical history or provide a diagnosis. You can use a real clinician for assessment, and discuss symptoms and timing with them. For severe or rapidly worsening symptoms, seek urgent medical care.',choices:['How can I prepare for an appointment?']};
     if(/\b(?:guarantee|certain|definitely)\b.{0,55}\b(?:stock|investment|share price|crypto)\b|\b(?:stock|investment)\b.{0,55}\b(?:go up tomorrow|guaranteed return)\b/.test(q))
@@ -4959,6 +4962,52 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     if(this.s.stage==='trustNotice'&&/\b(?:verify|official|real|authentic|genuine|scam)\b/.test(q))
       return{say:'I cannot confirm authenticity from the claim alone. Look up the agency website or published phone number independently and verify the notice directly, without using suspicious links or phone numbers in the letter.',choices:['How do I redact it?']};
+    return null;
+  }
+
+
+  trustFollowup(input){
+    const q=this.normalize(input),ctx=this.s.trustContext;
+    const riskContext=ctx&&this.s.stage==='trustAdvice';
+    const clicked=/\b(?:i (?:already |just )?(?:clicked|tapped|opened)(?: (?:the|that|a))? (?:link|website)|i clicked (?:it|on it)|clicked a suspicious link)\b/.test(q);
+    const typedPassword=/\b(?:i (?:already |just )?(?:entered|typed|shared|gave|submitted) (?:my |the |a )?(?:password|passcode|bank login|banking credentials)|i entered my password)\b/.test(q);
+    const sharedCode=/\b(?:i (?:already |just )?(?:shared|sent|gave|entered) (?:it|them|the code|a code|my code)|i gave it to them|i entered it|what if i (?:shared|gave|sent|entered) (?:it|the code)|gave it to them)\b/.test(q);
+    const providedPersonal=/\b(?:i (?:already |just )?(?:shared|gave|sent|provided) (?:it|my name|my address|my details|my personal information)|i replied with my name and address)\b/.test(q);
+    const directSuspiciousClick=clicked&&/\b(?:suspicious|scam|phish|unknown|untrusted)\b/.test(q);
+    const hypothetical=/^(?:what if|suppose|if i)\b/.test(q);
+    const extraDose=/\b(?:already|accidentally|mistakenly|just)\s+(?:took|taken|swallowed)\s+(?:two|2|double|an extra)\b/.test(q);
+    if(extraDose&&this.s.stage==='medicationSafetyAdvice')
+      return{say:'If you have already taken more medication than prescribed, contact a pharmacist or Poison Control promptly for advice based on the actual medication and dose (U.S. Poison Control: 1-800-222-1222). Do not take another dose or try to counteract it without professional guidance. If you have severe symptoms such as trouble breathing, fainting, seizures or chest pain, call emergency services. This practice game cannot assess the risk of an extra dose.',choices:['What information should I have ready?']};
+    if(!riskContext&&!directSuspiciousClick)return null;
+    const kind=(ctx&&ctx.kind)||'unknown';
+    const isCode=kind==='verification-code';
+    const isBank=kind==='bank-phishing';
+    const isGovernment=kind==='government-message';
+    const isSensitive=kind==='sensitive-share';
+    if((isBank||directSuspiciousClick)&&clicked){
+      return this.bankPhishingAfterAction(false,true);
+    }
+    if(isBank&&typedPassword){
+      return this.bankPhishingAfterAction(true,!!clicked);
+    }
+    if(isCode&&(sharedCode||/\b(?:already gave|already sent)\b/.test(q))){
+      return{say:(hypothetical?'If you already shared a code, ':'Since you said you shared a code, ')+'stop communicating with the requester and contact the affected service through its official app or website. Review account security and recent sign-ins, and follow its steps for changing credentials or ending unfamiliar sessions. Do not send another code. This game cannot tell whether anyone accessed your account.',choices:['How do I secure the account?','How do I report the message?']};
+    }
+    if(isSensitive&&/\b(?:already shared|shared it|shared with a stranger|sent it|gave it)\b/.test(q)){
+      return{say:'If sensitive information was already shared, stop sending more. The next steps depend on what was shared and with whom: for a password, change it using the official account; for financial details, contact your institution; for an SSN, consult official identity-theft recovery guidance. Do not paste the actual secret here.',choices:['What are the first steps?']};
+    }
+    if((isGovernment||isBank)&&providedPersonal){
+      return{say:'Since you provided personal details, do not send anything more or follow additional links. Verify the message independently through the agency or bank official website or published phone number. Be alert for follow-up impersonation, and report the message if it was fraudulent. The response depends on exactly what information was exposed; do not post private details in this game.',choices:['How can I verify the sender?','What if they ask again?']};
+    }
+    if(isGovernment&&/\b(?:must pay|pay immediately|payment|owe money|deadline)\b/.test(q)){
+      return{say:'Pressure to pay immediately can be a warning sign, but it does not prove the notice is fraudulent. Do not pay through a link or number in an unverified message. Confirm the amount and deadline with the agency using contact information you find independently on its official site.',choices:['How do I verify a notice?']};
+    }
+    if((isBank||isGovernment||isCode)&&/\b(?:verify|confirm|real|genuine|sure|scam|report|bank directly|official)\b/.test(q)){
+      return{say:'I cannot confirm whether the sender is genuine. Do not reply, click the message link or share codes. Open the institution official app or type its known website yourself, then use its published fraud or support contact details to verify the claim. For bank notices, the number on the back of your card is another option.',choices:['What if I clicked?','What if I already shared something?']};
+    }
+    if(isCode&&/\b(?:what if|already|gave|shared|send|code)\b/.test(q)){
+      return{say:'Do not send the code. If you already sent it, contact the affected service through its official site, review account security and change compromised credentials as directed. Sharing a code is risky, but it does not establish that someone accessed your account.',choices:['What if I already shared it?']};
+    }
     return null;
   }
 
