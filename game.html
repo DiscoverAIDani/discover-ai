@@ -134,7 +134,7 @@ button,.back{touch-action:manipulation}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat"></div>
   <div class="feedback" id="feedback"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: natural-exclusions-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: topic-safety-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results"><h2>You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1806,7 +1806,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -3383,6 +3383,15 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    // An explicit new question must not be swallowed by the previous topic.
+    const newTask=this.s.stage!=='start'&&String(text||'').trim().match(/^(?:new|different)\s+(?:question|topic)\s*[:–-]\s*(.+)$/i);
+    if(newTask){this.clearContext();this.s.stage='start';return this.responseFor(newTask[1]);}
+    // Recognize urgent allergic-reaction symptoms before any recipe or math routing.
+    const fictional=/^(?:write|draft|compose|make up|create)\s+(?:a\s+)?(?:fictional\s+)?(?:story|scene|script|poem)\b/.test(low);
+    const emergency=!fictional&&/\b(?:my|his|her|their|the)\s+throat\s+(?:(?:is|feels|seems)\s+(?:like\s+(?:it's|it is)\s+)?)?(?:closing|tightening|swelling|tight)\b|\b(?:can't|cannot|struggling to)\s+breathe\b|\b(?:trouble|difficulty)\s+breathing\b|\b(?:lips?|tongue)\s+(?:is|are)\s+(?:swelling|swollen)\b|\banaphylax(?:is|tic)\b/.test(low);
+    const emergencyReply=()=>({say:'This could be a life-threatening allergic reaction. Call emergency services now (911 in the U.S.). If you have a prescribed epinephrine auto-injector, use it immediately as directed while getting emergency help. Do not drive yourself or wait for another reply from this practice game. Emergency evaluation is needed even if symptoms improve.',choices:[]});
+    if(emergency){this.clearContext();this.s.stage='emergencyAdvice';this.s.intent='safety';this.s.topic='urgent symptoms';return emergencyReply();}
+    if(this.s.stage==='emergencyAdvice'&&/\b(?:what now|what should|what do|should i|still|help|ambulance|epinephrine|epipen|911|wait)\b/.test(low))return emergencyReply();
     if(this.s.stage==='workHoursCalculation'){const a=this.workFollowup(text);if(a)return a;}
     if(this.isWorkHoursQuestion(text))return this.workStart(text);
     if(this.s.stage==='sharedBillMath'){const a=this.sharedBillFollowup(text);if(a)return a;}
@@ -3445,6 +3454,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       const dairyFree=/\b(?:dairy[- ]?free|no dairy|without dairy)\b/.test(low),spinach=/\bspinach\b/.test(low)&&!noSpinach;
       this.clearContext();this.s.category='everyday';this.s.intent='dinner';this.s.stage='dinnerPlan';this.s.topic='scrambled eggs';
       this.s.excludedIngredients=[...(noEgg?['eggs']:[]),...(noSpinach?['spinach']:[]),...(noMushrooms?['mushrooms']:[]),...(dairyFree?['cheese']:[])];
+      this.s.allergyExclusions=[...low.matchAll(/\b(?:allergic to|allergy to|can't eat|cannot eat)\s+(?:the\s+)?(eggs?|spinach|mushrooms?|tomatoes?|cheese)\b/g)].map(m=>m[1]==='egg'?'eggs':m[1]==='mushroom'?'mushrooms':m[1]==='tomato'?'tomatoes':m[1]);
       if(dairyFree)this.noteFact('no dairy');
       this.s.ingredients=noEgg?[]:(spinach?['eggs','spinach']:['eggs']);
       if(noEgg)return{say:'You said eggs are off-limits, so I cannot give an egg-based scrambled-egg recipe. A tofu scramble is a possible alternative if tofu is suitable for you. Check ingredients and allergy precautions before using substitutes.',choices:['Explore an egg-free alternative','Change the dish']};
@@ -3763,6 +3773,20 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     for(const m of low.matchAll(/\b(?:instead of|rather than)\s+(?:the\s+)?(eggs?|spinach|mushrooms?|tomatoes?|cheese|tortillas?|beans?|rice|pasta|tofu)\s*[,;]?\s+(?:please\s+)?(?:use|add|include)\s+(?:the\s+)?(eggs?|spinach|mushrooms?|tomatoes?|cheese|tortillas?|beans?|rice|pasta|tofu)\b/g)){push(removed,m[1]);push(added,m[2]);}
     if((/\b(?:dairy[- ]?free|no dairy|without dairy)\b/.test(low)||(this.s.facts||[]).includes('no dairy'))&&added.includes('cheese'))forbidden.add('cheese');
     for(const item of forbidden){const i=added.indexOf(item);if(i>=0)added.splice(i,1);if(!removed.includes(item))removed.push(item);}
+    // An exclusion grounded in a food allergy or stated inability to eat a food
+    // is not silently revoked just because the visitor says the food is available.
+    const locked=new Set(this.s.allergyExclusions||[]);
+    for(const m of low.matchAll(/\b(?:allergic to|allergy to|can't eat|cannot eat)\s+(?:the\s+)?(eggs?|spinach|mushrooms?|tomatoes?|cheese)\b/g)){
+      const ingredient=foods(m[1])[0];if(ingredient)locked.add(ingredient);
+    }
+    this.s.allergyExclusions=[...locked];
+    const blocked=added.filter(ingredient=>locked.has(ingredient));
+    for(const ingredient of blocked){added.splice(added.indexOf(ingredient),1);if(!removed.includes(ingredient))removed.push(ingredient);}
+    if(blocked.length&&!added.length&&removed.every(ingredient=>blocked.includes(ingredient))){
+      this.s.excludedIngredients=[...new Set([...(this.s.excludedIngredients||[]),...blocked])];
+      this.s.ingredients=(this.s.ingredients||[]).filter(ingredient=>!blocked.includes(ingredient));
+      return{say:'You previously said '+blocked.join(' and ')+' '+(blocked.length===1?'was':'were')+' off-limits, so I have not added '+(blocked.length===1?'it':'them')+' to the recipe. Please choose an ingredient that is safe for you.',choices:['Choose another ingredient','Give me the recipe']};
+    }
     if(!removed.length&&!added.length)return null;
     const normalizeItem=(v)=>foods(this.normalize(v))[0]||this.normalize(v);
     const unavailable=new Set((this.s.excludedIngredients||[]).map(normalizeItem));
