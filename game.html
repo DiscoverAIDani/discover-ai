@@ -138,6 +138,39 @@ textarea::placeholder{color:#66737b}
 @media(max-width:650px){
   .controls .row .voice:disabled,.controls .row .send:disabled{opacity:.55!important;cursor:not-allowed}
 }
+
+/* Compact game layout: reduce vertical scrolling while preserving readable controls. */
+#game .top{padding:12px 18px}
+#game .top h1{font-size:28px;line-height:1.18;margin:0 0 4px}
+#game .game-intro{margin-top:8px}
+#game .progress{margin-top:5px}
+#game .reward-row{padding:7px 14px;gap:6px}
+#game .reward-badge{padding:5px 8px;font-size:12px}
+#game .chat{height:clamp(240px,36vh,340px);min-height:0;max-height:none;padding:14px 16px;overflow-y:auto}
+#game .msg{margin-bottom:12px}
+#game .bubble{padding:10px 13px;border-radius:14px}
+#game .feedback{margin:0 14px 8px;padding:8px 11px}
+#game .controls{padding:11px 14px}
+#game .controls .choices{margin-bottom:8px;gap:7px}
+#game .controls .choice{padding:8px 11px}
+#game textarea{min-height:48px;padding:10px 12px}
+#game .controls .hint{margin-top:6px}
+#game .controls .note{margin-top:5px;line-height:1.4}
+#game .challengebar{padding:5px 12px}
+@media(max-width:650px){
+  #game .top{padding:13px 14px}
+  #game .top h1{font-size:26px}
+  #game .reward-row{padding:7px 10px}
+  #game .chat{height:clamp(210px,38vh,300px);min-height:0;max-height:none;padding:12px}
+  #game .bubble{padding:10px 12px;font-size:15px}
+  #game .controls{padding:11px 12px}
+  #game textarea{min-height:68px;font-size:16px}
+  #game .controls .choice{min-height:44px;padding:10px 12px}
+  #game .controls .row .voice,#game .controls .row .send{min-height:48px}
+}
+@media(max-width:380px){
+  #game .chat{height:clamp(200px,36vh,270px)}
+}
 </style>
 </head>
 <body>
@@ -148,7 +181,7 @@ textarea::placeholder{color:#66737b}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
   <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: accessibility-polish-v2</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: compact-chat-v1</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
