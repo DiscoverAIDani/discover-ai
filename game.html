@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: birdhouse-context-v15</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: natural-phrasing-v16</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -3685,7 +3685,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
-    if(/^(?:hi|hello|hey|good morning|good afternoon|good evening)[!.,\s]*$/.test(low)){
+    if(/^(?:hi|hello|hey)(?: there| everyone| folks)?[!.,\s]*$|^good (?:morning|afternoon|evening)[!.,\s]*$/.test(low)){
       if(this.s.stage==='start')return{say:'Hi! What would you like help with today? You can ask in your own words or choose a starting point.',choices:['Plan something','Learn something','Solve a problem','Make something']};
       return{say:'Hi! We can keep working on '+this.topicLabel()+' or start a different task. What would you like?',choices:['Continue','New topic']};
     }
@@ -3844,7 +3844,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const practical=this.practicalProjectFromRequest(x);
     if(practical)return this.startPracticalProject(practical);
     if(this.s.stage==='practicalProject'){
-      const newGoal=/^(?:help me|please help me|can you|could you|i want to|let's|let us|now)\s+(?:plan|make|write|learn|build|organize|compare|fix|solve)\b/.test(low);
+      const newGoal=/^(?:now|actually|instead)?\s*(?:help me|please help me|can you|could you|i want to|let's|let us)\s+(?:plan|make|write|learn|build|organize|compare|fix|solve)\b/.test(low);
       if(newGoal&&!/\b(?:birdhouse|bird house|bookshelf|bookcase|compost|tomato|hinge|cabinet|painting|paint a room)\b/.test(low)){
         this.clearContext();this.s.stage='start';
         return this.directAnswer(x,detected)||this.routeIntent(x,detected);
@@ -3853,13 +3853,19 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     }
     if(this.isDoghouseBuildRequest(x))return this.startDoghouseBuild();
     if(this.s.stage==='doghouseBuild'){
-      const newGoal=/^(?:help me|please help me|can you|could you|i want to|let's|let us|now)\s+(?:plan|make|write|learn|build|organize|compare|fix|solve)\b/.test(low);
+      const newGoal=/^(?:now|actually|instead)?\s*(?:help me|please help me|can you|could you|i want to|let's|let us)\s+(?:plan|make|write|learn|build|organize|compare|fix|solve)\b/.test(low);
       if(newGoal&&!/\b(?:dog\s*house|doghouse)\b/.test(low)){
         this.clearContext();this.s.stage='start';
         return this.directAnswer(x,detected)||this.routeIntent(x,detected);
       }
       return this.continueDoghouseBuild(x);
     }
+    if((this.s.stage==='openBuild'||this.s.stage==='openGoal')&&detected&&
+       /^(?:maybe|perhaps|what about|how about)\s+(?:we\s+)?(?:learn|study|explain|help me|plan|make|create|write)\b/.test(low)){
+      this.clearContext();this.s.stage='start';this.s.category=this.detectCategory(x);this.s.intent=detected;
+      return this.directAnswer(x,detected)||this.routeIntent(x,detected);
+    }
+
     // On the opening turn, direct requests should produce an answer rather than
     // a meta-response about how AI could help.
     if(this.s.stage==='start'){
@@ -4583,13 +4589,13 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   practicalProjectFromRequest(text){
     const low=this.normalize(text);
     const action=/\b(?:build|make|construct|assemble|create|start|plant|grow|paint|repaint|repair|fix|tighten)\b/.test(low);
-    if(!action)return null;
+    if(!action && !/\b(?:cabinet|cupboard)\b.*\b(?:door|hinge)\b.*\b(?:loose|wobbly|sagging|broken)\b|\b(?:loose|wobbly|sagging|broken)\b.*\b(?:cabinet|cupboard)\b.*\b(?:hinge|door)\b/.test(low))return null;
     if(/\b(?:birdhouse|bird house)\b/.test(low))return'birdhouse';
     if(/\b(?:bookshelf|book shelf|bookcase|book case)\b/.test(low))return'bookshelf';
     if(/\b(?:room|bedroom|living room|walls)\b/.test(low)&&/\b(?:paint|painting|repaint)\b/.test(low))return'painting';
     if(/\b(?:compost(?:ing)? bin|bin for compost)\b/.test(low))return'compost';
     if(/\b(?:tomato|tomatoes)\b/.test(low)&&/\b(?:plant|grow|start)\b/.test(low))return'tomatoes';
-    if(/\b(?:cabinet|cupboard)\b/.test(low)&&/\b(?:hinge|door)\b/.test(low)&&/\b(?:repair|fix|tighten)\b/.test(low))return'hinge';
+    if(/\b(?:cabinet|cupboard)\b/.test(low)&&/\b(?:hinge|door)\b/.test(low)&&/\b(?:repair|fix|tighten|loose|wobbly|sagging|broken)\b/.test(low))return'hinge';
     return null;
   }
   practicalProjectDetails(kind){
@@ -4670,28 +4676,32 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const info=this.practicalProjectDetails(this.s.practicalKind);
     if(!info)return null;
     const low=this.normalize(text);
+    const nextQuestion=/\b(?:what(?:'s| is|s)? next|next step|then what|and then|what now|what(?:'s| is)? after that|and now|what should i do next|keep going|continue|show the next step)\b/.test(low);
+    const firstQuestion=/\b(?:first step|first thing|what(?:'s| is|s)? first|what should i do first|step one|step 1|where do i start|where should i start|begin)\b/.test(low);
 
     if(this.s.practicalKind==='birdhouse'){
-      const found=low.match(/\b(house wren|bluebird|chickadee|tree swallow)\b/);
+      const found=low.match(/\b(house wren|blue\s*bird|chickadee|tree swallow)\b/);
       if(/\b(?:change the bird|different bird|different species|another bird)\b/.test(low)){
         this.s.birdSpecies='';this.s.projectStep=1;
         return{say:'Sure. We can change the bird without starting over. Would you like a bluebird, a chickadee, or a house wren? The design should match the species.',choices:['Bluebird','Chickadee','House wren']};
       }
-      if(found||/^(?:you choose|choose for me|pick for me|pick one|i don't know|not sure|choose an example)[.!?]*$/.test(low)){
-        this.s.birdSpecies=found?found[1]:'house wren';
+      if(found||/^(?:you choose|choose for me|pick for me|pick one|i don't know(?: what bird| which bird)?|not sure(?: what bird| which bird)?|choose an example)[.!?]*$/.test(low)){
+        this.s.birdSpecies=found?found[1].replace(/blue\s+bird/,'bluebird'):'house wren';
         this.s.projectStep=2;
         return{say:(found?'Great, we’ll use '+this.s.birdSpecies+'. ':'I’ll use a house wren as an example so we can move forward. ')+
           'Step 2 — Find a reliable nesting-box plan for '+this.s.birdSpecies+'. It should specify the dimensions, entrance hole, drainage and ventilation. We do not need to cut anything yet.',
           choices:['What next?','Choose a different bird','Show all steps']};
       }
-      if((this.s.projectStep||0)===1&&!this.s.birdSpecies&&
-        /^(?:what next\??|next step\??|what now\??|then what\??|keep going|continue|show the next step)\.?$/.test(low)){
+      if((this.s.projectStep||0)===1&&!this.s.birdSpecies&&nextQuestion){
         this.s.birdSpecies='house wren';this.s.projectStep=2;
         return{say:'You haven’t chosen a bird, so I’ll use a house wren as an example rather than assume you already picked one. Step 2 — Find a nesting-box plan specifically for a house wren. That gives us the proper entrance-hole size, box dimensions, and drainage details. No cutting yet; you can change the bird at any point.',choices:['What next?','Choose a different bird','Show all steps']};
       }
     }
 
-    if(/\b(?:show (?:me )?(?:all |the )?steps|give me (?:all )?steps|how do i do it|how do i (?:build|make|paint|plant|fix|repair)|walk me through|step by step|full instructions|how to do it)\b/.test(low)){
+    if(this.s.practicalKind==='birdhouse'&&this.s.birdSpecies&&/\b(?:simpler|simple|easier)\b/.test(low)){
+      return{say:'We are using '+this.s.birdSpecies+' as the example. One step: find a nesting-box plan for that bird, then check the entrance-hole size and inside dimensions before cutting wood.',choices:['What next?','Choose a different bird','Show all steps']};
+    }
+    if(/\b(?:show (?:me )?(?:all |the )?steps|give me (?:all )?steps|how do i do it|how do i fix it|how do i (?:build|make|paint|plant|fix|repair)|walk me through|step by step|full instructions|how to do it)\b/.test(low)){
       this.s.projectStep=Math.max(1,this.s.projectStep||0);
       return{say:'Here are the main steps for '+info.topic+':\n'+info.steps,choices:['Make it simpler','Give me the first step','What materials do I need?']};
     }
@@ -4701,11 +4711,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:info.simple,choices:['What next?','Show all steps','What materials do I need?']};
     if(/\b(?:stuck|not working|i tried|doesn't work|confused)\b/.test(low))
       return{say:info.stuck,choices:['Make it simpler','What next?','Show all steps']};
-    if(/\b(?:first step|start|begin|where do i start|where should i start)\b/.test(low)){
+    if(firstQuestion||/\b(?:start|begin)\b/.test(low)){
       this.s.projectStep=1;
       return{say:'Step 1 — '+info.first.replace(/^First,\s*/i,''),choices:['What next?','What materials do I need?','Make it simpler']};
     }
-    if(/\b(?:what next|next step|then what|what now|keep going|continue)\b/.test(low)){
+    if(nextQuestion){
       const steps=Array.from(info.steps.matchAll(/\b(\d+)\)\s*(.*?)(?=\s+\d+\)\s|$)/g),m=>m[2]);
       if((this.s.projectStep||0)>=steps.length){
         return{say:'Those are the main instructions for '+info.topic+'. Before using the result, check stability, fit and any safety points described in the steps. You can review materials or ask about a specific step.',choices:['Show all steps','What materials do I need?','Make it simpler']};
