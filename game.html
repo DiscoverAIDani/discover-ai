@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: generic-link-followups-v28</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: birthday-dinner-corrections-v29</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2107,7 +2107,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;this.s.weekAppointment=null;this.s.trustContext=null;return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;this.s.weekAppointment=null;this.s.trustContext=null;this.s.birthdayDinnerContext=null;return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -3700,6 +3700,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const emergencyReply=()=>({say:'This could be a life-threatening allergic reaction. Call emergency services now (911 in the U.S.). If you have a prescribed epinephrine auto-injector, use it immediately as directed while getting emergency help. Do not drive yourself or wait for another reply from this practice game. Emergency evaluation is needed even if symptoms improve.',choices:[]});
     if(emergency){this.clearContext();this.s.stage='emergencyAdvice';this.s.intent='safety';this.s.topic='urgent symptoms';return emergencyReply();}
     if(this.s.stage==='emergencyAdvice'&&/\b(?:what now|what should|what do|should i|still|help|ambulance|epinephrine|epipen|911|wait)\b/.test(low))return emergencyReply();
+    // Birthday dinner is an occasion/guest planning task, not an automatic recipe request.
+    const birthdayFollowup=this.birthdayDinnerFollowup(text);if(birthdayFollowup)return birthdayFollowup;
+    const birthdayStart=this.birthdayDinnerStart(text);if(birthdayStart)return birthdayStart;
     if(this.s.stage==='workHoursCalculation'){const a=this.workFollowup(text);if(a)return a;}
     if(this.isWorkHoursQuestion(text))return this.workStart(text);
     if(this.s.stage==='sharedBillMath'){const a=this.sharedBillFollowup(text);if(a)return a;}
@@ -4965,6 +4968,66 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     return null;
   }
 
+
+
+  birthdayDinnerCount(text){
+    const q=this.normalize(text);
+    const num='(\\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)';
+    const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12};
+    const patterns=[
+      new RegExp('\\bnot\\s+(?:\\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\\s*(?:people|guests)?\\s*(?:but|rather|instead)\\s+'+num+'\\b'),
+      new RegExp('\\b(?:for|to|with|now|only|just|actually|make it|change it to|change to|we have|we are|we\\x27re|there are|it\\x27s|it is|i meant)\\s+(?:a total of\\s+|going to be\\s+|just\\s+|only\\s+|for\\s+)?'+num+'\\b'),
+      new RegExp('\\b'+num+'\\s+(?:people|persons?|guests?|attendees?|diners?|of us)\\b')
+    ];
+    let value=null;
+    for(const pattern of patterns){const m=q.match(pattern);if(m){value=m[1];break}}
+    if(!value)return null;
+    const v=words[value]||Number(value);
+    return v>=1&&v<=30?v:null;
+  }
+  birthdayDinnerStart(text){
+    const q=this.normalize(text);
+    if(!/\bbirthday\b/.test(q)||!/\bdinner\b/.test(q))return null;
+    if(/\b(?:write|draft|compose|send|invitation|invite|caption|post|message|card)\b/.test(q)&&!/\b(?:plan|planning|organize|arrange|host|hosting)\b/.test(q))return null;
+    const count=this.birthdayDinnerCount(text);
+    this.clearContext();this.s.category='everyday';this.s.intent='dinner';this.s.topic='birthday dinner';this.s.stage='birthdayDinner';
+    this.s.birthdayDinnerContext={count:count,place:null};
+    this.s.servings=count||0;
+    return count?{
+      say:'I can help plan a birthday dinner for '+count+' '+(count===1?'person':'people')+'. Would you like to eat at a restaurant, cook at home, or order food? We can plan around the occasion and guest count without assuming ingredients.',
+      choices:['At a restaurant','Cook at home','Order food']
+    }:{
+      say:'I can help plan the birthday dinner. How many people will be attending? Then we can decide between a restaurant, cooking at home or ordering food.',
+      choices:['4 people','6 people','8 people']
+    };
+  }
+  birthdayDinnerFollowup(text){
+    const ctx=this.s.birthdayDinnerContext;
+    if(!ctx||this.s.stage!=='birthdayDinner')return null;
+    const q=this.normalize(text);
+    const candidate=this.birthdayDinnerCount(text);
+    const correction=/\b(?:actually|instead|sorry|oops|wait|i meant|make it|change|now|only)\b/.test(q)||this.correction(text);
+    const guestLabel=/\b(?:people|persons?|guests?|attendees?|diners?|of us)\b/.test(q);
+    if(candidate&&(correction||guestLabel||ctx.count===null)){
+      const old=ctx.count;ctx.count=candidate;this.s.servings=candidate;
+      const revised=candidate+' '+(candidate===1?'person':'people');
+      if(old===candidate)return{say:'Yes, the birthday dinner is still for '+revised+'. '+(ctx.place?'We are also keeping the '+ctx.place+' plan.':'We have not chosen where to eat yet.'),choices:['Review the plan','Change dining option']};
+      return{say:(old?'Got it — I’ve updated the birthday dinner from '+old+' people to '+revised+'. ':'Got it — the birthday dinner is for '+revised+'. ')+(ctx.place?'I’m keeping the '+ctx.place+' plan; the previous guest count is replaced.':'I’ll use the updated count from now on. Are you eating at a restaurant, cooking at home, or ordering food?'),choices:ctx.place?['Review the plan','Change dining option']:['At a restaurant','Cook at home','Order food']};
+    }
+    if(/\b(?:restaurant|dine out|dining out|eat out|eating out)\b/.test(q)){
+      ctx.place='restaurant';return{say:'Great — we’re planning a restaurant birthday dinner'+(ctx.count?' for '+ctx.count+' people':'')+'. What city or area should we consider? This game cannot check live reservations.',choices:['Choose an area','Set a budget','Review the plan']};
+    }
+    if(/\b(?:cook|cooking|home|homemade|at our house|at my house)\b/.test(q)){
+      ctx.place='home-cooked';return{say:'Great — we’re planning a home-cooked birthday dinner'+(ctx.count?' for '+ctx.count+' people':'')+'. Are there any dietary needs or a budget to consider before choosing the menu?',choices:['Dietary needs','Set a budget','Suggest a menu']};
+    }
+    if(/\b(?:order|takeout|take-out|delivery|cater|catering)\b/.test(q)){
+      ctx.place='ordered food';return{say:'Great — we’re planning to order food for the birthday dinner'+(ctx.count?' for '+ctx.count+' people':'')+'. What kind of food and budget would you prefer?',choices:['Pizza','A mixed menu','Set a budget']};
+    }
+    if(/\b(?:how many|number of|guest count|recap|summari[sz]e|review the plan|what (?:did|do) (?:i|you|we) say)\b/.test(q)){
+      return{say:'The current birthday dinner plan is for '+(ctx.count?ctx.count+' people':'an unspecified number of guests')+'. Dining option: '+(ctx.place||'not chosen yet')+'. I’m using the latest guest count, not the earlier one.',choices:ctx.place?['What should we decide next?','Change dining option']:['At a restaurant','Cook at home','Order food']};
+    }
+    return null;
+  }
 
   trustFollowup(input){
     const q=this.normalize(input),ctx=this.s.trustContext;
