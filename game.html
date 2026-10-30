@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: birthday-restaurant-context-v30</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: dining-context-stress-v31</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -4994,7 +4994,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       /\b(?:cook|cooking|cooked|home-cooked|homemade|at home|host at home)\b/.test(q)?'home-cooked':
       /\b(?:order food|ordering food|takeout|take-out|delivery|catered|catering)\b/.test(q)?'ordered food':null;
     this.clearContext();this.s.category='everyday';this.s.intent='dinner';this.s.topic='birthday dinner';this.s.stage='birthdayDinner';
-    this.s.birthdayDinnerContext={count:count,place:place};
+    this.s.birthdayDinnerContext={count:count,place:place,cuisine:null,ambience:null,budget:null,area:null};
     this.s.servings=count||0;
     if(place==='restaurant')return{
       say:'I can help plan a birthday dinner at a restaurant'+(count?' for '+count+' people':'')+'. '+(count?'What city or area should we consider? We can then narrow cuisine, atmosphere and budget.':'How many people will attend? Then we can choose the location and preferences.')+' This game cannot check live reservations.',
@@ -5039,7 +5039,24 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       ctx.place='ordered food';return{say:'Great — we’re planning to order food for the birthday dinner'+(ctx.count?' for '+ctx.count+' people':'')+'. What kind of food and budget would you prefer?',choices:['Pizza','A mixed menu','Set a budget']};
     }
     if(/\b(?:how many|number of|guest count|recap|summari[sz]e|review the plan|what (?:did|do) (?:i|you|we) say)\b/.test(q)){
-      return{say:'The current birthday dinner plan is for '+(ctx.count?ctx.count+' people':'an unspecified number of guests')+'. Dining option: '+(ctx.place||'not chosen yet')+'. I’m using the latest guest count, not the earlier one.',choices:ctx.place?['What should we decide next?','Change dining option']:['At a restaurant','Cook at home','Order food']};
+      return{say:'The current birthday dinner plan is for '+(ctx.count?ctx.count+' people':'an unspecified number of guests')+'. Dining option: '+(ctx.place||'not chosen yet')+'. '+(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'')+' I’m using the latest guest count, not the earlier one.',choices:ctx.place?['What should we decide next?','Change dining option']:['At a restaurant','Cook at home','Order food']};
+    }
+    const cuisine=(q.match(/\b(italian|mexican|thai|chinese|japanese|indian|mediterranean|korean|vietnamese|american|seafood|steakhouse|sushi|pizza|vegetarian|vegan|french|greek)\b/)||[])[1];
+    const ambience=(q.match(/\b(quiet|casual|upscale|romantic|family-friendly|relaxed|laid-back)\b/)||[])[1];
+    const budget=(q.match(/\$\s*(\d{2,6})/)||[])[1];
+    const area=(q.match(/\b(?:in|near|around)\s+(sacramento|citrus heights|roseville|folsom|fair oaks|rocklin|rancho cordova|elk grove|antelope|san francisco|los angeles|monterey|seattle|chicago|oakland|berkeley|san jose)\b/)||[])[1]||
+      (/^(?:sacramento|citrus heights|roseville|folsom|fair oaks|rocklin|rancho cordova|elk grove|antelope|san francisco|los angeles|monterey|seattle|chicago|oakland|berkeley|san jose)$/.test(q)?q:null);
+    if(cuisine||ambience||budget||area){
+      if(cuisine)ctx.cuisine=cuisine;
+      if(ambience)ctx.ambience=ambience;
+      if(budget)ctx.budget=(/\b(?:under|below|less than)\b/.test(q)?'under $':'$')+budget;
+      if(area)ctx.area=area;
+      const parts=(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'');
+      return{say:'I’ve kept the birthday dinner for '+(ctx.count||'an unspecified number of')+' people'+(ctx.place?' at a '+ctx.place+' setting':'')+'.'+parts+(ctx.place==='restaurant'&&!ctx.area?' What city or area should we consider?':' The other details remain unchanged.'),choices:['Review the plan','Change guest count','Change a preference']};
+    }
+    if(/\b(?:what'?s our plan|what do we have so far|what have we decided|recap the details|summari[sz]e our plan)\b/.test(q)){
+      const parts=(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'');
+      return{say:'Birthday dinner for '+(ctx.count||'an unspecified number of')+' people. Dining: '+(ctx.place||'not chosen')+'.'+parts,choices:['Change a preference','What is next?']};
     }
     return null;
   }
