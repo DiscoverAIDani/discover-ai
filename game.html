@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: project-step-quality-v14</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: birdhouse-context-v15</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -4597,8 +4597,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       birdhouse:{
         topic:'building a birdhouse',
         first:'First, decide which local bird you want to attract. Different species need different entrance-hole sizes and interior dimensions. Choose a simple birdhouse design appropriate for that species before cutting wood.',
-        next:'Before cutting, find a nesting-box plan matched to the bird species you want. If you have not chosen a species yet, that decision still comes first. With the plan in hand, mark the front, back, sides, floor, roof and entrance hole on untreated wood. Check measurements before cutting the panels; assembly and mounting come later.',
-        steps:'1) Pick a local cavity-nesting bird and find a correctly sized birdhouse plan. 2) Mark and cut untreated wooden panels and the species-appropriate entrance hole. 3) Sand sharp edges and add drainage and ventilation. 4) Fasten panels securely and make one side openable for cleaning. 5) Mount in a suitable protected location, following local wildlife guidance.',
+        next:'Find a reliable nesting-box plan made for your chosen bird species. Check the suggested entrance-hole size, interior dimensions, drainage and ventilation before marking or cutting any wood.',
+        steps:'1) Choose a local cavity-nesting bird species. 2) Find a reliable nesting-box plan for that species. 3) Measure, mark and cut untreated wooden panels and the appropriate entrance hole according to the plan. 4) Sand sharp edges, add drainage and ventilation, and fasten panels with one side that opens for cleaning. 5) Mount in a suitable protected location, following local wildlife guidance.',
         materials:'Untreated exterior-suitable lumber, a birdhouse plan, measuring tape, pencil, saw, exterior screws, drill, sandpaper and eye protection. Avoid treated interior surfaces and decorative perches that can aid predators.',
         stuck:'If the dimensions are confusing, start by choosing a bird species. Use a nesting-box plan for that species rather than guessing the hole diameter.',
         simple:'Start with one decision: which bird is the house for? That determines the box size and entrance hole.'
@@ -4655,7 +4655,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const info=this.practicalProjectDetails(kind);
     if(!info)return null;
     this.clearContext();this.s.category='everyday';this.s.intent='plan';this.s.taskType='plan';
-    this.s.stage='practicalProject';this.s.practicalKind=kind;this.s.projectStep=0;this.s.topic=info.topic;
+    this.s.stage='practicalProject';this.s.practicalKind=kind;this.s.projectStep=0;this.s.topic=info.topic;this.s.birdSpecies='';
     const introductions={
       birdhouse:'We can build a birdhouse together, one manageable step at a time. We’ll choose a bird-appropriate design, prepare the pieces, assemble a weather-ready box, and pick a safe location. The first decision is which bird you want it for.',
       bookshelf:'We can build a simple bookshelf in stages: plan its size and load, select boards, assemble it, and secure it against tipping. We’ll start with the space where it will go.',
@@ -4670,6 +4670,27 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const info=this.practicalProjectDetails(this.s.practicalKind);
     if(!info)return null;
     const low=this.normalize(text);
+
+    if(this.s.practicalKind==='birdhouse'){
+      const found=low.match(/\b(house wren|bluebird|chickadee|tree swallow)\b/);
+      if(/\b(?:change the bird|different bird|different species|another bird)\b/.test(low)){
+        this.s.birdSpecies='';this.s.projectStep=1;
+        return{say:'Sure. We can change the bird without starting over. Would you like a bluebird, a chickadee, or a house wren? The design should match the species.',choices:['Bluebird','Chickadee','House wren']};
+      }
+      if(found||/^(?:you choose|choose for me|pick for me|pick one|i don't know|not sure|choose an example)[.!?]*$/.test(low)){
+        this.s.birdSpecies=found?found[1]:'house wren';
+        this.s.projectStep=2;
+        return{say:(found?'Great, we’ll use '+this.s.birdSpecies+'. ':'I’ll use a house wren as an example so we can move forward. ')+
+          'Step 2 — Find a reliable nesting-box plan for '+this.s.birdSpecies+'. It should specify the dimensions, entrance hole, drainage and ventilation. We do not need to cut anything yet.',
+          choices:['What next?','Choose a different bird','Show all steps']};
+      }
+      if((this.s.projectStep||0)===1&&!this.s.birdSpecies&&
+        /^(?:what next\??|next step\??|what now\??|then what\??|keep going|continue|show the next step)\.?$/.test(low)){
+        this.s.birdSpecies='house wren';this.s.projectStep=2;
+        return{say:'You haven’t chosen a bird, so I’ll use a house wren as an example rather than assume you already picked one. Step 2 — Find a nesting-box plan specifically for a house wren. That gives us the proper entrance-hole size, box dimensions, and drainage details. No cutting yet; you can change the bird at any point.',choices:['What next?','Choose a different bird','Show all steps']};
+      }
+    }
+
     if(/\b(?:show (?:me )?(?:all |the )?steps|give me (?:all )?steps|how do i do it|how do i (?:build|make|paint|plant|fix|repair)|walk me through|step by step|full instructions|how to do it)\b/.test(low)){
       this.s.projectStep=Math.max(1,this.s.projectStep||0);
       return{say:'Here are the main steps for '+info.topic+':\n'+info.steps,choices:['Make it simpler','Give me the first step','What materials do I need?']};
