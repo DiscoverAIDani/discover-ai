@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: meal-correction-stress-v33</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: dining-wide-stress-v34</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -5003,6 +5003,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const num='(\\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)';
     const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12};
     const patterns=[
+      new RegExp('\\b(?:group|party)\\s+of\\s+'+num+'\\b'),
+      new RegExp('\\b(?:down to|up to|increased to|decreased to)\\s+'+num+'\\b'),
       new RegExp('\\bnot\\s+(?:\\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\\s*(?:people|guests)?\\s*(?:but|rather|instead)\\s+'+num+'\\b'),
       new RegExp('\\b(?:for|to|with|now|only|just|actually|make it|change it to|change to|we have|we are|we\\x27re|there are|it\\x27s|it is|i meant)\\s+(?:a total of\\s+|going to be\\s+|just\\s+|only\\s+|for\\s+)?'+num+'\\b'),
       new RegExp('\\b'+num+'\\s+(?:people|persons?|guests?|attendees?|diners?|of us)\\b')
@@ -5013,19 +5015,34 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const v=words[value]||Number(value);
     return v>=1&&v<=30?v:null;
   }
+  birthdayDinnerPreferences(text){
+    const q=this.normalize(text).replace(/[.!?]+$/,'').trim();
+    const list=[...q.matchAll(/\b(italian|mexican|thai|chinese|japanese|indian|mediterranean|korean|vietnamese|american|seafood|steakhouse|sushi|pizza|vegetarian|vegan|french|greek)\b/g)].map(x=>x[1]);
+    const cuisine=list.length?list[/\b(?:not|instead|rather than|change|actually)\b/.test(q)?list.length-1:0]:null;
+    const ambience=(q.match(/\b(quiet|casual|upscale|romantic|family-friendly|relaxed|laid-back)\b/)||[])[1]||null;
+    const money=q.match(/\b(under|below|less than|up to|budget(?:\s+(?:is|of))?|max(?:imum)?)\s*\$?\s*(\d{2,6})\b/);
+    const bare=q.match(/\$\s*(\d{2,6})/);
+    const budget=money?((/^(?:under|below|less than)$/.test(money[1])?'under $':'$')+money[2]):bare?'$'+bare[1]:null;
+    const known='sacramento|citrus heights|roseville|folsom|fair oaks|rocklin|rancho cordova|elk grove|antelope|san francisco|los angeles|monterey|seattle|chicago|oakland|berkeley|san jose|new york|boston|portland|denver|austin';
+    const area=(q.match(new RegExp('\\b(?:in|near|around)\\s+('+known+')\\b'))||[])[1]||(new RegExp('^('+known+')$').test(q)?q:null);
+    return{cuisine,ambience,budget,area:area||null};
+  }
+
   birthdayDinnerStart(text){
     const q=this.normalize(text);
     if(!/\bbirthday\b/.test(q)||!/\bdinner\b/.test(q))return null;
     if(/\b(?:write|draft|compose|send|invitation|invite|caption|post|message|card)\b/.test(q)&&!/\b(?:plan|planning|organize|arrange|host|hosting)\b/.test(q))return null;
     const count=this.birthdayDinnerCount(text);
+    const prefs=this.birthdayDinnerPreferences(text);
     const place=/\b(?:restaurant|dine out|dining out|eat out|eating out)\b/.test(q)?'restaurant':
       /\b(?:cook|cooking|cooked|home-cooked|homemade|at home|host at home)\b/.test(q)?'home-cooked':
       /\b(?:order food|ordering food|takeout|take-out|delivery|catered|catering)\b/.test(q)?'ordered food':null;
     this.clearContext();this.s.category='everyday';this.s.intent='dinner';this.s.topic='birthday dinner';this.s.stage='birthdayDinner';
-    this.s.birthdayDinnerContext={count:count,place:place,cuisine:null,ambience:null,budget:null,area:null};
+    this.s.birthdayDinnerContext={count:count,place:place,...prefs};
     this.s.servings=count||0;
+    const known=(prefs.cuisine?' Cuisine: '+prefs.cuisine+'.':'')+(prefs.ambience?' Atmosphere: '+prefs.ambience+'.':'')+(prefs.budget?' Budget: '+prefs.budget+'.':'')+(prefs.area?' Area: '+prefs.area+'.':'');
     if(place==='restaurant')return{
-      say:'I can help plan a birthday dinner at a restaurant'+(count?' for '+count+' people':'')+'. '+(count?'What city or area should we consider? We can then narrow cuisine, atmosphere and budget.':'How many people will attend? Then we can choose the location and preferences.')+' This game cannot check live reservations.',
+      say:'I can help plan a birthday dinner at a restaurant'+(count?' for '+count+' people':'')+'.'+known+' '+(!count?'How many people will attend?':prefs.area?'What else matters: dietary needs, food preferences or timing?':'What city or area should we consider?')+' This game cannot check live reservations.',
       choices:count?['Choose an area','Set a budget','Choose a cuisine']:['4 people','6 people','8 people']
     };
     if(place==='home-cooked')return{
@@ -5069,15 +5086,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/\b(?:how many|number of|guest count|recap|summari[sz]e|review the plan|what (?:did|do) (?:i|you|we) say)\b/.test(q)){
       return{say:'The current birthday dinner plan is for '+(ctx.count?ctx.count+' people':'an unspecified number of guests')+'. Dining option: '+(ctx.place||'not chosen yet')+'. '+(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'')+' I’m using the latest guest count, not the earlier one.',choices:ctx.place?['What should we decide next?','Change dining option']:['At a restaurant','Cook at home','Order food']};
     }
-    const cuisine=(q.match(/\b(italian|mexican|thai|chinese|japanese|indian|mediterranean|korean|vietnamese|american|seafood|steakhouse|sushi|pizza|vegetarian|vegan|french|greek)\b/)||[])[1];
-    const ambience=(q.match(/\b(quiet|casual|upscale|romantic|family-friendly|relaxed|laid-back)\b/)||[])[1];
-    const budget=(q.match(/\$\s*(\d{2,6})/)||[])[1];
-    const area=(q.match(/\b(?:in|near|around)\s+(sacramento|citrus heights|roseville|folsom|fair oaks|rocklin|rancho cordova|elk grove|antelope|san francisco|los angeles|monterey|seattle|chicago|oakland|berkeley|san jose)\b/)||[])[1]||
-      (/^(?:sacramento|citrus heights|roseville|folsom|fair oaks|rocklin|rancho cordova|elk grove|antelope|san francisco|los angeles|monterey|seattle|chicago|oakland|berkeley|san jose)$/.test(q)?q:null);
+    const {cuisine,ambience,budget,area}=this.birthdayDinnerPreferences(text);
     if(cuisine||ambience||budget||area){
       if(cuisine)ctx.cuisine=cuisine;
       if(ambience)ctx.ambience=ambience;
-      if(budget)ctx.budget=(/\b(?:under|below|less than)\b/.test(q)?'under $':'$')+budget;
+      if(budget)ctx.budget=budget;
       if(area)ctx.area=area;
       const parts=(ctx.area?' Area: '+ctx.area+'.':'')+(ctx.cuisine?' Cuisine: '+ctx.cuisine+'.':'')+(ctx.ambience?' Atmosphere: '+ctx.ambience+'.':'')+(ctx.budget?' Budget: '+ctx.budget+'.':'');
       return{say:'I’ve kept the birthday dinner for '+(ctx.count||'an unspecified number of')+' people'+(ctx.place?' at a '+ctx.place+' setting':'')+'.'+parts+(ctx.place==='restaurant'&&!ctx.area?' What city or area should we consider?':' The other details remain unchanged.'),choices:['Review the plan','Change guest count','Change a preference']};
