@@ -207,7 +207,7 @@ main{padding:12px 0 28px}
   <div class="reward-row" id="rewardRow"></div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
   <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: contextual-needs-v1</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: contextual-weekend-v2</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -1617,7 +1617,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(needsQuestion){
       const prior=this.normalize((this.s.userTurns||[]).slice(0,-1).join(' '));
       const topic=this.normalize(this.s.topic||'');
-      const hasBudget=/\$\s*\d|\b(?:budget|free|no cost|no spending|inexpensive|cheap|low[- ]cost|under \d+|spend \d+)\b/.test(prior);
+      const hasBudget=/\$\s*\d|\b(?:budget|free|no cost|no spending|no money|inexpensive|cheap|low[- ]cost|under \d+|spend \d+|without spending|avoid (?:all |any )?spending|or cost)\b/.test(prior);
       const parts=[];
       const reply=(choices)=>({say:parts.length
         ?'You already told me the goal is '+this.topicLabel()+'. To tailor it, the useful missing details are: '+parts.map((v,i)=>(i+1)+') '+v).join('; ')+'. You can give me just one detail, or say "choose for me" and I’ll make a reasonable starter plan without inventing personal facts.'
@@ -1682,6 +1682,35 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       const source=this.extractTransformSource(raw);
       if(source){this.s.transformSource=source;this.s.transformItems=this.splitTransformItems(source);return{say:this.renderTransform(this.s.transformFormat,this.s.transformItems,source),choices:['Prioritize it','Change the format','Add another item']};}
       return{say:'I’ll keep working with the same information instead of starting over. Tell me whether you want to add or remove an item, change the format, or put the most urgent items first.',choices:['Prioritize it','Change the format','Add another item']};
+    }
+    // Turn relaxing-weekend preferences into a usable plan, not another generic acknowledgment.
+    if(type==='plan' && /\bweekend\b/.test(this.normalize(this.s.topic||'')) && /\b(?:relax|relaxing|rest|restful|unwind|easygoing|low[- ]key)\b/.test(this.normalize(this.s.topic||''))){
+      const said=this.normalize((this.s.userTurns||[]).join(' '));
+      const home=/\b(?:stay(?:ing)? (?:at )?home|at home|indoors?|inside)\b/.test(said);
+      const outing=/\b(?:go(?:ing)? out|outings?|include an outing|outdoors?)\b/.test(said);
+      const free=/\b(?:free|no cost|no spending|no money|without spending|avoid (?:all |any )?spending|or cost)\b/.test(said);
+      const books=/\b(?:read|reading|books?)\b/.test(said);
+      const music=/\b(?:music|playlist|listen)\b/.test(said);
+      const crowds=/\b(?:no crowds?|avoid crowds?|not crowded)\b/.test(said);
+      if(/\b(?:build|make|show|give|write)\b.*\b(?:plan|schedule|itinerary)\b|^(?:choose for me|pick for me|just plan it|plan it|plan the weekend|build it|show the plan)$/.test(low)){
+        const saturday=home&&!outing
+          ?'Saturday: enjoy a slow morning, spend some time '+(books?'reading':'on one quiet activity you like')+', and leave the afternoon open for rest or a simple hobby'
+          :outing?'Saturday: take a slow morning, then pick just one easy outing such as a short walk or nearby park, without overfilling the day'
+          :'Saturday: have an unhurried morning and choose one optional activity, at home or outdoors';
+        const sunday=music?'Sunday: enjoy some music, rest during the afternoon, and prepare only what you need for the coming week'
+          :'Sunday: leave the morning open, enjoy an unhurried afternoon, and do only a little preparation for the coming week';
+        return{say:saturday+'. '+sunday+'.'+(free?' Keep the activities free and use what you already have.':'')+(crowds?' Avoid crowded places.':'')+' This is a flexible starting plan, not a rigid schedule.',choices:['Make Saturday more detailed','Make Sunday simpler','Add an activity']};
+      }
+      if(/\b(?:simpler|shorter|less busy|less packed|too much)\b/.test(low))
+        return{say:'Simpler version: Saturday—one enjoyable activity and plenty of free time. Sunday—rest and a little preparation for the week. Everything else is optional.',choices:['Build the plan','Add an activity','Keep it free']};
+      if(/^(?:stay home|stay at home|at home|keep it at home|indoors?|go out|include an outing|keep it free|free|no spending|no cost|mix of both|some of both)\b/.test(low)
+         ||/\b(?:want to stay home|prefer to stay home|would rather stay home|want to go out|prefer going out|avoid crowds|no crowds)\b/.test(low)){
+        const msg=/\b(?:free|no cost|no spending)\b/.test(low)?'Free works. I’ll use activities that do not require spending money or reservations.'
+          :/\b(?:home|indoors?)\b/.test(low)?'Staying home works. We can make both days low-pressure, with one restful activity and plenty of open time.'
+          :/\b(?:go out|outing)\b/.test(low)?'An easy outing works. We can keep one optional activity outside and leave the rest of the weekend flexible.'
+          :'Got it. I’ll use those preferences for the weekend.';
+        return{say:msg+' You can build the plan now or add another preference.',choices:['Build the plan','Add another detail','Make it simpler']};
+      }
     }
     if(this.uncertain(raw)){
       if(type==='organize')return{say:`No problem. I’ll choose a simple place to start with ${this.s.topic}: pick one small area or category, spend 10 minutes separating keep/do-now, later, and remove/ignore, then stop and see what changed.`,choices:['Give me the first step','Make a checklist','Keep it very simple']};
