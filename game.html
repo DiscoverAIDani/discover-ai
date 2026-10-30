@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: context-negation-stress-v35</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: safety-exposure-stress-v36</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2107,7 +2107,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;this.s.weekAppointment=null;this.s.trustContext=null;this.s.birthdayDinnerContext=null;return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;this.s.weekAppointment=null;this.s.trustContext=null;this.s.birthdayDinnerContext=null;this.s.sensitiveExposureContext=null;return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -3667,6 +3667,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const low=this.normalize(text);
     // A new, clearly unrelated task should be handled by normal topic switching.
     if(/\b(?:plan|recipe|dinner|trip|grocery|workshop|printer|wifi|wi-fi)\b/.test(low)&&!/\b(?:bank|scam|phishing|link|text|account|password|message)\b/.test(low))return null;
+    if(this.s.securityContext.credentialsShared===true&&/\b(?:what (?:do|should|can) i do|what now|what next|what should i check|how (?:do|can) i secure|secure my account)\b/.test(low))
+      return{say:'Since you said you entered a banking password on the suspicious page, contact your bank fraud or security team promptly through the official app or number on your card, change that password through the official service, review account transactions and recent sign-ins, and ask about ending unfamiliar sessions. Change it on any other accounts where it was reused. Do not share more codes or use the suspicious link.',choices:['How do I report it?','What if I reused the password?']};
     const entered=/\b(?:(?:i|and|then)\s+(?:(?:already|just)\s+)?(?:entered|shared|gave|typed|submitted)\s+(?:(?:my|the|a)\s+)?(?:banking\s+)?(?:password|passcode|verification code|security code)|i gave (?:them|it) (?:my|a) (?:password|code))\b/.test(low);
     if(entered){this.s.securityContext.credentialsShared=true;return this.bankPhishingAfterAction(true,this.s.securityContext.clicked)}
     const clicked=/\b(?:i (?:already |just )?(?:clicked|tapped|opened)(?: (?:the|that|a))? (?:link|website)|clicked (?:it|the link)|opened (?:it|the link))\b/.test(low);
@@ -3703,12 +3705,32 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     // Birthday dinner is an occasion/guest planning task, not an automatic recipe request.
     const birthdayFollowup=this.birthdayDinnerFollowup(text);if(birthdayFollowup)return birthdayFollowup;
     const birthdayStart=this.birthdayDinnerStart(text);if(birthdayStart)return birthdayStart;
-    if(/\b(?:i|we)\s+(?:(?:already|just|accidentally|mistakenly)\s+)?(?:took|taken|swallowed)\s+(?:two|2|double|an extra)\s+(?:doses?|pills?|tablets?)\b/.test(low)&&/\b(?:medicine|medication|prescription|doses?|pills?|tablets?)\b/.test(low)){
+    // Reported overdoses and hypothetical dosing questions are different contexts.
+    const hypotheticalDose=/^(?:what if|suppose|if i|what should i do if|what happens if|is it dangerous if)\b/.test(low);
+    const doseReported=/\b(?:i|we)\s+(?:(?:already|just|accidentally|mistakenly)\s+)?(?:took|taken|swallowed|have taken)\s+(?:(?:two|2|double|an extra)\s+(?:doses?|pills?|tablets?)|(?:a\s+)?double dose|(?:my|the|a)\s+(?:medicine|medication|prescription|pills?|tablets?)\s+twice|twice\s+(?:my|the|a)\s+(?:usual|prescribed)?\s*dose)\b/.test(low)||
+      /\b(?:i|we)\s+(?:(?:already|just|accidentally|mistakenly)\s+)?(?:took|taken|swallowed)\s+(?:an?\s+)?extra\s+dose\b/.test(low);
+    const doseHypothetical=/\b(?:took|take|taken)\s+(?:an?\s+)?(?:extra|double)\s+dose\b|\btook\s+(?:two|2)\s+doses?\b/.test(low);
+    if(doseReported||hypotheticalDose&&doseHypothetical){
       this.clearContext();this.s.stage='accidentalDoseAdvice';this.s.intent='safety';this.s.topic='possible extra medication dose';
-      return{say:'Because you said you took an extra medication dose, get prompt individualized advice from a pharmacist or Poison Control (U.S.: 1-800-222-1222). The risk depends on the medicine, strength, amount and timing. Do not take an additional dose until a qualified professional advises you. For severe symptoms, call emergency services. This practice game cannot assess overdose risk.',choices:['What details should I have ready?']};
+      this.s.doseIncidentConfirmed=!hypotheticalDose;
+      return{say:(hypotheticalDose?'If someone may have taken an extra dose, ':'Because you said you took an extra medication dose, ')+
+        'contact a pharmacist or Poison Control promptly for advice based on the exact medicine, strength, amount and timing (U.S.: 1-800-222-1222). Do not take an additional dose until a qualified professional gives individualized instructions. For trouble breathing, collapse, seizures or severe symptoms, call emergency services. This game cannot assess the risk of an overdose.',choices:['What details should I have ready?','What if they feel fine?']};
     }
     if(this.s.stage==='accidentalDoseAdvice'&&/\b(?:what|should|can|take|dose|details|next|more|another|help|when)\b/.test(low))
-      return{say:'Contact Poison Control (U.S.: 1-800-222-1222), a pharmacist, or your treating clinician promptly with the medication name, strength, doses and times taken. Do not take more until you receive individualized advice. For severe symptoms, call emergency services.',choices:['What details should I have ready?']};
+      return{say:'Contact Poison Control (U.S.: 1-800-222-1222), a pharmacist, or a clinician promptly with the medication name, strength, number of doses and times taken. Do not take more until you receive individualized advice. For severe symptoms, call emergency services. This game cannot determine the next dose.',choices:['What details should I have ready?']};
+    // Respond to a first-turn report of an already shared verification code.
+    const codeShared=/\b(?:i|we)\s+(?:(?:already|just|accidentally|mistakenly)\s+)?(?:shared|sent|gave|provided|submitted)\s+(?:(?:a|my|the|an)\s+)?(?:one[- ]time|verification|security|login)?\s*code\b/.test(low);
+    if(codeShared&&!/^(?:what if|suppose|if i)\b/.test(low)){
+      this.s.trustContext={kind:'verification-code',shared:true};this.s.stage='trustAdvice';this.s.intent='safety';this.s.topic='shared verification code';
+      return{say:'Because you said you already shared a verification code, stop responding to the requester and contact the affected service through its official app or website. Review recent sign-ins, recovery settings and account security; change credentials or end unfamiliar sessions if the service advises. Do not share another code. This game cannot verify whether anyone accessed the account.',choices:['How do I secure the account?','How do I report the message?']};
+    }
+    const exposedType=this.reportedSensitiveExposure(text);
+    if(exposedType){
+      this.clearContext();this.s.sensitiveExposureContext={kind:exposedType};this.s.stage='sensitiveExposureAdvice';this.s.intent='safety';this.s.topic='personal information exposure';
+      return{say:this.sensitiveExposureAdvice(exposedType),choices:['What should I do next?','How do I report it?']};
+    }
+    if(this.s.stage==='sensitiveExposureAdvice'&&/\b(?:what|how|should|next|report|secure|now|help|freeze|account|someone|scam)\b/.test(low))
+      return{say:this.sensitiveExposureAdvice(this.s.sensitiveExposureContext?.kind||'personal'),choices:['How do I report it?','What if other information was exposed?']};
     if(this.s.stage==='workHoursCalculation'){const a=this.workFollowup(text);if(a)return a;}
     if(this.isWorkHoursQuestion(text))return this.workStart(text);
     if(this.s.stage==='sharedBillMath'){const a=this.sharedBillFollowup(text);if(a)return a;}
@@ -5103,6 +5125,23 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     return null;
   }
 
+
+  reportedSensitiveExposure(text){
+    const q=this.normalize(text);
+    if(/^(?:please\s+)?(?:write|draft|create|compose|invent|generate|what if|suppose|if i)\b/.test(q))return null;
+    const did=/\b(?:i|we)\s+(?:(?:already|accidentally|just|mistakenly)\s+)?(?:entered|sent|gave|shared|submitted|posted|provided|typed)\b/.test(q);
+    if(!did||!/\b(?:scammer|stranger|suspicious|phishing|phish|scam|untrusted|fake|fraudulent|unknown (?:person|website|site))\b/.test(q))return null;
+    if(/\b(?:social security number|social security|ssn)\b/.test(q))return 'identity';
+    if(/\b(?:credit card|debit card|card number|bank account number|routing number|financial details)\b/.test(q))return 'financial';
+    if(/\b(?:name and address|address and name|home address|my address|personal information|personal details)\b/.test(q))return 'personal';
+    return null;
+  }
+  sensitiveExposureAdvice(kind){
+    if(kind==='identity')return 'Since you said you shared your Social Security number on a suspicious site, stop providing information there. Visit IdentityTheft.gov by typing the official address yourself for a recovery plan, and consider credit freezes with the three major credit bureaus. Review financial accounts for unexpected activity and contact relevant institutions through official channels. Do not enter your Social Security number into this game. This practice game cannot tell whether identity theft occurred.';
+    if(kind==='financial')return 'Since you said you shared card or banking details with a suspicious source, contact the affected bank or card issuer promptly through the official app or the phone number on your card, not through the message. Ask about securing or replacing the affected payment method and monitor account activity. Do not share actual card or account numbers in this practice game. This game cannot confirm whether anyone used the information.';
+    return 'Since you said you shared your name or address with a suspicious person, stop sending further details, avoid unexpected follow-up links or requests, and report or block the contact through the relevant platform. Be alert for impersonation attempts using the details you shared. If you also provided passwords, financial details or an identification number, the next steps are different; do not enter those values here. Sharing a name or address alone does not prove an account was compromised.';
+  }
+
   trustFollowup(input){
     const q=this.normalize(input),ctx=this.s.trustContext;
     const riskContext=ctx&&this.s.stage==='trustAdvice';
@@ -5137,6 +5176,10 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:'You said you clicked a suspicious link. Close the page and avoid further interaction with it. Do not enter passwords or codes, download files, or grant permissions. Clicking alone does not prove that an account or device was compromised. Did you enter any information, download or install anything, or allow access?',choices:['I did not enter anything','I entered a password','I downloaded something']};
     }
     if(isGenericLink){
+      if(/\b(?:did not|didn'?t|never)\s+(?:download|install|allow|grant|open)\b/.test(q)){
+        ctx.downloaded=false;
+        return{say:'Thanks for clarifying that you did not download or install anything. I’ll no longer treat a file or app as installed based on this incident. Close the suspicious page and avoid the link. '+(ctx.credentialsShared?'Because you also said a password was entered, still secure the affected account through its official app or website.':'If you did not enter any details or grant permissions, clicking alone does not establish compromise.') ,choices:['How do I report it?','How do I secure the account?']};
+      }
       if(/\b(?:did not|didn'?t|never)\s+(?:enter|type|submit|share)\b/.test(q)){
         ctx.credentialsShared=false;
         return{say:'Thanks for clarifying: you said you did not enter information on the suspicious page. I will no longer treat a password as having been entered in this incident. Close the page and avoid the link. Check whether anything downloaded or gained permissions, and use device-security steps if needed. Clicking alone does not prove compromise.',choices:['Nothing downloaded','I downloaded something','How do I report the message?']};
