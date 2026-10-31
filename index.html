@@ -270,6 +270,69 @@ h1 span{
 }
 
 
+
+/* Compact everyday possibilities without changing the other site cards. */
+#what.section{
+  padding:48px 0 54px;
+}
+#what .section-heading{margin-bottom:0}
+#what h2{
+  font-size:35px;
+  margin-bottom:10px;
+}
+#what .intro{
+  font-size:16px;
+  line-height:1.55;
+  max-width:720px;
+  margin:0 auto 22px;
+}
+#what .cards{
+  gap:12px;
+  align-items:stretch;
+}
+#what .card{
+  display:grid;
+  grid-template-columns:32px minmax(0,1fr);
+  grid-template-rows:auto 1fr;
+  align-content:start;
+  align-items:start;
+  column-gap:10px;
+  row-gap:8px;
+  padding:18px 19px;
+  border-radius:16px;
+  text-align:left;
+}
+#what .card .icon{
+  grid-column:1;
+  grid-row:1;
+  font-size:25px;
+  line-height:1.25;
+}
+#what .card h3{
+  grid-column:2;
+  grid-row:1;
+  font-size:19px;
+  line-height:1.25;
+  margin:0;
+  align-self:center;
+}
+#what .card p{
+  grid-column:1 / -1;
+  grid-row:2;
+  font-size:15px;
+  line-height:1.45;
+  margin:0;
+}
+@media(max-width:780px){
+  #what.section{padding:42px 0 46px}
+  #what .cards{gap:12px}
+}
+@media(max-width:500px){
+  #what h2{font-size:30px}
+  #what .intro{font-size:16px;margin-bottom:18px}
+  #what .card{padding:16px 17px;row-gap:5px}
+}
+
 /* Discover AI interactive beginner cards. Scoped to the About section only. */
 .flip-instructions{
   margin: -13px 0 20px;
