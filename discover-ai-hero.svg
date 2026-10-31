@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" role="img" aria-labelledby="t d">
+<title id="t">Discover AI: everyday learning</title><desc id="d">A welcoming workspace with a laptop, a light bulb, chat and calendar symbols, a coffee mug, books, and a plant.</desc>
+<defs>
+<linearGradient id="bg" x2="1" y2="1"><stop stop-color="#dceee5"/><stop offset="1" stop-color="#c7e4ec"/></linearGradient>
+<linearGradient id="scr" x2=".8" y2="1"><stop stop-color="#fbf8ef"/><stop offset="1" stop-color="#e1f0ed"/></linearGradient>
+<linearGradient id="wood" x2="0" y2="1"><stop stop-color="#e8bd91"/><stop offset="1" stop-color="#ce9974"/></linearGradient>
+<filter id="shadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#28516b" flood-opacity=".18"/></filter>
+</defs>
+<rect width="960" height="720" rx="44" fill="url(#bg)"/>
+<path d="M-30 193C154 72 240 138 329 76S587-31 708 80s164 3 295 41v599H-30Z" fill="#f7faf3" opacity=".24"/>
+<circle cx="833" cy="97" r="131" fill="#fff" opacity=".16"/><circle cx="98" cy="494" r="182" fill="#a6cec4" opacity=".28"/>
+<g fill="none" stroke="#78acb4" stroke-width="4" stroke-linecap="round" stroke-dasharray="9 15" opacity=".8"><path d="M293 224c35 21 59 49 65 83"/><path d="M483 184v104"/><path d="M670 225c-36 24-58 50-67 85"/></g>
+<g filter="url(#shadow)" fill="#fff" opacity=".94"><circle cx="236" cy="176" r="74"/><circle cx="480" cy="112" r="82"/><circle cx="724" cy="174" r="74"/></g>
+<g transform="translate(199 148)" fill="none" stroke="#267f91" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><rect width="74" height="50" rx="12"/><path d="m16 50-4 16 24-16M15 18h44M15 32h28"/></g>
+<g stroke="#da9c39" stroke-width="7" stroke-linecap="round"><path d="M463 81c-20 8-25 37-8 53 8 7 12 16 12 26h27c0-10 4-19 12-26 19-18 10-48-14-54-11-3-21-2-29 1Z" fill="#f3c96f" stroke="#e5ae52"/><path d="M467 169h27M471 178h19M480 43v13M436 59l-10-10M524 59l10-10M418 98h-14M542 98h14"/></g>
+<g transform="translate(692 144)" stroke="#267f91" stroke-width="6" fill="none" stroke-linejoin="round" stroke-linecap="round"><rect width="64" height="61" y="4" rx="9"/><path d="M0 22h64M17 0v12M47 0v12M18 37h8m13 0h8M18 50h8m13 0h8"/></g>
+<g opacity=".5" fill="#79a995"><path d="M39 562Q13 463 64 433q34 74-25 129Z"/><path d="M46 562Q47 464 124 460q-8 80-78 102Z"/><path d="M39 566Q-11 519-5 466q68 31 44 100Z"/></g>
+<rect y="590" width="960" height="130" fill="url(#wood)"/><path d="M0 590h960" stroke="#fff4dd" stroke-opacity=".65" stroke-width="7"/>
+<g filter="url(#shadow)"><rect x="242" y="281" width="476" height="318" rx="22" fill="#334957"/><rect x="258" y="297" width="444" height="282" rx="9" fill="url(#scr)"/><circle cx="480" cy="290" r="3" fill="#9ab2be"/><path d="M215 598h530l44 35q7 8-10 12H175q-17-4-10-12Z" fill="#74858e"/><path d="M215 598h530l21 24H194Z" fill="#acb7b9"/><path d="M413 622h134l-12 12H425Z" fill="#d8dbd8"/></g>
+<circle cx="480" cy="408" r="96" fill="#e0f3ee" opacity=".75"/><path d="M293 506q91-78 182-14t196-21v108H293Z" fill="#d5e9ed" opacity=".75"/>
+<g stroke="#e6ae4d" stroke-width="8" stroke-linecap="round"><path d="M480 335v17M432 351l-12-13M528 351l12-13M403 396h-17M558 396h17"/></g>
+<text x="480" y="460" text-anchor="middle" fill="#17345f" font-family="Georgia,serif" font-size="62" font-weight="bold">Discover<tspan fill="#168484">AI</tspan></text>
+<text x="480" y="503" text-anchor="middle" fill="#35566a" font-family="Arial,sans-serif" font-size="22" letter-spacing="1">Learn · Explore · Try it</text>
+<ellipse cx="136" cy="642" rx="96" ry="18" fill="#7d604b" opacity=".14"/><path d="M73 517h134l-12 103q-5 17-55 18t-56-18Z" fill="#fff9ed"/><path d="M196 540c49-11 61 57 4 65" fill="none" stroke="#fff9ed" stroke-width="17" stroke-linecap="round"/><ellipse cx="140" cy="519" rx="67" ry="13" fill="#faf6ee"/><ellipse cx="140" cy="521" rx="53" ry="8" fill="#a77855"/><path d="M123 488c-15-21 13-30 1-53M152 489c-14-21 16-32 4-51" fill="none" stroke="#fff" stroke-width="5" opacity=".5" stroke-linecap="round"/>
+<g filter="url(#shadow)"><rect x="751" y="546" width="175" height="37" rx="7" fill="#e9b954"/><rect x="744" y="510" width="184" height="38" rx="7" fill="#1c7f81"/><rect x="753" y="474" width="176" height="38" rx="7" fill="#659ca1"/></g>
+<g fill="#fcf8e9"><path d="M772 478h143v24H772Z"/><path d="M762 514h152v25H762Z"/><path d="M769 550h143v24H769Z"/></g>
+<g fill="#17345f" font-size="19" font-weight="bold" font-family="Arial,sans-serif"><text x="808" y="495">LEARN</text><text x="803" y="531">EXPLORE</text><text x="814" y="567">TRY IT</text></g>
+<g stroke="#548969" stroke-linecap="round" stroke-width="5"><path d="M910 476V386M910 447q-18-48-60-52M910 420q10-46 37-70" fill="none"/><path d="M905 414q-55-7-55-53 53 6 55 53ZM912 398q-4-66 39-78 11 48-39 78Z" fill="#80ab80"/><path d="M912 461q-46-42-70-19 18 40 70 19Z" fill="#679d7e"/></g><path d="M868 485h83l-13 78h-57Z" fill="#ddb37c"/><path d="M866 484h88" stroke="#bd8d5e" stroke-width="9" stroke-linecap="round"/>
+</svg>
