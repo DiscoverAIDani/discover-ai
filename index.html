@@ -269,6 +269,105 @@ h1 span{
   margin:12px 0 8px
 }
 
+
+/* Discover AI interactive beginner cards. Scoped to the About section only. */
+.flip-instructions{
+  margin: -13px 0 20px;
+  color:var(--teal);
+  font-size:14px;
+  font-weight:700;
+}
+.discover-flip-cards{align-items:stretch}
+.flip-card{
+  display:block;
+  width:100%;
+  min-width:0;
+  min-height:294px;
+  appearance:none;
+  border:0;
+  padding:0;
+  background:transparent;
+  color:var(--text);
+  text-align:center;
+  cursor:pointer;
+  font:inherit;
+  line-height:1.5;
+  border-radius:20px;
+  perspective:1200px;
+  animation:discoverTileFloat 6s ease-in-out infinite;
+}
+.flip-card:nth-child(2){animation-delay:-2s}
+.flip-card:nth-child(3){animation-delay:-4s}
+.flip-card-inner{
+  display:block;
+  position:relative;
+  width:100%;
+  min-height:294px;
+  height:100%;
+  transform-style:preserve-3d;
+  transition:transform .75s cubic-bezier(.2,.7,.2,1);
+}
+.flip-face{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:22px;
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 13px 28px rgba(23,52,95,.10);
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  overflow:hidden;
+}
+.flip-back{
+  transform:rotateY(180deg);
+  background:linear-gradient(155deg,#e9f5ed,#f5f8f1 70%);
+  border-color:#bdd7ce;
+}
+.flip-icon{font-size:31px;line-height:1.2}
+.flip-title{
+  font:700 23px/1.2 Georgia,serif;
+  color:var(--navy);
+}
+.flip-copy{font-size:15px;line-height:1.5}
+.flip-example{
+  font-size:15px;
+  font-weight:700;
+  line-height:1.45;
+  color:var(--navy);
+}
+.flip-hint{
+  margin-top:auto;
+  padding-top:5px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--teal);
+}
+.flip-card.is-flipped .flip-card-inner{transform:rotateY(180deg)}
+@media(hover:hover) and (pointer:fine){
+  .flip-card:hover .flip-card-inner{transform:rotateY(180deg)}
+}
+.flip-card:focus-visible{
+  outline:3px solid var(--teal);
+  outline-offset:5px;
+}
+@keyframes discoverTileFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+@media(max-width:500px){
+  .flip-card,.flip-card-inner{min-height:270px}
+}
+@media(prefers-reduced-motion:reduce){
+  .flip-card{animation:none}
+  .flip-card-inner{transition:none}
+}
+
 .number{
   font:700 30px Georgia,serif;
   color:var(--gold)
@@ -639,54 +738,68 @@ footer a{
     </p>
 
 
-    <div class="cards">
 
-      <div class="card">
+    <p class="flip-instructions">Hover or tap a card to discover an example. Tap again to flip it back.</p>
+    <div class="cards discover-flip-cards">
 
-        <div class="icon">💬</div>
+      <button type="button" class="flip-card" aria-pressed="false"
+              data-flip-title="Talk Naturally" aria-label="Talk Naturally: show an example">
+        <span class="flip-card-inner">
+          <span class="flip-face flip-front">
+            <span class="flip-icon" aria-hidden="true">💬</span>
+            <span class="flip-title">Talk Naturally</span>
+            <span class="flip-copy">Learn that you can communicate with AI much like you would explain something to another person.</span>
+            <span class="flip-hint">↻ See an example</span>
+          </span>
+          <span class="flip-face flip-back">
+            <span class="flip-icon" aria-hidden="true">✨</span>
+            <span class="flip-title">Try Asking</span>
+            <span class="flip-example">“Help me plan a birthday dinner for four people.”</span>
+            <span class="flip-copy">Talk to AI the way you'd talk to a helpful person.</span>
+            <span class="flip-hint">↩ Back to tip</span>
+          </span>
+        </span>
+      </button>
 
-        <h3>
-          Talk Naturally
-        </h3>
+      <button type="button" class="flip-card" aria-pressed="false"
+              data-flip-title="Learn to Steer" aria-label="Learn to Steer: show examples">
+        <span class="flip-card-inner">
+          <span class="flip-face flip-front">
+            <span class="flip-icon" aria-hidden="true">🧭</span>
+            <span class="flip-title">Learn to Steer</span>
+            <span class="flip-copy">Discover how to ask AI to simplify, explain, change, improve, or try again when the first answer isn't right.</span>
+            <span class="flip-hint">↻ See examples</span>
+          </span>
+          <span class="flip-face flip-back">
+            <span class="flip-icon" aria-hidden="true">✍️</span>
+            <span class="flip-title">Try Saying</span>
+            <span class="flip-example">“Make that shorter.”</span>
+            <span class="flip-example">“Explain it more simply.”</span>
+            <span class="flip-example">“Give me another example.”</span>
+            <span class="flip-hint">↩ Back to tip</span>
+          </span>
+        </span>
+      </button>
 
-        <p>
-          Learn that you can communicate with AI much like you would
-          explain something to another person.
-        </p>
-
-      </div>
-
-
-      <div class="card">
-
-        <div class="icon">🧭</div>
-
-        <h3>
-          Learn to Steer
-        </h3>
-
-        <p>
-          Discover how to ask AI to simplify, explain, change, improve,
-          or try again when the first answer isn't right.
-        </p>
-
-      </div>
-
-
-      <div class="card">
-
-        <div class="icon">💡</div>
-
-        <h3>
-          Start With What Matters
-        </h3>
-
-        <p>
-          Instead of learning technology for its own sake, start with
-          something you actually want to understand or accomplish.
-        </p>
-
-      </div>
+      <button type="button" class="flip-card" aria-pressed="false"
+              data-flip-title="Start With What Matters" aria-label="Start With What Matters: show examples">
+        <span class="flip-card-inner">
+          <span class="flip-face flip-front">
+            <span class="flip-icon" aria-hidden="true">💡</span>
+            <span class="flip-title">Start With What Matters</span>
+            <span class="flip-copy">Instead of learning technology for its own sake, start with something you actually want to understand or accomplish.</span>
+            <span class="flip-hint">↻ See examples</span>
+          </span>
+          <span class="flip-face flip-back">
+            <span class="flip-icon" aria-hidden="true">🌱</span>
+            <span class="flip-title">Everyday Ideas</span>
+            <span class="flip-example">“Help me organize my week.”</span>
+            <span class="flip-example">“Compare these two options.”</span>
+            <span class="flip-example">“Help me plan a trip.”</span>
+            <span class="flip-hint">↩ Back to tip</span>
+          </span>
+        </span>
+      </button>
 
     </div>
 
@@ -1351,6 +1464,18 @@ footer a{
 
 
 <script>
+
+
+/* Accessible click, tap and keyboard activation for the three About tiles. */
+document.querySelectorAll('#about .flip-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const flipped = card.classList.toggle('is-flipped');
+    const title = card.getAttribute('data-flip-title') || 'Card';
+    card.setAttribute('aria-pressed', String(flipped));
+    card.setAttribute('aria-label', title + (flipped ? ': show original tip' : ': show examples'));
+  });
+});
+
 
 const contactToggle =
   document.getElementById('contactToggle');
