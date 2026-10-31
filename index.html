@@ -207,10 +207,11 @@ h1 span{
   50%{transform:translateY(-9px)}
 }
 
-@media(min-width:1400px){
+/* Make the maze fill the right side of desktop screens without clipping. */
+@media(min-width:1200px){
   .hero-art{
-    width:127%;
-    margin-left:-8%
+    width:min(160%, calc(50vw + 20px));
+    margin-left:-4%
   }
 }
 
