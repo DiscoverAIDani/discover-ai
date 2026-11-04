@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: allergy-stress-v55</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: button-stress-v56</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2100,7 +2100,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   detectCategory(t){
     const x=this.normalize(t);
-    if(/travel|trip|vacation|hotel|flight|destination|restaurant|eat|food|things to do|activities/.test(x))return'travel';
+    if(/\b(?:travel|trip|vacation|hotel|flight|destination|restaurants?|eat|food|things to do|activities)\b/.test(x))return'travel';
     if(/learn|study|understand|research|teach|explain|practice|quiz|golf/.test(x))return'learn';
     if(/create|write|writing|draft|rewrite|compose|idea|project|card|story|cake|bake|birthday|invitation|message|email/.test(x))return'create';
     if(/compare|versus|difference between|pros and cons/.test(x))return'open';
@@ -2148,7 +2148,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(intent==='learn')return this.learnStart(clean,'',true);
     if(intent==='transform')return this.transformStart(clean);
     if(intent==='compare'||intent==='brainstorm'||intent==='organize'||intent==='plan')return this.generalTaskStart(clean,intent);
-    if(this.s.category==='travel')return this.travelStart(clean,true);
+    if(this.s.category==='travel'){this.s.stage='topic';return{say:'What would you like help with for travel: planning a trip, choosing an outing, or finding a place to eat?',choices:['Plan the trip','Find things to do','Find places to eat']};}
     if(this.s.category==='learn')return this.learnStart(clean,'',true);
     if(this.s.category==='create')return this.createStart(clean,true);
     if(this.s.category==='problem')return this.problemStart(clean,true);
@@ -2929,6 +2929,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   sharedBillFollowup(text){
     if(this.s.stage!=='sharedBillMath'||!this.s.sharedBillCalc)return null;
     const raw=String(text||''),x=this.normalize(raw),c=this.s.sharedBillCalc;
+    if(/^what if the tip changes\??$/.test(x))return{say:'What tip percentage would you like to use? I will keep the bill and number of people the same and recalculate after you choose a rate.',choices:['Use a 15% tip','Use a 20% tip','No tip']};
     if(/\b(?:recipe|groceries|email|phishing|password|doctor|medication|water contamination|appointment|travel|drive|weather|restaurant recommendations?)\b/.test(x)&&!/\b(?:bill|split|tip|gratuity|per person|each person|people pay)\b/.test(x))return null;
     if(!/\b(?:bill|tab|restaurant|lunch|meal|tip|gratuity|split|divide|share|total|price|pay|people|person|diners?|guests?|of us|what if|actually|now|instead|recalculate|each|cost|percent|change|back|revert|restore)\b/.test(x)&&!/%/.test(x))return null;
     if(this.sharedBillQuestion(raw)&&/\b(?:new bill|different bill|another bill|separate bill|new restaurant|start over)\b/.test(x))return this.sharedBillStart(raw);
@@ -3181,6 +3182,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   discountContinue(text){
     if(this.s.stage!=='discountReview'||!this.s.discountCheck)return null;
     const t=this.normalize(text),c=this.s.discountCheck;
+    if(/^what if the sale price changes\??$/.test(t))return{say:'What is the new advertised sale price? Tell me the amount so I can compare it with the same original price and discounts.',choices:['Show the calculation']};
+    if(/^what if the discount changes\??$/.test(t))return{say:'What is the new discount percentage? Tell me the rate so I can recalculate using the same original price.',choices:['Show the calculation']};
     if(/\b(?:dinner|recipe|medication|phishing|phone reminder|electric company|class|workshop|water contamination|blood pressure|birthday|invitation|drive to|doctor's appointment)\b/.test(t)&&!/\b(?:price|discount|coupon|sale|percent|off)\b/.test(t))return null;
     if(!/\b(?:price|cost|discount|off|sale|advertis|coupon|jacket|original|regular|normally|actually|what if|percent|percentage|correct|check|recalculate|math|change|now|instead|another)\b/.test(t))return null;
     if(/\b(?:different|new item|another item|separate offer)\b/.test(t)&&this.isDiscountQuery(text))return this.discountBegin(text);
@@ -3704,6 +3707,23 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
   }
   responseFor(text){
     let x=this.clean(text), low=this.normalize(x);
+    // Dispatch offered actions before broad topic matching can swallow them.
+    const offered=this.s.promptHistory.includes(low);
+    if(offered&&this.s.intent==='groceries'&&!this.s.multiMeal&&!this.s.everydayCase&&/^(?:plan (?:the|\d+) dinners|(?:build|show me|make) (?:the |a )?(?:shopping )?list|pick the meals|you choose the (?:meals|dinners))$/.test(low)){
+      const n=this.multiMealCount(x)||this.s.mealCount||3;
+      const prefs=(this.s.facts||[]).filter(v=>/vegan|vegetarian|gluten-free|no dairy/.test(v)).join(' ').replace('no dairy','dairy-free');
+      const plan=this.startMealPlan('Plan '+n+' dinners '+prefs);
+      if(plan){if(/list/.test(low))return this.reviseMealPlan('Show the shopping list');return plan;}
+    }
+    if(offered&&this.s.intent==='create'&&/^(?:draft it|start (?:a|the) draft|try another version)$/.test(low))return this.handleCreatePlan('Draft it');
+    if(offered&&this.s.intent==='dinner'&&/^(?:change|swap) (?:an?|another) ingredient$/.test(low))return{say:'Which ingredient would you like to remove or replace? Tell me the ingredient and a replacement you can use; I will keep your other dinner details and restrictions.',choices:['I’ll list what I have','Choose another dinner']};
+    if(offered&&this.s.intent==='week'&&/^(?:put these in priority order|work or appointments)$/.test(low))return{say:'Put fixed work hours and appointments first, then urgent tasks, then flexible errands and rest. Tell me an actual commitment and its day or time so I can place it in the plan.',choices:['Show me the plan','Keep it lighter']};
+    if(offered&&this.s.intent==='things'&&/^(?:outdoor activities|free things to do|events this weekend|plan an easy day)$/.test(low))return this.handleThingsDetails(x);
+    if(offered&&this.s.intent==='restaurants'&&/^add (?:a cuisine|atmosphere|a budget|distance)$/.test(low)){
+      if(/cuisine/.test(low))return{say:'What kind of food would you prefer? I will keep the area and other restaurant preferences.',choices:['Italian','Mexican','Thai','Any kind']};
+      if(/atmosphere/.test(low))return{say:'What atmosphere would you like for the same restaurant search?',choices:['Quiet','Casual','Outdoor patio']};
+      return{say:/budget/.test(low)?'What is your budget per person?':'How far are you willing to travel? Tell me a distance and the area to use; this simulation cannot see your location.',choices:/budget/.test(low)?['Under $20','About $30','No preference']:[]};
+    }
     if(/^(?:hi|hello|hey)(?: there| everyone| folks)?[!.,\s]*$|^good (?:morning|afternoon|evening)[!.,\s]*$/.test(low)){
       if(this.s.stage==='start')return{say:'Hi! What would you like help with today? You can ask in your own words or choose a starting point.',choices:['Plan something','Learn something','Solve a problem','Make something']};
       return{say:'Hi! We can keep working on '+this.topicLabel()+' or start a different task. What would you like?',choices:['Continue','New topic']};
@@ -4476,7 +4496,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
       return{say:`Got it. I’ll keep the cover letter${wc?` under ${wc} words`:''} and${tone}. It should still connect your experience to the job, but without sounding stiff or padded.`,choices:['Draft it','Make it warmer','Tailor it to a job']};
     }
     if(/idea/.test(low))return{say:`Let’s brainstorm three directions for ${this.s.topic}: one simple, one playful, and one more polished. Then you can pick the one that feels right.`,choices:['Pick the easiest','Make one more playful','Draft one']};
-    if(/draft|write/.test(low)){if(/email|message|text|neighbor|fence|invitation/.test(topic)){return{say:'Here is a simple first draft: “Hi [Name], I wanted to reach out about this and see if we can find a solution that works for both of us. When you have a chance, could we talk about the details? Thanks — I appreciate it.” You can now tell me what feels too formal, too vague, or not like you.',choices:['Make it friendlier','Make it shorter','Add the specific issue']}}return{say:`I’ll make a rough first draft now rather than stopping at planning. Then you can react to the wording, tone, length, or details and I’ll revise the same draft.`,choices:['Make it warmer','Make it shorter','Try another version']}};
+    if(/draft|write/.test(low)){
+      this.s.createKind='message';this.s.stage='createPlan';
+      this.s.draftText='Hi [Name], I wanted to reach out about [topic]. When you have a chance, could we talk about [specific request]? Thanks for your help.';
+      return{say:'Here is a sample message draft. Replace the brackets with your details:\n\n“'+this.s.draftText+'”',choices:['Make it warmer','Make it shorter','Add the specific issue']};
+    }
     return{say:`That gives us enough to move from idea to action. The next step is to make a rough version and then improve the part you care about most.`,choices:['Draft it','Give me ideas','Make it simpler']}
   }
   handleCakeDetails(x){const flavor=this.uncertain(x)?'a flavor you choose':x;this.s.details.push(flavor);this.s.stage='cakePlan';return{say:`Great. I’ll build the cake around ${flavor}. A simple plan is to keep the cake and decoration separate so the baking stays manageable.`,choices:['Give me the recipe','Decorating ideas','Shopping list']}}
@@ -5552,7 +5576,9 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const key=this.normalize(out.say);
     // A repeated but context-correct answer is safer than replacing it with an
     // unrelated canned response. Keep semantic accuracy first; QA catches loops.
-    out.choices=out.choices.filter((c,i,a)=>a.findIndex(v=>this.normalize(v)===this.normalize(c))===i && !this.s.promptHistory.slice(-8).includes(this.normalize(c))).slice(0,4);
+    const unique=out.choices.filter((c,i,a)=>typeof c==='string'&&c.trim()&&a.findIndex(v=>this.normalize(v)===this.normalize(c))===i);
+    const fresh=unique.filter(c=>!this.s.promptHistory.slice(-8).includes(this.normalize(c)));
+    out.choices=(fresh.length?fresh:unique).slice(0,4);
     if(out.say)this.s.aiResponses.push(this.normalize(out.say));
     out.choices.forEach(c=>this.s.promptHistory.push(this.normalize(c)));
     return out;

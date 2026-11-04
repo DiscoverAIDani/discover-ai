@@ -149,7 +149,7 @@ check('birthday clock not guests',['Help me plan a birthday dinner for six peopl
 check('birthday not-or cuisines',['Help me plan a birthday dinner for six people at a restaurant.','Not Italian or Mexican.','Review the plan'],['avoid cuisines: italian, mexican'],['cuisine: mexican'],{count:6,cuisine:null});
 check('birthday first-turn multiple exclusion',['Plan a birthday dinner for four people at a restaurant, not Italian or Mexican.','Review the plan'],['4 people','avoid cuisines: italian, mexican'],['cuisine: mexican'],{count:4,cuisine:null});
 check('birthday dense correction',['Help me plan a birthday dinner for six people.','Actually four people at a restaurant in Sacramento on Saturday at 6pm, quiet Thai, under $200.','Review the plan'],['4 people','restaurant','sacramento','saturday','6pm','thai','quiet','under $200'],[],{count:4,place:'restaurant',area:'sacramento',cuisine:'thai'});
-staticCheck('build ID v55',html.includes('Build: allergy-stress-v55'));
+staticCheck('build ID v56',html.includes('Build: button-stress-v56'));
 
 
 check('birthday correction not six comma but four',['Help me plan a birthday dinner for six people at a restaurant.','Actually, not six, but four.','Review the plan'],['4 people'],['6 people'],{count:4});
@@ -210,5 +210,15 @@ for(const opening of ['Plan 3 dinners.','Plan a birthday dinner for six people a
 }
 total++;
 try{const g=new Game();g.process('Help me organize my week.');for(let i=0;i<g.maxTurns;i++)g.process('Make it simpler.');if(!g.s.done||g.process('More')!==null)throw Error('Turn limit not enforced');g.reset();if(g.s.done||g.s.score!==0||!g.process('Plan 3 dinners.'))throw Error('Reset failed');}catch(e){failed.push('turn limit and reset: '+e.message);}
+check('button groceries creates meals',['🌱 Everyday life','Groceries','Plan 3 dinners'],['suggested dinners','1.','2.','3.'],['i can reuse ingredients']);
+check('button groceries creates shopping',['🌱 Everyday life','Groceries','Make it inexpensive','Build the shopping list'],['additional groceries'],['i can reuse ingredients']);
+check('button draft then revise',['🎨 Create something','Write something','Start a draft','Draft it','Make it warmer'],[],['don’t have an earlier message draft','rough first draft now']);
+check('button change ingredient asks which',['🌱 Everyday life','Dinner','Make it inexpensive','Change an ingredient'],['which ingredient'],['another dinner preference']);
+check('button new tip asks rate',['Split the bill of $100 among 4 people.','What if the tip changes?'],['what tip percentage'],['per person']);
+check('button new tip calculates',['Split the bill of $100 among 4 people.','What if the tip changes?','Use a 20% tip'],['$30.00 per person']);
+check('button sale price asks amount',['Is a 20% discount on $50 really $35?','What if the sale price changes?'],['new advertised sale price'],['does not match']);
+check('button discount asks rate',['Is a 20% discount on $50 really $35?','What if the discount changes?'],['new discount percentage'],['does not match']);
+check('button creative avoids travel',['More creative ideas'],[],['trip','travel']);
+check('button travel fallback safe',['Add food'],['travel'],[]);
 console.log('Discover AI automated stress checks: '+(total-failed.length)+'/'+total+' passed');
 if(failed.length){for(const problem of failed)console.error(problem);process.exitCode=1;}
