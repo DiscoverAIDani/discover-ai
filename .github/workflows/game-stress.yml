@@ -22,3 +22,7 @@ jobs:
           node-version: '22'
       - name: Run deterministic conversation regressions
         run: node qa/game-stress.cjs
+      - name: Exercise button paths and every literal suggestion
+        run: node qa/button-stress.cjs
+      - name: Verify page button callbacks and restart
+        run: node qa/ui-buttons.cjs
