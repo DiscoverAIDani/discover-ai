@@ -249,6 +249,45 @@ h1 span{
   gap:20px
 }
 
+.paths{
+  background:#fff;
+  border-bottom:1px solid var(--line)
+}
+
+.path-cards{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  max-width:920px;
+  margin:0 auto;
+  text-align:left
+}
+
+.path-card{
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:28px;
+  background:var(--cream)
+}
+
+.path-card.personal-path{
+  background:var(--sage)
+}
+
+.path-card h3{
+  font-size:25px;
+  margin:8px 0 12px
+}
+
+.path-label{
+  margin:0;
+  color:var(--teal);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:1.2px;
+  text-transform:uppercase
+}
+
 .card{
   background:#fff;
   border:1px solid var(--line);
@@ -650,7 +689,8 @@ footer a{
 
   .hero-grid,
   .community,
-  .contact{
+  .contact,
+  .path-cards{
     grid-template-columns:1fr
   }
 
@@ -723,6 +763,7 @@ footer a{
       <a href="#about">About</a>
       <a href="#what">What AI Can Do</a>
       <a href="#community">Community Program</a>
+      <a href="personal-ai-services.html">Personal AI Services</a>
       <a href="#game">AI Game</a>
       <a href="#practice">Practice Bill</a>
       <a href="#faq">FAQ</a>
@@ -780,6 +821,30 @@ footer a{
   </div>
 
 </header>
+
+<section class="section paths" aria-labelledby="paths-heading">
+  <div class="wrap center">
+    <div class="kicker">Choose Your Path</div>
+    <h2 id="paths-heading">Learn With Discover AI</h2>
+    <p class="intro">Discover AI offers two distinct ways to learn. Choose the one that fits what you need.</p>
+    <div class="path-cards">
+      <article class="path-card community-path">
+        <p class="path-label">Community Learning — FREE</p>
+        <h3>Free Community AI Education</h3>
+        <p>For libraries, senior centers, nonprofits, and local groups that want a relaxed, beginner-friendly introduction to AI.</p>
+        <p><strong>No sales. No upsell. Just practical community learning.</strong></p>
+        <a class="btn" href="#community">Explore the Free Community Program</a>
+      </article>
+      <article class="path-card personal-path">
+        <p class="path-label">Personal AI Services — PAID</p>
+        <h3>One-on-One Setup &amp; Learning</h3>
+        <p>Patient, hands-on personal instruction for using AI on your own phone, tablet, or computer.</p>
+        <p><strong>60 minutes — $65</strong></p>
+        <a class="btn alt" href="personal-ai-services.html">Explore Personal AI Services</a>
+      </article>
+    </div>
+  </div>
+</section>
 
 
 <section class="section" id="about">
