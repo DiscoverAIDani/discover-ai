@@ -149,7 +149,24 @@ check('birthday clock not guests',['Help me plan a birthday dinner for six peopl
 check('birthday not-or cuisines',['Help me plan a birthday dinner for six people at a restaurant.','Not Italian or Mexican.','Review the plan'],['avoid cuisines: italian, mexican'],['cuisine: mexican'],{count:6,cuisine:null});
 check('birthday first-turn multiple exclusion',['Plan a birthday dinner for four people at a restaurant, not Italian or Mexican.','Review the plan'],['4 people','avoid cuisines: italian, mexican'],['cuisine: mexican'],{count:4,cuisine:null});
 check('birthday dense correction',['Help me plan a birthday dinner for six people.','Actually four people at a restaurant in Sacramento on Saturday at 6pm, quiet Thai, under $200.','Review the plan'],['4 people','restaurant','sacramento','saturday','6pm','thai','quiet','under $200'],[],{count:4,place:'restaurant',area:'sacramento',cuisine:'thai'});
-staticCheck('build ID v57',html.includes('Build: scheduling-messages-v57'));
+const workshopDinner='I have eggs, tortillas, and spinach. Help me think of an easy dinner for two.';
+const workshopTime='I only have 15 minutes.';
+const workshopSimpler='Make it simpler, with fewer dishes.';
+const workshopVisual='Make it more visual.';
+check('workshop dinner initial prompt',[workshopDinner],['spinach-and-egg tacos'],[]);
+check('workshop dinner time limit',[workshopDinner,workshopTime],['15 minutes available','about 10 minutes','for 2','2 eggs','2 tortillas'],[]);
+check('workshop dinner time phrasing',[workshopDinner,"I've only got fifteen minutes left."],['15 minutes available','same skillet'],[]);
+check('workshop dinner time correction',[workshopDinner,workshopTime,'Actually, only five minutes now.'],['5 minutes available','ready-to-eat'],['15 minutes available']);
+check('workshop dinner simpler retains time',[workshopDinner,workshopTime,workshopSimpler],['15 minutes available','one-skillet','Scramble 2 eggs','Use the same skillet'],[]);
+check('workshop dinner visual retains time and portions',[workshopDinner,workshopTime,workshopSimpler,workshopVisual],['15 minutes available','🥬 Spinach → 🥚 Eggs → 🌮 Tortillas','Use the same skillet to warm 2 tortillas'],[]);
+check('workshop dinner explains the current recipe',[workshopDinner,workshopTime,workshopSimpler,'Explain that part.'],['leaves soften and shrink','same skillet'],['main idea']);
+check('workshop dinner explains a specific step',[workshopDinner,'What does warming the tortillas mean?'],['easier to fold','same skillet'],[]);
+check('workshop dinner visual keeps ingredient correction',[workshopDinner,"Actually, I don't have spinach.",workshopVisual],['egg tacos','🥚 Eggs → 🌮 Tortillas'],['spinach']);
+check('workshop dinner visual keeps serving correction',[workshopDinner,workshopTime,'Actually, for four.',workshopVisual],['15 minutes available','tacos for 4','4 eggs','4 tortillas'],[]);
+check('workshop dinner format survives time correction',[workshopDinner,workshopVisual,'Actually, I have twenty-five minutes.'],['25 minutes available','🥬 Spinach → 🥚 Eggs → 🌮 Tortillas'],[]);
+check('workshop dinner format and time clear for another topic',[workshopDinner,workshopTime,workshopVisual,'Help me write a friendly message asking to reschedule coffee.'],['Could we reschedule coffee?'],['minutes','spinach']);
+check('workshop dinner offers timing clarification for another recipe',['What can I make for dinner with pasta and tomatoes?',workshopTime],['15 minutes','already cooked'],['tacos']);
+staticCheck('build ID v58',html.includes('Build: dinner-followups-v58'));
 
 
 check('birthday correction not six comma but four',['Help me plan a birthday dinner for six people at a restaurant.','Actually, not six, but four.','Review the plan'],['4 people'],['6 people'],{count:4});

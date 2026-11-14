@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: scheduling-messages-v57</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: dinner-followups-v58</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -2260,7 +2260,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.messageSchedule=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;this.s.weekAppointment=null;this.s.trustContext=null;this.s.birthdayDinnerContext=null;this.s.sensitiveExposureContext=null;return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.dinnerMinutes=null;this.s.dinnerVisual=false;this.s.dinnerSimple=false;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.messageSchedule=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;this.s.weekAppointment=null;this.s.trustContext=null;this.s.birthdayDinnerContext=null;this.s.sensitiveExposureContext=null;return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -4131,6 +4131,8 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(this.s.multiMeal&&this.s.stage==='dinnerPlan'&&/\b(?:how many (?:dinners?|meals?)|how many are we doing|number of (?:dinners?|meals?)|what(?:'s| is) the (?:dinner|meal) count)\b/.test(low)){
       const count=this.s.multiMeal.count;return{say:'The current plan is for '+count+' dinners.'+(this.s.multiMeal.planValid===false?' We still need to adjust the restrictions before a valid shopping list can be made.':' That is the latest count.'),choices:['Make a shopping list','Review the meals']};
     }
+    const dinnerRevision=this.reviseDinnerRecipe(x);
+    if(dinnerRevision)return dinnerRevision;
     const servingAnswer=this.dinnerServingAmounts(text);
     if(servingAnswer)return servingAnswer;
     const correctionInfo=this.s.stage!=='start'?this.deviceCorrectionInfo(text):null;
@@ -4485,6 +4487,62 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     const change=removed.length?'Got it — I removed '+removed.join(' and ')+' from the recipe. ':'Got it — I updated the ingredients. ';
     const newItems=added.length?'I added '+added.join(' and ')+'. ':'';
     return{say:change+newItems+recipe+(noDairy?' Keep it dairy-free: no butter, cheese, or cream.':''),choices:['Give me exact steps','Make it quicker','Change another ingredient']};
+  }
+
+  reviseDinnerRecipe(text){
+    if(this.s.intent!=='dinner'||this.s.stage!=='dinnerPlan'||this.s.multiMeal)return null;
+    const low=this.normalize(this.clean(text)).replace(/[.!?]+$/,'').replace(/^(?:please|can you|could you)\s+/,'');
+    const time=low.match(/^(?:(?:i|we) (?:only |just )?have|(?:i've|we've) (?:only |just )?got|make (?:it|this) (?:in|under|within)|(?:i|we) (?:need|want) (?:it|this) (?:in|under|within)|only|just|under|within|in)?\s*(\d{1,3}|five|ten|fifteen|twenty(?:[- ]five)?|thirty|forty[- ]five|sixty)[ -]*(?:minutes?|mins?)(?:\s+(?:left|total|now|instead|to cook))?$/);
+    const simpler=/^(?:(?:make|keep) (?:it|this|the recipe) (?:even )?(?:simpler|simple)(?:,? with fewer dishes)?|(?:use |with )?fewer dishes|(?:make it |use )?one[- ]pan)$/.test(low);
+    const visual=/^(?:(?:make|show) (?:it|this|the recipe) (?:more )?visual(?:ly)?|show (?:it|this|the recipe) (?:as a|in a) (?:chart|flowchart|checklist))$/.test(low);
+    const explain=/^(?:explain (?:that part|that step|the (?:first|second|last) step)|(?:explain (?:how to )?|what does (?:it mean to )?)(?:wilt(?:ing)?(?: the spinach)?|scrambl(?:e|ing)(?: the eggs)?|warm(?:ing)?(?: the tortillas)?)(?: mean)?)$/.test(low);
+    const steps=/^(?:(?:give|show) me (?:the )?(?:(?:exact|cooking|numbered) )?(?:steps|recipe)|show (?:it|this) step by step)$/.test(low);
+    const quicker=/^make (?:it|this) (?:quick|quicker|faster)$/.test(low);
+    if(!time&&!simpler&&!visual&&!explain&&!steps&&!quicker)return null;
+
+    const ingredients=this.safeDinnerIngredients();
+    const eggs=ingredients.some(item=>/^eggs?$/.test(item));
+    const tortillas=ingredients.some(item=>/^tortillas?$/.test(item));
+    const spinach=ingredients.includes('spinach');
+    const choices=['Make it simpler','Make it more visual','Explain that part'];
+    if(time){
+      const words={five:5,ten:10,fifteen:15,twenty:20,'twenty-five':25,thirty:30,'forty-five':45,sixty:60};
+      this.s.dinnerMinutes=words[time[1].replace(' ','-')]??Number(time[1]);
+    }
+    if(!eggs||!tortillas){
+      if(time)return{say:'You have '+this.s.dinnerMinutes+' minutes. '+(ingredients.length?'The current ingredients are '+ingredients.join(', ')+'. Which are already cooked or ready to eat?':'Tell me what ingredients you have and which ones are ready to eat.'),choices:['List my ingredients']};
+      if(explain&&ingredients.length)return{say:'Which step of the dinner would you like me to explain? You can name an ingredient or paste the step here.',choices:['Give me the recipe']};
+      return null;
+    }
+
+    if(explain){
+      const explainChoices=['Give me exact steps','Make it more visual'];
+      if(/warm|last/.test(low))return{say:'Warming the tortillas makes them easier to fold. Move the filling to your serving plates, then warm the tortillas briefly in the same skillet and fill them.',choices:explainChoices};
+      if(/scrambl/.test(low)||(/second/.test(low)&&spinach)||(!spinach&&!/wilt/.test(low)))return{say:'For the taco filling, beat the eggs with a fork. Pour them into the skillet and stir gently over medium-low heat until they are fully set and no liquid egg remains.',choices:explainChoices};
+      if(!spinach)return{say:'Spinach is outside the current recipe. Which step of the egg tacos would you like explained?',choices:explainChoices};
+      return{say:'“Wilt the spinach” means cook it just until the leaves soften and shrink. Stir the washed spinach in the skillet for about a minute, then add the beaten eggs to the same skillet.',choices:explainChoices};
+    }
+    if(visual)this.s.dinnerVisual=true;
+    if(simpler)this.s.dinnerSimple=true;
+    const servings=this.s.servings||2;
+    const estimate=5+5*Math.ceil(servings/2);
+    const minutes=this.s.dinnerMinutes;
+    const budget=minutes==null?'':minutes<estimate
+      ?'Allow about '+estimate+' minutes for these steps. With '+minutes+' minutes available, choose a ready-to-eat option if you need to eat sooner.\n\n'
+      :'With '+minutes+' minutes available, allow about '+estimate+' minutes for this meal.\n\n';
+    const parts=[
+      ...(spinach?['Wilt washed spinach in a little oil for about 1 minute.']:[]),
+      'Beat and scramble '+servings+' '+(servings===1?'egg':'eggs')+(spinach?' with the spinach in the same skillet':' in a lightly oiled skillet')+' until fully set.',
+      'Move the filling to the serving plates. Warm '+servings+' '+(servings===1?'tortilla':'tortillas')+' in the same skillet, then fill '+(servings===1?'it':'them')+'.'
+    ];
+    if(this.s.dinnerSimple){
+      parts[spinach?1:0]='Scramble '+servings+' '+(servings===1?'egg':'eggs')+' in the skillet until fully set.';
+      parts[parts.length-1]='Use the same skillet to warm '+servings+' '+(servings===1?'tortilla':'tortillas')+'. Fill '+(servings===1?'it':'them')+' and serve.';
+    }
+    const title='One-skillet '+(spinach?'spinach-and-egg':'egg')+' tacos for '+servings;
+    const labels=spinach?['🥬 Spinach','🥚 Eggs','🌮 Tortillas']:['🥚 Eggs','🌮 Tortillas'];
+    const presentation=this.s.dinnerVisual?labels.join(' → ')+'\n\n'+parts.map((step,i)=>labels[i]+' · '+step).join('\n'):parts.map((step,i)=>(i+1)+'. '+step).join('\n');
+    return{say:budget+title+'\n\n'+presentation,choices};
   }
 
   handleDinnerPlan(x){
