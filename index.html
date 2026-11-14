@@ -747,6 +747,39 @@ footer a{
         font-size: 21px;
       }
     }
+
+/* Mobile-first usability improvements: visible navigation, touch targets, and safe widths. */
+html{scroll-padding-top:85px}
+body{overflow-wrap:break-word}
+img{max-width:100%}
+.btn,.navlinks a,.menu-toggle{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.btn{text-align:center}
+.menu-toggle{display:none;border:2px solid var(--teal);background:#fff;color:var(--navy);border-radius:10px;padding:9px 15px;font:700 16px Arial,sans-serif;cursor:pointer}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+@media(max-width:780px){
+ .navin{min-height:64px;flex-wrap:wrap;gap:8px}
+ .logo{font-size:26px}
+ .menu-toggle{display:inline-flex}
+ .navlinks{display:none;width:100%;flex-direction:column;align-items:stretch;gap:0;padding:8px 0 14px}
+ .navlinks.is-open{display:flex}
+ .navlinks a{padding:12px 8px;border-top:1px solid var(--line);font-size:16px}
+ .path-card{padding:22px}
+ .path-card .btn{width:100%}
+ .hero-art{max-width:100%}
+ .hero .actions{flex-direction:column;align-items:stretch}
+ .hero .actions .btn{width:100%;min-width:0;font-size:18px;padding:15px}
+ .section{padding:52px 0}
+ .wrap{padding-left:18px;padding-right:18px}
+ .panel,.contactbox{padding:22px}
+}
+@media(max-width:500px){
+ h1{font-size:clamp(32px,9vw,39px)}
+ .lead{font-size:18px}
+ .path-card h3{font-size:23px}
+ .hero-art{width:100%;margin-left:0}
+ .flip-card,.flip-card-inner{min-height:310px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 
@@ -759,11 +792,12 @@ footer a{
       Discover<span>AI</span>
     </a>
 
-    <div class="navlinks">
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">☰ Menu</button>
+    <div class="navlinks" id="primary-navigation">
       <a href="#about">About</a>
       <a href="#what">What AI Can Do</a>
-      <a href="#community">Community Program</a>
       <a href="personal-ai-services.html">Personal AI Services</a>
+      <a href="#community">Community Program (Free)</a>
       <a href="#game">AI Game</a>
       <a href="#practice">Practice Bill</a>
       <a href="#faq">FAQ</a>
@@ -779,7 +813,7 @@ footer a{
     <div>
 
       <div class="kicker">
-        Free Community AI Education
+        Personal AI Help &amp; Free Community Education
       </div>
 
       <h1>
@@ -796,17 +830,13 @@ footer a{
         Discover practical ways AI can make everyday life easier—no technology expertise required.</p>
 
       <p>
-        Free, beginner-friendly presentations for community organizations, seniors, and residents.</p>
+        Get personal help learning AI, or explore our free introductions for community groups.</p>
 
       <div class="actions">
 
-        <a class="btn game-hero-cta" href="game.html">
-          Play the AI Game
-        </a>
-
-        <a class="btn alt" href="#what">
-          See What AI Can Do
-        </a>
+        <a class="btn game-hero-cta" href="personal-ai-services.html">Personal AI Help — $65 / 60 min</a>
+        <a class="btn alt" href="#community">Free Community Introduction</a>
+        <a class="btn hero-game-link" href="game.html">Play the AI Game</a>
 
       </div>
 
@@ -828,19 +858,19 @@ footer a{
     <h2 id="paths-heading">Learn With Discover AI</h2>
     <p class="intro">Discover AI offers two distinct ways to learn. Choose the one that fits what you need.</p>
     <div class="path-cards">
+      <article class="path-card personal-path">
+        <p class="path-label">First Option — Personal AI Services</p>
+        <h3>Personal AI Setup &amp; Learning</h3>
+        <p>Patient, hands-on personal instruction for using AI on your own phone, tablet, or computer.</p>
+        <p><strong>$65 introductory rate · 60 minutes</strong></p>
+        <a class="btn alt" href="personal-ai-services.html">Explore Personal AI Services</a>
+      </article>
       <article class="path-card community-path">
-        <p class="path-label">Community Learning — FREE</p>
-        <h3>Free Community AI Education</h3>
+        <p class="path-label">Community Outreach — FREE · 30 minutes</p>
+        <h3>Free 30-Minute Community AI Introduction</h3>
         <p>For libraries, senior centers, nonprofits, and local groups that want a relaxed, beginner-friendly introduction to AI.</p>
         <p><strong>No sales. No upsell. Just practical community learning.</strong></p>
         <a class="btn" href="#community">Explore the Free Community Program</a>
-      </article>
-      <article class="path-card personal-path">
-        <p class="path-label">Personal AI Services — PAID</p>
-        <h3>One-on-One Setup &amp; Learning</h3>
-        <p>Patient, hands-on personal instruction for using AI on your own phone, tablet, or computer.</p>
-        <p><strong>60 minutes — $65</strong></p>
-        <a class="btn alt" href="personal-ai-services.html">Explore Personal AI Services</a>
       </article>
     </div>
   </div>
@@ -1629,6 +1659,17 @@ if (contactToggle && contactForm) {
 
 </script>
 
+<script>
+(function(){
+  const toggle=document.querySelector('.menu-toggle');
+  const menu=document.getElementById('primary-navigation');
+  if(!toggle||!menu)return;
+  function close(){menu.classList.remove('is-open');toggle.setAttribute('aria-expanded','false');}
+  toggle.addEventListener('click',function(){const open=menu.classList.toggle('is-open');toggle.setAttribute('aria-expanded',String(open));});
+  menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',close);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+})();
+</script>
 </body>
 </html>
 
