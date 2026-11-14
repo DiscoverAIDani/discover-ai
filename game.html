@@ -312,7 +312,7 @@ main{padding:12px 0 28px}
   <div class="top"><h1 id="gameHeading" tabindex="-1">Let’s Talk to AI</h1><p>You do not need the perfect words. Just tell AI what you want, and we will work it out together.</p><div class="game-intro"><span class="pill teal">5 follow-ups</span><span class="pill">Up to 100 points</span><span class="pill rose">No perfect prompts needed</span></div><div class="progress" id="progress" aria-live="polite">Start anywhere. You can change your mind as you go.</div></div>
   <div class="reward-row" id="rewardRow" role="group" aria-label="Achievement badges: swipe horizontally to view all five" tabindex="0"></div><div class="reward-swipe-hint" aria-hidden="true">Swipe sideways to see all 5 badges →</div>
   <div class="chat" id="chat" role="log" aria-label="Game conversation" aria-live="polite" aria-relevant="additions"></div>
-  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: button-stress-v56</span></div></div>
+  <div class="controls"><div class="choice-label" id="choiceLabel">Or pick a quick response</div><div class="choices" id="choices"></div><div class="row"><textarea id="input" placeholder="Type naturally — say what you mean in your own words..." aria-label="Your message"></textarea><button class="voice" id="voice" type="button" aria-label="Talk instead">🎤 Talk instead</button><button class="send" id="send" type="button">Send</button></div><div class="voice-status" id="voiceStatus" role="status" aria-live="polite"></div><button class="hint" id="hint" type="button" aria-expanded="false" aria-controls="examples">💡 Show me examples</button><div class="note">Practice simulation — type naturally. The game interprets your words and builds on the conversation. It is not connected to a live AI service. <span id="buildId" style="opacity:.58;white-space:nowrap;">Build: scheduling-messages-v57</span></div></div>
   <div class="challengebar"><div class="cbcopy"><div class="cbline"><div class="cbtitle" id="challengeTurn">Choose a starting point</div><div class="score-gain" id="feedback" role="status" aria-live="polite"></div></div><div class="cbmeter"><div class="cbfill" id="challengeFill"></div></div></div><div class="cbscore"><small>Score</small><strong id="challengeScore">0</strong></div></div>
 </section>
 <section class="panel results" id="results" aria-labelledby="resultsHeading"><h2 id="resultsHeading" tabindex="-1">You did it! 🎉</h2><div class="final-score" id="finalScore">0/100</div><div class="rank" id="rank">AI Explorer</div><p class="result-tip" id="resultText"></p><div class="summary" id="summary"></div><div class="realWorld"><h3>🌟 Want to try it for yourself?</h3><p>You’ve practiced how to have a helpful conversation here. Now you can try one of these real tools. You do not need perfect words — just start with what you want help with.</p><div class="platformGrid">
@@ -901,6 +901,151 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     return null;
   }
 
+  messageScheduleSlots(text){
+    const day='(?:(?:next|this|coming)\\s+)?(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|week(?:end)?)|today|tomorrow|tonight|later this week';
+    const date='(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?|\\d{1,2}/\\d{1,2}(?:/\\d{2,4})?';
+    const clock='(?:1[0-2]|0?[1-9])(?::[0-5]\\d)?\\s*(?:a\\.?m\\.?|p\\.?m\\.?)|\\d{1,2}:[0-5]\\d|noon|midnight';
+    const dayTime='(?:,?\\s+(?:at\\s+)?(?:'+clock+')|\\s+(?:at\\s+(?:1[0-2]|[1-9])|morning|afternoon|evening))?';
+    const pattern=new RegExp('\\b(?:(?:'+day+'|'+date+')\\b'+dayTime+'|'+clock+'\\b|at\\s+(?:1[0-2]|[1-9])\\b)','gi');
+    return Array.from(text.matchAll(pattern),m=>({
+      index:m.index,end:m.index+m[0].length,
+      value:m[0].replace(/^at\s+/i,'').replace(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,v=>v[0].toUpperCase()+v.slice(1).toLowerCase())
+        .replace(/,\s*(?=\d|noon\b|midnight\b)/i,' at ')
+        .replace(/(\d)\s*([ap])\.?m\.?/gi,(_,digit,period)=>digit+' '+period.toUpperCase()+'M')
+    }));
+  }
+
+  messageScheduleRequest(text){
+    const raw=String(text||'').trim();
+    const opening=raw.match(/^(?:(?:please|can you|could you|would you|help me|i need to|i want to|i'd like to)\s+)*(?:(?:write|draft|compose|put together)\s+(?:me\s+)?(?:(?:a|an|the)\s+)?(?:[\w-]+\s+){0,4}(message|text(?: message)?|email|note|reply)\b|(text|email|message)(?=\s))/i);
+    const ask=raw.match(/^(?:(?:how (?:do|can|should) i|(?:can you )?help me)\s+ask\b)/i);
+    const needsWording=/^i (?:need|want|have) to\b.*\bwhat should i (?:say|write|text)\b/i.test(raw);
+    if(!opening&&!ask&&!needsWording)return null;
+    const body=raw.slice((opening||ask)?.[0].length||0);
+    const action=body.match(/\b(reschedule|re-schedule|rearrange|move|push back|postpone|change (?:the )?time (?:of|for)|cancel|call off|confirm|double[- ]check|(?:check (?:if|whether)\s+)?we(?:['’]re| are) still on for)\b/i);
+    if(!action)return null;
+    const kind=/^(?:cancel|call off)$/i.test(action[1])?'cancel':/^(?:confirm|double|check|we)/i.test(action[1])?'confirm':'reschedule';
+    const after=body.slice(action.index+action[0].length);
+    const event=after.match(/^\s*(?:(?:my|our|the|a|an|this|that|your)\s+)?\b((?:(?:doctor(?:['’]s)?|dental|dentist(?:['’]s)?|team|work|staff|parent[- ]teacher|job|video|phone|coffee|birthday)\s+)?(?:coffee(?:\s+(?:date|catch[- ]up|meetup))?|breakfast|brunch|lunch|dinner|meeting|meetup|appointment|call|interview|lesson|class|study session|walk|playdate|plans|get[- ]together|catch[- ]up))\b/i);
+    if(!event||/\b(?:don't|do not|never)\s*$/i.test(body.slice(0,action.index)))return null;
+    const recipientText=body.slice(0,action.index);
+    const subject=event[1].toLowerCase();
+    const tail=after.slice(event.index+event[0].length);
+    const namedRecipient=recipientText.match(/(?:\bto\s+(?:ask\s+)?|\b(?:friend|coworker|neighbor|sister|brother|manager)\s+|^\s*)([A-Z][a-z]+(?:[-'][A-Z][a-z]+)?)(?=\s*(?:[,!:]|$|\b(?:asking|to|about|saying|that|and)\b))/);
+    const namedAttendee=tail.match(/^\s+with\s+([A-Z][a-z]+)(?=\s*(?:[,.!?]|$|\b(?:from|on|to|for|at|this|next)\b))/);
+    const name=namedRecipient?.[1]||namedAttendee?.[1]||'';
+    const reason=(tail.match(/\bbecause\s+([^.!?;]+)/i)||[])[1]?.trim()||'';
+    const timing=tail.split(/\bbecause\b/i)[0];
+    const slots=this.messageScheduleSlots(timing);
+    const [first,second,third]=slots;
+    const before=first?timing.slice(0,first.index):'';
+    const between=second?timing.slice(first.end,second.index):'';
+    const oldFirst=second&&/\bfrom\s*$/i.test(before)&&/\b(?:to|until)\b/i.test(between);
+    const oldSecond=second&&/\b(?:instead of|rather than)\b/i.test(between);
+    const available=first&&!/\b(?:can['’]t|cannot|not available|not free)\b[^.!?;]*$/i.test(before);
+    const proposed=available&&(/\b(?:to|for|until|can we do|how about|what about)\s*$/i.test(before)||/\binstead\b/i.test(timing.slice(first.end)));
+    const joinOptions=(start,next)=>next&&/^\s+or\s+$/i.test(timing.slice(start.end,next.index))?start.value+' or '+next.value:start.value;
+    const replacement=oldFirst?joinOptions(second,third):proposed?joinOptions(first,second):'';
+    const original=oldFirst?first.value:oldSecond?second.value:available&&!proposed&&!/[.!?]/.test(before)?first.value:'';
+    const channel=(opening?.[1]||opening?.[2]||'message').toLowerCase();
+    const low=this.normalize(raw);
+    const professional=/\b(?:professional|formal|polite)\b/.test(low)&&!/\b(?:less|not too)\s+formal\b/.test(low);
+    return{kind,subject,channel,name,reason,original:kind==='reschedule'?original:'',
+      proposed:kind==='reschedule'?replacement:first?.value||'',
+      tone:professional?'professional':/\bcasual\b/.test(low)?'casual':'friendly',
+      short:/\b(?:short|brief|concise)\b/.test(low),apology:kind==='cancel',awaitingTime:false};
+  }
+
+  messageScheduleDraft(context,opening=false){
+    const {kind,subject,name,original,proposed,reason,tone,short,apology,channel}=context;
+    const signoff=channel==='email';
+    const greeting=(tone==='casual'?'Hey':'Hi')+(name?' '+name:'')+(signoff?',':'!');
+    const subjectLabel=subject.endsWith('appointment')?'my '+subject:
+      /\b(?:date|meeting|call|interview|lesson|class|session|walk|playdate|plans|catch-up|meetup|get-together)$/.test(subject)?'our '+subject:subject;
+    const when=value=>{
+      if(!value)return '';
+      if(/^(?:\d|noon|midnight)/i.test(value)&&!value.includes('/'))return ' at '+value;
+      return (/^(?:today|tomorrow|tonight|next |this |coming |later )/i.test(value)?' ':' on ')+value;
+    };
+    let message='';
+    if(kind==='reschedule'){
+      const old=original?(proposed?' from '+original:when(original)):'';
+      const next=proposed?' '+(/^(?:\d{1,2}(?::\d{2})?(?:\s+[AP]M)?|noon|midnight)$/i.test(proposed)&&!original?'for ':'to ')+proposed:'';
+      const ask=tone==='professional'?(short?'Could we reschedule':'Would it be possible to reschedule'):
+        tone==='casual'?'Can we move':short?'Could we move':'Could we reschedule';
+      message=ask+' '+subjectLabel+old+next+'?';
+      if(!proposed&&!short)message+=' What day and time work for you?';
+      if(tone==='warm'&&!short)message+=' I’m looking forward to seeing you.';
+    }else if(kind==='cancel'){
+      const cancel=tone==='professional'&&!short?' need to cancel ':' have to cancel ';
+      message=(apology?'I’m sorry, but I':'I')+cancel+subjectLabel+when(proposed)+'.';
+      if(tone==='warm'&&!short)message+=' I hope we can get together another time.';
+    }else{
+      message=tone==='professional'?'Could you please confirm '+subjectLabel+when(proposed)+'?':
+        'Are we still on for '+subjectLabel+when(proposed)+'?';
+      if(tone==='warm'&&!short)message+=' I’m looking forward to it!';
+    }
+    if(kind!=='cancel'&&apology)message+=' Sorry for the change.';
+    if(reason){
+      message+=' '+reason.charAt(0).toUpperCase()+reason.slice(1)+'.';
+    }
+    const draft=greeting+(signoff?'\n\n':' ')+message+(signoff?'\n\nThanks,\n[Your name]':'');
+    this.s.draftText=draft;
+    return{say:(opening?'Here’s a draft you can use':'Here’s the revised draft')+'\n\n“'+draft+'”',
+      choices:[kind==='reschedule'?'Suggest a new time':'Change the time','Make it shorter','Make it warmer','Make it more professional']};
+  }
+
+  reviseMessageSchedule(text){
+    const context=this.s.messageSchedule;
+    if(this.s.stage!=='createPlan'||!context)return null;
+    const low=this.normalize(text);
+    if(/^(?:suggest a new time|change the time)[.!?]*$/.test(low)){
+      context.awaitingTime=true;
+      return{say:'What day or time would you like in the message?',choices:['Keep the current draft','Make it shorter','Make it warmer']};
+    }
+    if(/^keep the current draft[.!?]*$/.test(low)){
+      context.awaitingTime=false;
+      return this.messageScheduleDraft(context);
+    }
+    if(/^(?:(?:please|now|can you|could you|would you|help me|i want to|i need to)\s+)*(?:write|draft|compose|plan|explain|teach|compare|organize|find|fix)\b/.test(low))return null;
+    const detail=text.match(/\b(?:add|include|mention|say)\s+(?:that\s+)?((?:i|we|my|our|the)\b[^.!?;]+)/i)?.[1];
+    const slots=this.messageScheduleSlots(detail?text.slice(0,text.indexOf(detail)):text);
+    const dateOnly=slots[0]&&/^(?:(?:how about|what about|maybe|actually|instead|on|at)[,\s]+)*$/i.test(text.slice(0,slots[0].index))
+      &&/^(?:[\s,.!?]*|[\s,]+(?:instead|please)[.!?]*)$/i.test(text.slice(slots.at(-1).end));
+    const timeChange=/\b(?:suggest|instead|works?(?: better)?|available|free|make (?:it|that)|change (?:it|that)|move (?:it|that)|set (?:it|that)|how about|what about)\b/.test(low)
+      &&!/\b(?:not (?:free|available)|doesn't work|does not work|can't (?:make|do)|cannot (?:make|do))\b/.test(low);
+    const rejectedTime=slots[0]&&context.proposed&&this.normalize(context.proposed).startsWith(this.normalize(slots[0].value))
+      &&/\b(?:doesn['’]t work|does not work|can['’]t (?:make|do)|cannot (?:make|do)|not (?:free|available))\b/.test(low);
+    const removeTime=rejectedTime&&slots.length===1||/\b(?:leave (?:the )?(?:day|date|time) open|remove (?:the )?(?:day|date|time)|no specific (?:day|date|time)|ask what (?:works|time works))\b/.test(low);
+    const moreCasual=/\b(?:casual|less formal|relaxed)\b/.test(low);
+    const moreProfessional=!moreCasual&&/\b(?:professional|more formal|polite)\b/.test(low);
+    const warmer=/\b(?:warmer|friendlier|more friendly|more personal)\b/.test(low);
+    const shorter=/\b(?:shorter|shorten|more concise|briefer|one sentence|keep it short)\b/.test(low);
+    const dropReason=/\b(?:leave out|remove|drop|skip|omit|don't (?:say|mention|include)|no)\s+(?:the |my |a )?(?:reason|excuse|explanation)\b/.test(low);
+    const removeApology=/\b(?:no apolog(?:y|ies)|don't (?:apologize|say sorry)|without (?:an )?apology|remove (?:the )?apology)\b/.test(low);
+    const addApology=/\b(?:add (?:an )?apology|apologize|say sorry)\b/.test(low);
+    const channel=low.match(/\b(?:make it|turn it into|write it as|as)\s+(?:an?\s+)?(email|text(?: message)?|note)\b/)?.[1];
+    if(!(removeTime||rejectedTime||slots.length&&(context.awaitingTime||dateOnly||timeChange)||moreCasual||moreProfessional||warmer||shorter||dropReason||detail||removeApology||addApology||channel))return null;
+    if(channel)context.channel=channel;
+    if(removeTime)context.proposed='';
+    else if(slots.length&&(context.awaitingTime||dateOnly||timeChange||rejectedTime)){
+      const [first,second]=slots;
+      const firstIsOld=rejectedTime||/\b(?:not|from)\s*$/i.test(text.slice(0,first.index));
+      if(firstIsOld&&second)context.proposed=second.value;
+      else if(!firstIsOld)context.proposed=second&&/^\s+or\s+$/i.test(text.slice(first.end,second.index))?first.value+' or '+second.value:first.value;
+    }
+    if(removeTime||slots.length&&(context.awaitingTime||dateOnly||timeChange||rejectedTime))context.awaitingTime=false;
+    if(moreCasual)context.tone='casual';
+    else if(moreProfessional)context.tone='professional';
+    else if(warmer){context.tone='warm';context.short=false;}
+    if(shorter)context.short=true;
+    if(dropReason)context.reason='';
+    else if(detail)context.reason=detail.trim();
+    if(removeApology)context.apology=false;
+    else if(addApology)context.apology=true;
+    return this.messageScheduleDraft(context);
+  }
+
   contextualMessageDraft(raw,relation){
     // Draft from details already supplied by the user. Don't invent names or events.
     const low=this.normalize(raw);
@@ -919,6 +1064,11 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(landlord&&/\b(?:sink|faucet|tap|pipe|ceiling|roof|toilet)\b[^.!?]{0,70}\b(?:leak|leaking|dripping|broken|not working)\b|\b(?:leak|leaking|dripping)\b[^.!?]{0,50}\b(?:sink|faucet|tap|pipe|ceiling|roof|toilet)\b/.test(low)){
       const fixture=(low.match(/\b(?:kitchen sink|bathroom sink|sink|faucet|tap|pipe|ceiling|roof|toilet)\b/)||[])[0]||'sink';
       return 'Hi! I wanted to let you know the '+fixture+(/\b(?:broken|not working)\b/.test(low)?' is not working':' is leaking')+'. Could you please let me know when it could be checked or repaired? Thank you!';
+    }
+    const permission=raw.match(/\bask(?:ing)?\s+(?:(?:them|him|her|my\s+\w+)\s+)?(?:if|whether)\s+i\s+(?:can|could|may)\s+([^.!?;]+)/i)?.[1];
+    if(permission){
+      const request=permission.trim().replace(/\b(?:their|his|her)\s+(?=\w)/i,'your ');
+      return 'Hi! Would it be okay if I '+request+'? Thanks!';
     }
     const action=(raw.match(/\bask(?:ing)?\s+(?:them|him|her|my\s+\w+)\s+to\s+(.+?)(?:[.!?]|$)/i)||[])[1]||
       (raw.match(/\bask(?:ing)?\s+(?:if|whether)\s+(?:she|he|they|you)\s+(?:can|could|would)\s+(.+?)(?:[.!?]|$)/i)||[])[1];
@@ -2110,7 +2260,7 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
     if(/grocery|dinner|meal|week|schedule|organize|errand|shopping|home|house/.test(x))return'everyday';
     return'open';
   }
-  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;this.s.weekAppointment=null;this.s.trustContext=null;this.s.birthdayDinnerContext=null;this.s.sensitiveExposureContext=null;return this}
+  clearContext(){this.s.topic='';this.s.goal='';this.s.intent='';this.s.taskType='';this.s.location='';this.s.interest='';this.s.budget='';this.s.dates='';this.s.time='';this.s.currentDay=0;this.s.ingredients=[];this.s.mealCount=0;this.s.servings=0;this.s.details=[];this.s.stage='topic';this.s.facts=[];this.s.asked=[];this.s.sourceMode='';this.s.sourceKind='';this.s.sourceText='';this.s.transformSource='';this.s.transformFormat='';this.s.transformItems=[];this.s.memory={constraints:[],preferences:[],attempts:[],results:[],observations:[],requirements:[],avoid:[],presentation:[]};this.s.deviceContext=null;this.s.decisionContext=null;this.s.pendingDraftRevision='';this.s.multiMeal=null;this.s.securityContext=null;this.s.privacyContext=null;this.s.waterSafetyContext=null;this.s.medicationSafetyContext=null;this.s.reminderContext=null;this.s.utilityNoticeContext=null;this.s.departureContext=null;this.s.recipeConflictContext=null;this.s.emailReviewContext=null;this.s.discountCheck=null;this.s.unitPriceCheck=null;this.s.monthlyBudgetCalc=null;this.s.sharedBillCalc=null;this.s.workHoursCalc=null;this.s.createKind='';this.s.createRecipient='';this.s.draftText='';this.s.draftAwaitingDetail=false;this.s.invitationFacts=null;this.s.messageSchedule=null;this.s.excludedIngredients=[];this.s.allergyExclusions=[];this.s.topicStartAt=Math.max(0,(this.s.userTurns||[]).length-1);this.s.everydayCase=null;this.s.weekAppointment=null;this.s.trustContext=null;this.s.birthdayDinnerContext=null;this.s.sensitiveExposureContext=null;return this}
   switchTo(t){const clean=this.clean(t);const intent=this.detectIntent(clean);const cat=this.detectCategory(clean);this.clearContext();this.s.category=cat;this.s.intent=intent;this.updateUniversalMemory(clean);return this.routeIntent(clean,intent)}
   startChoice(t){
     const x=this.normalize(t);
@@ -3785,6 +3935,22 @@ I’m only using what the text actually says.`,choices:['Make it a checklist','W
         this.s.stage='dinnerPlan';this.s.intent='dinner';this.s.topic='an allergy-aware dinner';
         return{say:'Your meal request mentions '+[...new Set(conflict)].join(', ')+', which you said you are allergic to. I will not recommend cooking with those ingredients. We can choose a different meal using ingredients you know you can safely eat. Verify ingredient labels and cross-contact precautions; this practice game cannot certify food safety.',choices:['Choose another ingredient','Plan another meal']};
       }
+    }
+    // A request to draft a scheduling message is a writing task, even when it mentions a meal or appointment.
+    const messageSchedule=this.messageScheduleRequest(x);
+    if(messageSchedule){
+      this.clearContext();
+      this.s.category='create';this.s.intent='create';this.s.taskType='create';
+      this.s.stage='createPlan';this.s.createKind='scheduling message';this.s.topic='a message about '+messageSchedule.subject;
+      this.s.messageSchedule=messageSchedule;
+      return this.messageScheduleDraft(messageSchedule,true);
+    }
+    const revisedSchedule=this.reviseMessageSchedule(text);
+    if(revisedSchedule)return revisedSchedule;
+    if(this.s.messageSchedule&&/^(?:(?:please|help me|can you|could you)\s+)*(?:write|draft|compose)\b/.test(low)
+       &&this.detectIntent(x)==='create'){
+      this.clearContext();
+      return this.directAnswer(x,'create')||this.routeIntent(x,'create');
     }
     // Birthday dinner is an occasion/guest planning task, not an automatic recipe request.
     const birthdayFollowup=this.birthdayDinnerFollowup(text);if(birthdayFollowup)return birthdayFollowup;
@@ -5936,7 +6102,7 @@ function setupVoice(){
 setupVoice();
 
 send.addEventListener('click',submit);input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submit()}});startNew.onclick=()=>{send.disabled=false;input.disabled=false;voice.disabled=false;resetUI(true)};
-hint.onclick=()=>{const old=document.getElementById('examples');if(old){old.remove();hint.setAttribute('aria-expanded','false');return} hint.setAttribute('aria-expanded','true');const wrap=document.createElement('div');wrap.id='examples';wrap.className='example-grid';const key=engine.s.category||'open';const lists={open:[['💡','Explore AI','What can I use AI for in everyday life?'],['📅','Plan something','Help me plan my week.'],['🛒','Shopping','Help me make a grocery list for three dinners.'],['📖','Learn','Explain gardening in simple terms.']],everyday:[['🍳','Dinner','What can I make for dinner with what I have?'],['🛒','Groceries','Help me make a grocery list for three dinners.'],['📅','Organize','Help me organize my week.'],['🔧','Problem','Help me figure out how to lower a bill.']],travel:[['🗺️','Things to do','Help me find things to do in Sacramento.'],['🍽️','Eat','Help me find a good place to eat near me.'],['📍','Nearby','What are some interesting places near my hotel?'],['📅','Day plan','Help me plan a day with lunch and sightseeing.']],learn:[['📖','Simple','Explain gardening in simple terms.'],['🔎','Example','Give me an example of how that works.'],['👣','Step by step','Teach me how to do it step by step.'],['🧠','Practice','Quiz me on what I just learned.']],create:[['💭','Ideas','Give me some ideas for a birthday card.'],['⭐','Choose','Which idea would be easiest?'],['📝','Plan','Help me make a plan for it.'],['✨','Improve','How could I make this better?']],problem:[['🔧','Lower a bill','Help me figure out how to lower a bill.'],['💰','Save money','How can I save money on this?'],['📝','Plan','Help me make a plan to solve this.'],['❓','Understand','Help me understand what is happening.']]};const items=lists[key]||lists.open;items.forEach(it=>{const d=document.createElement('div');d.className='example-card';d.innerHTML='<div class="icon">'+it[0]+'</div><b>'+it[1]+'</b><p>'+it[2]+'</p><button class="use-example" type="button">Use this example</button>';d.querySelector('button').onclick=()=>{input.value=it[2];input.focus()};wrap.appendChild(d)});chat.appendChild(wrap);chat.scrollTop=chat.scrollHeight};
+hint.onclick=()=>{const old=document.getElementById('examples');if(old){old.remove();hint.setAttribute('aria-expanded','false');return} hint.setAttribute('aria-expanded','true');const wrap=document.createElement('div');wrap.id='examples';wrap.className='example-grid';const key=engine.s.category||'open';const lists={open:[['💡','Explore AI','What can I use AI for in everyday life?'],['📅','Plan something','Help me plan my week.'],['🛒','Shopping','Help me make a grocery list for three dinners.'],['📖','Learn','Explain gardening in simple terms.']],everyday:[['🍳','Dinner','What can I make for dinner with what I have?'],['🛒','Groceries','Help me make a grocery list for three dinners.'],['📅','Organize','Help me organize my week.'],['🔧','Problem','Help me figure out how to lower a bill.']],travel:[['🗺️','Things to do','Help me find things to do in Sacramento.'],['🍽️','Eat','Help me find a good place to eat near me.'],['📍','Nearby','What are some interesting places near my hotel?'],['📅','Day plan','Help me plan a day with lunch and sightseeing.']],learn:[['📖','Simple','Explain gardening in simple terms.'],['🔎','Example','Give me an example of how that works.'],['👣','Step by step','Teach me how to do it step by step.'],['🧠','Practice','Quiz me on what I just learned.']],create:[['💭','Ideas','Give me some ideas for a birthday card.'],['☕','Reschedule coffee','Help me write a friendly message asking to reschedule coffee.'],['📝','Plan','Help me make a plan for it.'],['✨','Improve','How could I make this better?']],problem:[['🔧','Lower a bill','Help me figure out how to lower a bill.'],['💰','Save money','How can I save money on this?'],['📝','Plan','Help me make a plan to solve this.'],['❓','Understand','Help me understand what is happening.']]};const items=lists[key]||lists.open;items.forEach(it=>{const d=document.createElement('div');d.className='example-card';d.innerHTML='<div class="icon">'+it[0]+'</div><b>'+it[1]+'</b><p>'+it[2]+'</p><button class="use-example" type="button">Use this example</button>';d.querySelector('button').onclick=()=>{input.value=it[2];input.focus()};wrap.appendChild(d)});chat.appendChild(wrap);chat.scrollTop=chat.scrollHeight};
 window.__discoverGame={engine,resetUI};resetUI();
 </script>
 </body>

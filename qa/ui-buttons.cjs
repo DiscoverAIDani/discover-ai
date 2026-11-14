@@ -44,5 +44,20 @@ for(const root of [null,...roots])for(let i=0;i<4;i++){
   get('send').click();check(()=>assert.equal(api.engine.s.userTurns.length,before+1));
   get('hint').click();check(()=>assert.equal(get('examples'),undefined));
 }
+// Submit a real drafting prompt, then revise it with a rendered suggestion and typed details.
+api.resetUI();
+get('choices').children.find(x=>x.textContent==='🎨 Create something').click();
+get('hint').click();
+const coffeeExample=get('examples').children.find(x=>x.innerHTML.includes('Reschedule coffee'));
+check(()=>assert(coffeeExample));
+coffeeExample.querySelector('button').click();
+get('send').click();
+check(()=>assert.match(get('chat').children.at(-1).innerHTML,/Could we reschedule coffee\?/));
+get('choices').children.find(x=>x.textContent==='Suggest a new time').click();
+check(()=>assert.match(get('chat').children.at(-1).innerHTML,/What day or time/));
+get('input').value='Friday at 2 p.m.';
+get('send').click();
+check(()=>assert.match(get('chat').children.at(-1).innerHTML,/Friday at 2 PM/));
+
 check(()=>assert.equal(errors.length,0,errors.join('\n')));
 console.log('Page button callback checks: '+checks+'/'+checks+' passed');

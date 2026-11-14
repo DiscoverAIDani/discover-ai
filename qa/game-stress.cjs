@@ -149,7 +149,7 @@ check('birthday clock not guests',['Help me plan a birthday dinner for six peopl
 check('birthday not-or cuisines',['Help me plan a birthday dinner for six people at a restaurant.','Not Italian or Mexican.','Review the plan'],['avoid cuisines: italian, mexican'],['cuisine: mexican'],{count:6,cuisine:null});
 check('birthday first-turn multiple exclusion',['Plan a birthday dinner for four people at a restaurant, not Italian or Mexican.','Review the plan'],['4 people','avoid cuisines: italian, mexican'],['cuisine: mexican'],{count:4,cuisine:null});
 check('birthday dense correction',['Help me plan a birthday dinner for six people.','Actually four people at a restaurant in Sacramento on Saturday at 6pm, quiet Thai, under $200.','Review the plan'],['4 people','restaurant','sacramento','saturday','6pm','thai','quiet','under $200'],[],{count:4,place:'restaurant',area:'sacramento',cuisine:'thai'});
-staticCheck('build ID v56',html.includes('Build: button-stress-v56'));
+staticCheck('build ID v57',html.includes('Build: scheduling-messages-v57'));
 
 
 check('birthday correction not six comma but four',['Help me plan a birthday dinner for six people at a restaurant.','Actually, not six, but four.','Review the plan'],['4 people'],['6 people'],{count:4});
@@ -220,5 +220,45 @@ check('button sale price asks amount',['Is a 20% discount on $50 really $35?','W
 check('button discount asks rate',['Is a 20% discount on $50 really $35?','What if the discount changes?'],['new discount percentage'],['does not match']);
 check('button creative avoids travel',['More creative ideas'],[],['trip','travel']);
 check('button travel fallback safe',['Add food'],['travel'],[]);
+
+const coffeeDraft='Help me write a friendly message asking to reschedule coffee.';
+const coffeeWithTimes='Write a friendly text to Julie asking if we can move coffee from Tuesday at 10 to Friday at 2 p.m.';
+check('coffee draft on first turn',[coffeeDraft],['“Hi! Could we reschedule coffee?','what day and time work for you'],['what is the main thing','[name]','sorry','tomorrow']);
+check('coffee under Create something',['🎨 Create something',coffeeDraft],['could we reschedule coffee'],['what is the main thing']);
+check('coffee after another topic',['Plan three dinners.',coffeeDraft],['could we reschedule coffee'],['suggested dinners']);
+check('coffee wording without write verb',['How do I ask my friend to reschedule coffee?'],['could we reschedule coffee'],[]);
+check('coffee first-person prompt',['I need to reschedule coffee. What should I text?'],['could we reschedule coffee'],[]);
+check('coffee bare plan remains a non-drafting task',['Reschedule coffee to Friday.'],[],['here’s a draft']);
+check('coffee time and recipient',[coffeeWithTimes],['hi julie','from tuesday at 10 to friday at 2 pm'],['[your name]']);
+check('coffee instead of original',['Draft a message to reschedule coffee with Julie to Friday instead of Tuesday.'],['hi julie','from tuesday to friday'],[]);
+check('coffee weekday with clock shorthand',['Write a text to move coffee to Friday, 2 p.m.'],['friday at 2 pm'],[]);
+check('coffee calendar date',['Can you draft a text asking to move coffee to Dec 2?'],['to dec 2'],['what day and time']);
+check('coffee shortened',[coffeeDraft,'Make it shorter.'],['could we move coffee?'],['what day and time']);
+check('coffee revised time',[coffeeDraft,'Suggest Friday at 2 p.m.','Actually, Monday at 11 works better.','Make it warmer.'],['monday at 11?','looking forward'],['friday','11 am','11 pm']);
+check('coffee button requests new time',[coffeeDraft,'Suggest a new time','Friday afternoon.'],['friday afternoon'],['what day and time work']);
+check('coffee correction drops stale time',[coffeeWithTimes,'Actually, make it Monday at 11, not Friday.'],['hi julie','from tuesday at 10 to monday at 11'],['friday']);
+check('coffee corrected weekday after from/to',[coffeeWithTimes,'Move it from Friday to Saturday at 1:30 PM.'],['from tuesday at 10 to saturday at 1:30 pm'],['friday']);
+check('coffee reason and date survive format change',[coffeeWithTimes,'Mention that I have a work conflict.','Make it an email.','Make it more professional.'],['hi julie,','would it be possible','friday at 2 pm','i have a work conflict','[your name]'],[]);
+check('coffee can remove an explanation',[coffeeWithTimes,'Mention that I have a work conflict.','No reason, please.'],['friday at 2 pm'],['work conflict']);
+check('coffee can leave date open',[coffeeWithTimes,'Leave the time open.'],['what day and time work for you'],['friday']);
+check('coffee supplied reason is kept',['Write a message to reschedule coffee to Friday because I have a work conflict.','Make it casual.'],['hey!','friday','i have a work conflict'],[]);
+check('coffee drafting context resets on a new draft',[coffeeWithTimes,'Write a birthday card for my sister.','Make it warmer.'],['happy birthday'],['coffee','julie','friday']);
+check('coffee drafting context resets on new topic',[coffeeWithTimes,'New topic: Plan three dinners.'],['suggested dinners'],['coffee','julie']);
+check('cancel dinner by text',['Help me text my friend to cancel dinner tonight.','No apology, please.'],['have to cancel dinner tonight'],['sorry','recipe']);
+check('cancel birthday dinner routes to writing',['Write a text to cancel a birthday dinner on Saturday.'],['cancel birthday dinner on saturday'],['how many people']);
+check('confirm lunch',['Draft a message to confirm lunch on Thursday at noon.','Make it warmer.'],['still on for lunch on thursday at noon','looking forward'],[]);
+check('confirm lunch in casual phrasing',['Write a text asking if we’re still on for lunch tomorrow.'],['still on for lunch tomorrow'],['what is the main thing']);
+check('reschedule dental appointment by email',['Write a polite email to my dentist asking to reschedule my appointment to next Tuesday.'],['reschedule my appointment to next tuesday','[your name]'],[]);
+check('reschedule work meeting',['Draft a professional email asking to move the team meeting from Monday at 9 AM to Wednesday at 3 PM.'],['team meeting from monday at 9 am to wednesday at 3 pm','[your name]'],[]);
+check('text asking permission',['Write a friendly text asking my neighbor if I can borrow their ladder.'],['if i borrow your ladder'],['what is the main thing']);
+
+
+check('coffee dates offered as options',['Help me draft a message to reschedule coffee. Can we do Friday or Saturday?'],['to friday or saturday'],['from friday']);
+check('coffee date not offered when unavailable',["Write a friendly text asking to reschedule coffee. I can't do Friday."],['what day and time work for you'],['friday']);
+check('coffee remove unavailable date',[coffeeWithTimes,"Friday doesn’t work anymore.","Make it warmer."],['what day and time work for you'],['friday']);
+check('coffee unavailable date followed by new option',[coffeeWithTimes,"Friday doesn't work. How about Saturday at 10 AM?"],['from tuesday at 10 to saturday at 10 am'],['friday']);
+check('coffee postponement',['Help me write a text asking to postpone coffee until next week.'],['to next week'],[]);
+check('coffee date with named recipient',['Write a friendly text to ask Sam to move our coffee date from Tuesday to Thursday at 3:30 p.m.'],['hi sam','our coffee date from tuesday to thursday at 3:30 pm'],[]);
+
 console.log('Discover AI automated stress checks: '+(total-failed.length)+'/'+total+' passed');
 if(failed.length){for(const problem of failed)console.error(problem);process.exitCode=1;}
